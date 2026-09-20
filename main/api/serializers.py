@@ -1,3 +1,0 @@
-from base.models import *
-
-
