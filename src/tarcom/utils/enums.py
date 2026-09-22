@@ -23,7 +23,9 @@ class AccountType(models.TextChoices):
 
 class Status(models.TextChoices):
     DRAFT = 'DRAFT', _('Draft')
-    POSTED = 'POSTED', _('Posted')
+    POSTED = 'POSTED', _('Posted / Confirmed')
+    PAID = 'PAID', _('Paid')
+    CANCELLED = 'CANCELLED', _('Cancelled')
 
 class Direction(models.TextChoices):
     SALE = 'SALE', _('Sales Invoice')
@@ -32,8 +34,12 @@ class Direction(models.TextChoices):
     SUPPLIER_RETURN = 'SUPPLIER_RETURN', _('Supplier Return')
     PROFORMA = 'PROFORMA', _('Proforma Invoice')
 
-class Status(models.TextChoices):
-    DRAFT = 'DRAFT', _('Draft')
-    POSTED = 'POSTED', _('Posted / Confirmed')
-    PAID = 'PAID', _('Paid')
-    CANCELLED = 'CANCELLED', _('Cancelled')
+class CodeTypes(models.TextChoices):
+    SIGNUP = 'SIGNUP'
+    RESET_PASSWORD = 'RESET_PASSWORD'
+    FORGET_PASSWORD = 'FORGET_PASSWORD'
+
+class UserType(models.TextChoices):
+    BUYER = 'buyer', 'Buyer'
+    SELLER = 'seller', 'Seller'
+    ADMIN = 'admin', 'Admin'

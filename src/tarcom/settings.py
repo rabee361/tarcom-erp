@@ -28,6 +28,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'base.CustomUser'
+
 
 # Application definition
 
@@ -42,8 +44,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'silk',
-    'base',
-    'api'
+    'tarcom.base',
+    'tarcom.api'
 ]
 
 MIDDLEWARE = [
@@ -134,11 +136,8 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'no-reply@tarcom.com'
 
 
 SIMPLE_JWT = {

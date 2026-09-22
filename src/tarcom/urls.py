@@ -5,7 +5,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('base.urls')),
+    path('api/auth/', include('tarcom.api.urls')),
+    path('api/', include('tarcom.base.urls')),
     path('silk/', include('silk.urls', namespace='silk')),
 ]
 

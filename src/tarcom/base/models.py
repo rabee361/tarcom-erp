@@ -2,6 +2,12 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from tarcom.utils.enums import *
+from tarcom.utils.helper import *
+from django.contrib.auth.models import AbstractUser
+from tarcom.utils.validators import PhoneNumberValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+from tarcom.utils.managers import CustomUserManager
 
 
 class TimeStampModel(models.Model):
@@ -11,6 +17,73 @@ class TimeStampModel(models.Model):
     class Meta:
         abstract = True
 
+class CustomUser(AbstractUser):
+    user_type = models.CharField(max_length=10, choices=UserType.choices, default=UserType.BUYER)
+    avatar = models.ImageField(upload_to='users/avatars/', blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True, validators=[PhoneNumberValidator])
+    email = models.EmailField(max_length=140, unique=True)
+    is_verified = models.BooleanField(default=False)
+
+    @property
+    def is_buyer(self):
+        return self.user_type == UserType.BUYER
+
+    @property
+    def is_admin(self):
+        return self.user_type == UserType.ADMIN
+
+    def clean(self):
+        if self.avatar and self.avatar.size > 2 * 1024 * 1024:  # 2MB in bytes
+            raise ValidationError('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت')
+
+        if self.avatar and not self.avatar.name.endswith(('.jpg', '.jpeg', '.png','webp', 'jfif')):
+            raise ValidationError('يجب أن يكون الصورة بصيغة jpg أو jpeg أو png أو webp')
+
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    def create_otp(self, code_type=CodeTypes.SIGNUP):
+        # Delete old unused codes of the same type for this email
+        OTPCode.objects.filter(email=self.email, code_type=code_type, is_used=False).delete()
+        
+        otp = OTPCode.objects.create(
+            code_type=code_type,
+            email=self.email,
+        )
+        return otp.code
+    
+class OTPCode(models.Model):
+    email = models.EmailField(max_length=255)
+    code = models.IntegerField(validators=[MinValueValidator(100000), MaxValueValidator(999999)], default=generate_code)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=get_expiration_time)
+    code_type = models.CharField(max_length=20, choices=CodeTypes.choices, default=CodeTypes.SIGNUP)
+    is_used = models.BooleanField(default=False)
+
+    @staticmethod
+    def check_limit(email):
+        return OTPCode.objects.filter(
+            email=email,
+            created_at__gt=timezone.now() - timezone.timedelta(minutes=15)
+        ).count() >= 5
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self) -> str:
+        return f"{self.email} - {self.code} ({self.code_type})"
+
+class FavouriteItem(TimeStampModel):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    material = models.ForeignKey('Material', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'material')
+        verbose_name = _("Favourite Item")
+        verbose_name_plural = _("Favourite Items")
 
 # ==========================================
 # 1. Master Data: Products & Warehouses
