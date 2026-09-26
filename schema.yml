@@ -1,0 +1,2433 @@
+openapi: 3.0.3
+info:
+  title: Tarcom E-Commerce API
+  version: 1.0.0
+  description: REST API for Tarcom E-Store and Flutter mobile application
+paths:
+  /api/auth/forget-password/:
+    post:
+      operationId: auth_forget_password_create
+      description: Generates a RESET_PASSWORD OTP for the given email.
+      summary: Start password recovery
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: Returns JWT tokens and the user profile for a verified, active
+        account.
+      summary: Log in with email and password
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/reset-password/:
+    post:
+      operationId: auth_reset_password_create
+      description: Accepts either a `code` (OTP) or a `reset_token` issued by verify-otp.
+      summary: Reset the account password
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/send-otp/:
+    post:
+      operationId: auth_send_otp_create
+      description: 'Rate limited: at most 5 codes per email within 15 minutes.'
+      summary: Send an OTP code by email
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/signup/:
+    post:
+      operationId: auth_signup_create
+      description: Creates an unverified user and generates a SIGNUP OTP code.
+      summary: Create a new account
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: POST a `refresh` token to obtain a new `access` token.
+      summary: Refresh the access token
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefreshResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/auth/verify-otp/:
+    post:
+      operationId: auth_verify_otp_create
+      description: 'SIGNUP: marks the account verified and returns JWT tokens. Password
+        flows: returns a signed `reset_token` valid for 10 minutes.'
+      summary: Verify an OTP code
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/categories/:
+    get:
+      operationId: categories_list
+      summary: List material categories
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Filter by parent category id, or one of `null`/`none`/`root`
+          for top-level categories.
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+    post:
+      operationId: categories_create
+      summary: Create a material category (admin only)
+      tags:
+      - Categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+  /api/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      summary: Retrieve a material category
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Material Category.
+        required: true
+      tags:
+      - Categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+    put:
+      operationId: categories_update
+      summary: Replace a material category (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Material Category.
+        required: true
+      tags:
+      - Categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      summary: Partially update a material category (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Material Category.
+        required: true
+      tags:
+      - Categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      summary: Delete a material category (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Material Category.
+        required: true
+      tags:
+      - Categories
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/categories/tree/:
+    get:
+      operationId: categories_tree_retrieve
+      description: Returns root categories with nested subcategories.
+      summary: Get the category tree
+      tags:
+      - Categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialCategory'
+          description: ''
+  /api/materials/:
+    get:
+      operationId: materials_list
+      summary: List materials (products)
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+        description: Filter by category id.
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: Filter by active flag (true/false).
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Material'
+          description: ''
+    post:
+      operationId: materials_create
+      summary: Create a material (product)
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+  /api/materials/{id}/:
+    get:
+      operationId: materials_retrieve
+      summary: Retrieve a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    put:
+      operationId: materials_update
+      summary: Replace a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    patch:
+      operationId: materials_partial_update
+      summary: Partially update a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    delete:
+      operationId: materials_destroy
+      summary: Delete a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/otp/forget-password/:
+    post:
+      operationId: otp_forget_password_create
+      description: Generates a RESET_PASSWORD OTP for the given email.
+      summary: Start password recovery
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForgetPasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/otp/reset-password/:
+    post:
+      operationId: otp_reset_password_create
+      description: Accepts either a `code` (OTP) or a `reset_token` issued by verify-otp.
+      summary: Reset the account password
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/otp/send-otp/:
+    post:
+      operationId: otp_send_otp_create
+      description: 'Rate limited: at most 5 codes per email within 15 minutes.'
+      summary: Send an OTP code by email
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/otp/verify-otp/:
+    post:
+      operationId: otp_verify_otp_create
+      description: 'SIGNUP: marks the account verified and returns JWT tokens. Password
+        flows: returns a signed `reset_token` valid for 10 minutes.'
+      summary: Verify an OTP code
+      tags:
+      - OTP & Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/products/:
+    get:
+      operationId: products_list
+      summary: List materials (products)
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+        description: Filter by category id.
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: Filter by active flag (true/false).
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Material'
+          description: ''
+    post:
+      operationId: products_create
+      summary: Create a material (product)
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+  /api/products/{id}/:
+    get:
+      operationId: products_retrieve
+      summary: Retrieve a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    put:
+      operationId: products_update
+      summary: Replace a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaterialRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    patch:
+      operationId: products_partial_update
+      summary: Partially update a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaterialRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+          description: ''
+    delete:
+      operationId: products_destroy
+      summary: Delete a material (product)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this material.
+        required: true
+      tags:
+      - Materials (Products)
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/units/:
+    get:
+      operationId: units_list
+      summary: List units of measure
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    post:
+      operationId: units_create
+      summary: Create a unit of measure (admin only)
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+  /api/units/{id}/:
+    get:
+      operationId: units_retrieve
+      summary: Retrieve a unit of measure
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    put:
+      operationId: units_update
+      summary: Replace a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    patch:
+      operationId: units_partial_update
+      summary: Partially update a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    delete:
+      operationId: units_destroy
+      summary: Delete a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/uoms/:
+    get:
+      operationId: uoms_list
+      summary: List units of measure
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    post:
+      operationId: uoms_create
+      summary: Create a unit of measure (admin only)
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+  /api/uoms/{id}/:
+    get:
+      operationId: uoms_retrieve
+      summary: Retrieve a unit of measure
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    put:
+      operationId: uoms_update
+      summary: Replace a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitOfMeasureRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    patch:
+      operationId: uoms_partial_update
+      summary: Partially update a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitOfMeasure'
+          description: ''
+    delete:
+      operationId: uoms_destroy
+      summary: Delete a unit of measure (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this unit of measure.
+        required: true
+      tags:
+      - Units of Measure
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/:
+    get:
+      operationId: users_list
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: List all users (admin only)
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: users_create
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: Create a user (admin only)
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: Retrieve a user (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_update
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: Replace a user (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: Partially update a user (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_destroy
+      description: |-
+        User administration (staff only) plus the authenticated user's own profile
+        at `/api/users/me/` (GET/PATCH).
+      summary: Delete a user (admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      description: Authenticated users can read and update their own profile (first
+        name, last name, phone, avatar).
+      summary: Get or update the current user's profile
+      tags:
+      - Users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    patch:
+      operationId: users_me_partial_update
+      description: Authenticated users can read and update their own profile (first
+        name, last name, phone, avatar).
+      summary: Get or update the current user's profile
+      tags:
+      - Users
+      requestBody:
+        content:
+          PATCH:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+components:
+  schemas:
+    CodeTypeEnum:
+      enum:
+      - SIGNUP
+      - RESET_PASSWORD
+      - FORGET_PASSWORD
+      type: string
+      description: |-
+        * `SIGNUP` - Signup
+        * `RESET_PASSWORD` - Reset Password
+        * `FORGET_PASSWORD` - Forget Password
+    ErrorResponse:
+      type: object
+      description: Loose schema for DRF validation and permission error payloads.
+      properties:
+        detail:
+          type: string
+        error:
+          type: string
+        non_field_errors:
+          type: array
+          items:
+            type: string
+    ForgetPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+      required:
+      - email
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+      - email
+      - password
+    Material:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 150
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 150
+        description:
+          type: string
+        description_en:
+          type: string
+          nullable: true
+          title: Description [en]
+        description_ar:
+          type: string
+          nullable: true
+          title: Description [ar]
+        category:
+          type: integer
+        category_name:
+          type: string
+          readOnly: true
+        category_detail:
+          allOf:
+          - $ref: '#/components/schemas/MaterialCategoryChild'
+          readOnly: true
+        uom:
+          type: integer
+        uom_name:
+          type: string
+          readOnly: true
+        uom_detail:
+          allOf:
+          - $ref: '#/components/schemas/UnitOfMeasure'
+          readOnly: true
+        supplier_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        consumer_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        is_active:
+          type: boolean
+        expire_date:
+          type: string
+          nullable: true
+        spec_key1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key5:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val5:
+          type: string
+          nullable: true
+          maxLength: 100
+        image1:
+          type: string
+          format: uri
+          nullable: true
+        image2:
+          type: string
+          format: uri
+          nullable: true
+        image3:
+          type: string
+          format: uri
+          nullable: true
+        image4:
+          type: string
+          format: uri
+          nullable: true
+        image5:
+          type: string
+          format: uri
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - category_detail
+      - category_name
+      - created_at
+      - id
+      - name
+      - uom
+      - uom_detail
+      - uom_name
+      - updated_at
+    MaterialCategory:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 100
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 100
+        parent:
+          type: integer
+          nullable: true
+        subcategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaterialCategoryChild'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - subcategories
+      - updated_at
+    MaterialCategoryChild:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 100
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 100
+        parent:
+          type: integer
+          nullable: true
+      required:
+      - id
+      - name
+    MaterialCategoryChildRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 100
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 100
+        parent:
+          type: integer
+          nullable: true
+      required:
+      - name
+    MaterialCategoryRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 100
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 100
+        parent:
+          type: integer
+          nullable: true
+      required:
+      - name
+    MaterialRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 150
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 150
+        description:
+          type: string
+        description_en:
+          type: string
+          nullable: true
+          title: Description [en]
+        description_ar:
+          type: string
+          nullable: true
+          title: Description [ar]
+        category:
+          type: integer
+        uom:
+          type: integer
+        supplier_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        consumer_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        is_active:
+          type: boolean
+        expire_date:
+          type: string
+          nullable: true
+        spec_key1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key5:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val5:
+          type: string
+          nullable: true
+          maxLength: 100
+        image1:
+          type: string
+          format: binary
+          nullable: true
+        image2:
+          type: string
+          format: binary
+          nullable: true
+        image3:
+          type: string
+          format: binary
+          nullable: true
+        image4:
+          type: string
+          format: binary
+          nullable: true
+        image5:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - category
+      - name
+      - uom
+    MessageResponse:
+      type: object
+      description: 'Standard informational response: {"message": "..."}'
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    PatchedMaterialCategoryRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 100
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 100
+        parent:
+          type: integer
+          nullable: true
+    PatchedMaterialRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 150
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 150
+        description:
+          type: string
+        description_en:
+          type: string
+          nullable: true
+          title: Description [en]
+        description_ar:
+          type: string
+          nullable: true
+          title: Description [ar]
+        category:
+          type: integer
+        uom:
+          type: integer
+        supplier_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        consumer_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        is_active:
+          type: boolean
+        expire_date:
+          type: string
+          nullable: true
+        spec_key1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_key5:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val1:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val2:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val3:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val4:
+          type: string
+          nullable: true
+          maxLength: 100
+        spec_val5:
+          type: string
+          nullable: true
+          maxLength: 100
+        image1:
+          type: string
+          format: binary
+          nullable: true
+        image2:
+          type: string
+          format: binary
+          nullable: true
+        image3:
+          type: string
+          format: binary
+          nullable: true
+        image4:
+          type: string
+          format: binary
+          nullable: true
+        image5:
+          type: string
+          format: binary
+          nullable: true
+    PatchedUnitOfMeasureRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 50
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 50
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+    PatchedUserProfileUpdateRequest:
+      type: object
+      description: Allowed fields for the authenticated user's own profile (`/api/users/me/`).
+      properties:
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        avatar:
+          type: string
+          format: binary
+          nullable: true
+    PatchedUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 140
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        avatar:
+          type: string
+          format: binary
+          nullable: true
+    ResetPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        code:
+          type: integer
+        reset_token:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          minLength: 1
+        new_password_confirm:
+          type: string
+          minLength: 1
+      required:
+      - email
+      - new_password
+      - new_password_confirm
+    SendOtpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        code_type:
+          $ref: '#/components/schemas/CodeTypeEnum'
+      required:
+      - code_type
+      - email
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          minLength: 1
+          default: ''
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          default: ''
+          maxLength: 150
+        phone:
+          type: string
+          minLength: 1
+          default: ''
+          maxLength: 20
+        user_type:
+          allOf:
+          - $ref: '#/components/schemas/UserTypeEnum'
+          default: buyer
+      required:
+      - email
+      - password
+    SignupResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+      - email
+      - message
+    TokenPair:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    TokenRefreshResponse:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+    TokenResponse:
+      type: object
+      description: JWT payload returned by login and signup verification.
+      properties:
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+        user:
+          $ref: '#/components/schemas/User'
+        message:
+          type: string
+      required:
+      - tokens
+      - user
+    UnitOfMeasure:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 50
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 50
+        code:
+          type: string
+          maxLength: 20
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - updated_at
+    UnitOfMeasureRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        name_en:
+          type: string
+          nullable: true
+          title: Name [en]
+          maxLength: 50
+        name_ar:
+          type: string
+          nullable: true
+          title: Name [ar]
+          maxLength: 50
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+      required:
+      - code
+      - name
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 140
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+        user_type:
+          allOf:
+          - $ref: '#/components/schemas/UserTypeEnum'
+          readOnly: true
+        is_verified:
+          type: boolean
+          readOnly: true
+      required:
+      - email
+      - id
+      - is_verified
+      - user_type
+    UserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 140
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        avatar:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - email
+    UserTypeEnum:
+      enum:
+      - buyer
+      - seller
+      - admin
+      type: string
+      description: |-
+        * `buyer` - Buyer
+        * `seller` - Seller
+        * `admin` - Admin
+    VerifyOtpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        code:
+          type: integer
+        code_type:
+          $ref: '#/components/schemas/CodeTypeEnum'
+      required:
+      - code
+      - code_type
+      - email
+    VerifyOtpResponse:
+      type: object
+      description: |-
+        Verify-OTP response.
+        SIGNUP flow returns `tokens` + `user`; password flows return a signed `reset_token`.
+      properties:
+        message:
+          type: string
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
+        user:
+          $ref: '#/components/schemas/User'
+        reset_token:
+          type: string
+      required:
+      - message
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

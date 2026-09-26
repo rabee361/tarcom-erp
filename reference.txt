@@ -1,0 +1,354 @@
+
+@extend_schema(tags=["Admin Users ViewSet"])
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = SuperUserSerializer
+    pagination_class = CustomPageNumberPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_expert', 'is_affiliate', 'is_student', 'is_verified', 'is_active']
+    search_fields = ['email', 'full_name', 'phone']
+    ordering_fields = ['id', 'email', 'full_name', 'created_at']
+    ordering = ['id']
+
+    def get_serializer_class(self):
+        if self.action == "create_admin":
+            return AdminUserCreateSerializer
+        elif self.action == "change_password":
+            return ChangePasswordSerializer
+        elif self.action == "forget_password":
+            return ForgetPasswordSerializer
+        elif self.action == "request_password_reset":
+            return PasswordResetOTPRequestSerializer
+        elif self.action == "confirm_password_reset":
+            return PasswordResetOTPConfirmSerializer
+        elif self.action == "complete_expert_profile":
+            return UserProfileSerializer
+        elif self.action == "edit_profile":
+            return UserProfileSerializer
+        elif self.action == "reset_password":
+            return PasswordResetSerializer
+        elif self.action == "become_expert":
+            return BecomeExpertSerializer
+        elif self.action == "activate_subscription":
+            return ActivateSubscriptionSerializer
+        elif self.action == "validate_role":
+            return RoleValidationSerializer
+        elif self.action == "set_partner":
+            return SetPartnerSerializer
+        else:
+            return self.serializer_class
+
+    def get_permissions(self):
+        admin_only_actions = {
+            "create",
+            "retrieve",
+            "update",
+            "partial_update",
+            "destroy",
+            "list",
+        }
+        if self.action in admin_only_actions:
+            return [IsAdminUser()]
+        return super().get_permissions()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(is_staff=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Soft delete user by setting is_active to False instead of permanent deletion.
+        """
+        user = self.get_object()
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+        return Response(
+            {"message": "User deactivated successfully"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+    @extend_schema(tags=["User"])
+    @action(detail=False, methods=["POST"], url_path="signup", url_name="signup")
+    def sign_up(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(is_staff=False)
+
+        return Response({
+            "message": "OTP sent",
+            "access_token": serializer._tokens.get("access_token"),
+            "refresh_token": serializer._tokens.get("refresh_token")
+        }, status=status.HTTP_201_CREATED)
+
+    @extend_schema(tags=["User"])
+    @action(detail=False, methods=["GET"], url_path="profile", url_name="profile")
+    def profile(self, request, *args, **kwargs):
+        user_profile, created = UserProfile.objects.get_or_create(
+            user=request.user,
+            role=_active_profile_role(request),
+        )
+        return Response({"data": UserProfileSerializer(user_profile, context={"request": request}).data})
+
+    @extend_schema(tags=["User"])
+    @action(
+        detail=False,
+        methods=["PATCH"],
+        url_path="edit-profile",
+        url_name="edit-profile",
+    )
+    def edit_profile(self, request, *args, **kwargs):
+        try:
+            user_profile, created = UserProfile.objects.get_or_create(
+                user=request.user,
+                role=_active_profile_role(request),
+            )
+            serializer = self.get_serializer(user_profile, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {"message": "Profile updated successfully", "data": serializer.data}
+            )
+        except UserProfile.DoesNotExist:
+            return Response(
+                {"message": "User profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @extend_schema(tags=["User"])
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="change-password",
+        url_name="change-password",
+        permission_classes=[IsAuthenticated],
+    )
+    def change_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(
+                {"detail": "Password updated successfully"},
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(tags=["User"])
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="forget-password",
+        url_name="forget-password",
+    )
+    def forget_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        login_type = serializer.validated_data.get('login_type')
+        redirect_url = serializer.validated_data.get('redirect_url')
+        language = serializer.validated_data.get('lang', 'en')
+        
+        if redirect_url:
+            reset_link = redirect_url
+        else:
+            if login_type == AuthCredential.LOGIN_AFFILIATE:
+                frontend_url = settings.AFFILATE_FRONTEND_DASHBOARD_URL
+            else:
+                frontend_url = settings.FRONTEND_URL
+
+            reset_link = f"{frontend_url}/{language}/auth/new-password"
+
+        OTPService.send_pass_reset_url(contact=serializer.validated_data['email'], link=reset_link, language=language)
+        return Response(
+            {"detail": "Password reset link sent to your contact."},
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(tags=["User"])
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="reset-password",
+        url_name="reset-password",
+    )
+    def reset_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"detail": "Password has been reset successfully"})
+
+    @extend_schema(
+        tags=["User"],
+        parameters=[
+            OpenApiParameter(
+                name='email',
+                type=OpenApiTypes.EMAIL,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='Email address to check'
+            )
+        ]
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="check-email",
+        url_name="check-email",
+        permission_classes=[AllowAny],
+    )
+    def check_email(self, request, *args, **kwargs):
+        email = request.query_params.get('email')
+        if not email:
+            return Response(
+                {"error": "Email parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        exists = User.objects.filter(email=email).exists()
+        if exists:
+            return Response({"message": _("User found")}, status=status.HTTP_200_OK)
+        else:
+            raise ValidationError({"email_or_phone": _("User not found")})
+
+    @extend_schema(tags=["User"])
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="expert-reset-password",
+        url_name="expert-reset-password",
+        permission_classes=[IsAuthenticated],
+    )
+    def expert_reset_password(self, request):
+        serializer = ExpertSupportPasswordSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"detail": "Password updated successfully."},
+            status=status.HTTP_200_OK
+        )
+
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'email': {'type': 'string', 'format': 'email'},
+                    'role': {'type': 'string', 'enum': ['expert', 'affiliate', 'assistant', 'student']}
+                },
+                'required': ['email', 'role']
+            }
+        },
+    )
+    @action(detail=False, methods=['post'], url_path='validate-role',  permission_classes=[AllowAny],)
+    def validate_role(self, request):
+        """
+        Validate if user with given email has the specified role.
+        Returns membership details if valid.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
+
+
+
+
+
+
+
+
+
+class OTPViewSet(viewsets.GenericViewSet):
+
+    def get_serializer_class(self):
+        if self.action == "send_otp":
+            return OTPRequestSerializer
+        elif self.action in {"verify_otp", "otp_status", "verify_login_otp"}:
+            return OTPVerifySerializer
+        return OTPSerializer
+
+    @action(detail=False, methods=["post"], url_path="send")
+    def send_otp(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+        contact = data['email']
+
+        try:
+            user = User.objects.get(email__iexact=contact)
+        except:
+            return Response({"message": "no user matches the given contact"}, status=404)
+        last_otp = OTP.objects.filter(user=user).last()
+        if not last_otp:
+            raise ValidationError(_("no otp exists for the given contact"))
+        
+        result = OTPService.send_otp(
+            user=user,
+            contact=data["email"],
+            service=last_otp.service,
+            language=data['lang'],
+        )
+        last_otp.delete()
+
+        if result["success"]:
+            return Response(
+                {"data": result, "message": [result["message"]]}, status=200
+            )
+        return Response({"data": {}, "message": [result["error"]]}, status=400)
+
+    @action(detail=False, methods=["post"], url_path="verify")
+    def verify_otp(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        otp = OTP.objects.get(code=request.data["otp_code"])
+        user = User.objects.get(email__iexact=request.data["email"])
+        result = OTPService.verify_otp(
+            user=user,
+            contact=request.data["email"],
+            otp_code=request.data["otp_code"],
+        )
+        if not result["success"]:
+            raise ValidationError(result["error"])
+
+        if otp.service == 'login':
+            return Response(
+                {**serializer.data, "message": _("Login succeeded.")},
+                status=200
+            )
+        if otp.service == 'signup':
+            user = User.objects.get(email__iexact=request.data["email"])
+            user.is_verified = True
+            user.save(update_fields=["is_verified"])
+            return Response(
+                {**serializer.data, "message": _("Account verified successfully.")},
+                status=200
+            )
+
+        return Response(serializer.data, status=200)
+
+    @action(detail=False, methods=["post"], url_path="status")
+    def otp_status(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        contact = serializer.validated_data["email"]
+
+        result = OTPService.get_otp_status(request.user, contact)
+        if result["success"]:
+            return Response(
+                {"data": result, "message": ["OTP status retrieved"]}, status=200
+            )
+        return Response({"data": {}, "message": [result["error"]]}, status=404)
