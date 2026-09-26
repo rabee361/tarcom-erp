@@ -1,20 +1,15 @@
-from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
-from .views import (
-    SignupView,
-    LoginView,
-    SendOtpView,
-    VerifyOtpView,
-    ForgetPasswordView,
-    ResetPasswordView,
-)
+from rest_framework.routers import DefaultRouter
+from .views import *
 
-urlpatterns = [
-    path('signup/', SignupView.as_view(), name='auth_signup'),
-    path('login/', LoginView.as_view(), name='auth_login'),
-    path('send-otp/', SendOtpView.as_view(), name='auth_send_otp'),
-    path('verify-otp/', VerifyOtpView.as_view(), name='auth_verify_otp'),
-    path('forget-password/', ForgetPasswordView.as_view(), name='auth_forget_password'),
-    path('reset-password/', ResetPasswordView.as_view(), name='auth_reset_password'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-]
+
+router = DefaultRouter()
+router.register(r'auth', AuthViewSet, basename='auth')
+router.register(r'otp', OTPViewSet, basename='otp')
+router.register(r'users', UserViewSet, basename='users')
+router.register(r'materials', MaterialViewSet, basename='materials')
+router.register(r'products', MaterialViewSet, basename='products')
+router.register(r'categories', MaterialCategoryViewSet, basename='categories')
+router.register(r'units', UnitOfMeasureViewSet, basename='units')
+router.register(r'uoms', UnitOfMeasureViewSet, basename='uoms')
+
+urlpatterns = router.urls
