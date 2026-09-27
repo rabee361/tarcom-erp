@@ -3,11 +3,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from drf_spectacular.utils import extend_schema_field
 from tarcom.base.models import CustomUser, OTPCode, UnitOfMeasure, MaterialCategory, Material
-from tarcom.base.translation import (
-    UnitOfMeasureTranslationOptions,
-    MaterialCategoryTranslationOptions,
-    MaterialTranslationOptions,
-)
+from tarcom.base.translation import *
 from tarcom.utils.enums import UserType, CodeTypes
 from tarcom.utils.helper import generate_code, get_expiration_time, send_otp_email
 from django.utils import timezone
@@ -298,4 +294,12 @@ class MaterialSerializer(TranslateModelSerializer):
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class SettingSerializer(TranslateModelSerializer):
+    translation_options = SettingTranslationOptions
+
+    class Meta:
+        model = Setting
+        fields = ['key','value','description']
 

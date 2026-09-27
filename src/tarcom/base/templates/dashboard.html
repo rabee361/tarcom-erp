@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="content-header">
+        <nav class="breadcrumb">
+            <a href="">لوحة التحكم</a>
+            <i class="separator fas fa-chevron-left"></i>
+        </nav>
+    </div>
+
+    <div class="stats-grid" id="dashboard-partial" hx-get="{% url 'dashboard-partial' %}" hx-trigger="load" hx-swap="innerHTML">
+
+    </div>
+</div>
+
+{% endblock %}

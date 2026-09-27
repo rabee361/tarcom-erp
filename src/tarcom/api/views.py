@@ -370,3 +370,13 @@ class MaterialViewSet(viewsets.ModelViewSet):
             qs = qs.filter(is_active=is_active.lower() in ['true', '1'])
         return qs
 
+
+@extend_schema_view(
+    retrieve=extend_schema(tags=['Settings']),
+    create=extend_schema(tags=['Settings'])
+)
+class SettingsViewSet(viewsets.ModelViewSet):
+    queryset = Setting.objects.all()
+    serializer_class = SettingSerializer
+    search_fields = ['key', 'key_en', 'key_ar']
+    ordering_fields = ['key']

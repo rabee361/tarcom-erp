@@ -1,14 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import (
-    CustomUser,
-    OTPCode,
-    UnitOfMeasure,
-    UnitConversion,
-    MaterialCategory,
-    Material,
-    FavouriteItem,
-)
+from .models import *
 
 
 @admin.register(CustomUser)
@@ -60,3 +52,9 @@ class MaterialAdmin(admin.ModelAdmin):
 class FavouriteItemAdmin(admin.ModelAdmin):
     list_display = ('user', 'material', 'created_at')
     search_fields = ('user__email', 'material__name')
+
+
+@admin.register(Setting)
+class SettingAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value')
+    search_fields = ('key',)

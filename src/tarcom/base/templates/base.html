@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <script>
+        // Check for saved theme preference
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+    </script>
+    <script rel="script" src="{% static 'assets/min/js/main.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/chat.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/copy_btn.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/theme.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
+    <script src="https://unpkg.com/htmx-ext-ws@2.0.2" integrity="sha384-vuKxTKv5TX/b3lLzDKP2U363sOAoRo5wSvzzc3LJsbaQRSBSS+3rKKHcOx5J8doU" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="description" content="Tarcom Dashboard - لوحة تحكم تاركم">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarcom - {% block title %}لوحة التحكم{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="container-body">
+
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Hamburger Menu Button -->
+    <button id="hamburgerMenu" class="hamburger-menu" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Add Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    {% if request.user.is_authenticated %}
+                        {% if request.user.avatar %}
+                            <img src="{{ request.user.avatar.url }}" alt="User Profile" class="profile-image">
+                        {% else %}
+                            <div class="profile-image default-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <div class="user-info">
+                            <h3>{{ request.user.get_full_name|default:request.user.email }}</h3>
+                            <p>{{ request.user.get_user_type_display|default:request.user.user_type }}</p>
+                        </div>
+                    {% else %}
+                        <div class="profile-image default-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-info">
+                            <h3>زائر</h3>
+                            <p>غير مسجل</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+
+                    <!-- Dashboard -->
+                    <div class="nav-item">
+                        <a href="{% url 'dashboard' %}">
+                            <div class="nav-header">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>لوحة التحكم</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Products & Categories -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span>المنتجات والتصنيفات</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">المنتجات والمواد</a>
+                            <a href="" class="sub-item">التصنيفات</a>
+                            <a href="" class="sub-item">وحدات القياس</a>
+                        </div>
+                    </div>
+
+                    <!-- Inventory & Warehouses -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fa-solid fa-warehouse"></i>
+                            <span>المخزون والمستودعات</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">المستودعات</a>
+                            <a href="" class="sub-item">أرصدة المخزون</a>
+                            <a href="" class="sub-item">حركات المخزون</a>
+                        </div>
+                    </div>
+
+                    <!-- Sales & Invoices -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                            <span>المبيعات والفواتير</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">الطلبات</a>
+                            <a href="" class="sub-item">فواتير المبيعات</a>
+                            <a href="" class="sub-item">فواتير الشراء</a>
+                            <a href="" class="sub-item">عروض الأسعار</a>
+                            <a href="" class="sub-item">المرتجعات</a>
+                        </div>
+                    </div>
+
+                    <!-- Users & Partners -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fas fa-users"></i>
+                            <span>المستخدمين والشركاء</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">المدراء</a>
+                            <a href="" class="sub-item">العملاء والمشترين</a>
+                            <a href="" class="sub-item">الموردين والبائعين</a>
+                        </div>
+                    </div>
+
+                    <!-- Finance & Accounting -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>المالية والحسابات</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">سندات القبض والدفع</a>
+                            <a href="" class="sub-item">دليل الحسابات</a>
+                            <a href="" class="sub-item">قيود اليومية</a>
+                        </div>
+                    </div>
+
+                    <!-- App & Marketing -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            <span>إدارة التطبيق والتسويق</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">العروض والخصومات</a>
+                            <a href="" class="sub-item">الإعلانات والبانرات</a>
+                            <a href="" class="sub-item">الإشعارات</a>
+                            <a href="" class="sub-item">المحادثات والدعم</a>
+                        </div>
+                    </div>
+
+                    <!-- Help Center & Content -->
+                    <div class="nav-item collapsible">
+                        <div class="nav-header">
+                            <i class="fas fa-question-circle"></i>
+                            <span>مركز المساعدة والمحتوى</span>
+                            <i class="fas fa-chevron-down arrow"></i>
+                        </div>
+                        <div class="nav-content">
+                            <a href="" class="sub-item">الأسئلة الشائعة</a>
+                            <a href="" class="sub-item">التواصل معنا</a>
+                            <a href="" class="sub-item">عن المتجر</a>
+                            <a href="" class="sub-item">الشروط والأحكام</a>
+                            <a href="" class="sub-item">سياسة الخصوصية</a>
+                        </div>
+                    </div>
+
+                    <!-- System Settings -->
+                    <div class="nav-item">
+                        <a href="">
+                            <div class="nav-header">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>إعدادات النظام</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Logout -->
+                    <div class="nav-item">
+                        <form action="" method="post" id="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>تسجيل الخروج</span>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+        
+</body>
+</html>

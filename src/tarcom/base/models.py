@@ -385,15 +385,13 @@ class Material(TimeStampModel):
 # 5. System Configuration
 # ==========================================
 
-# class Setting(TimeStampModel):
-#     key = models.CharField(max_length=100, unique=True)
-#     value = models.TextField()
-#     description = models.TextField(blank=True)
+class Setting(TimeStampModel):
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
-#     class Meta:
-#         verbose_name = _("Setting")
-#         verbose_name_plural = _("Settings")
-#         ordering = ['key']
+    class Meta:
+        ordering = ['key']
 
-#     def __str__(self):
-#         return self.key
+    def __str__(self):
+        return self.key

@@ -1,0 +1,127 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+
+{% block title %}إضافة أدمن{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="">المستخدمين</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'shareeks' %}">الأدمن</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>معلومات أدمن</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-grid">
+                <div class="form-section">
+                    
+                    <div class="form-group">
+                        <label>{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="error">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.password.label }}</label>
+                        <div class="password-field">
+                            {{ form.password }}
+                            <button type="button" class="password-toggle" data-target="{{ form.password.id_for_label }}">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="error">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.confirm_password.label }}</label>
+                        <div class="password-field">
+                            {{ form.confirm_password }}
+                            <button type="button" class="password-toggle" data-target="{{ form.confirm_password.id_for_label }}">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        {% if form.confirm_password.errors %}
+                            <div class="error">{{ form.confirm_password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="form-section">
+                    
+
+                    <div class="form-group">
+                        <label>{{ form.phonenumber.label }}</label>
+                        {{ form.phonenumber }}
+                        {% if form.phonenumber.errors %}
+                            <div class="error">{{ form.phonenumber.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.full_name.label }}</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <div class="error">{{ form.full_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group image-picker">
+                        <label>صورة  </label>
+                        <input type="file" id="image-upload" name="image" accept="image/*">
+                        <div class="image-preview">
+                            <img id="image-preview" width="100" height="100" src="{{ image.url }}" alt="Preview">
+                            {% if not image.url %}
+                                <div class="placeholder-text" id="placeholder-text">لا توجد صورة محددة</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">
+                حفظ
+            </button>
+            <a href="{% url 'admins' %}" class="btn btn-white">
+                إلغاء
+            </a>
+        </div>
+
+    </form>
+</div>
+<script>
+$(document).ready(function() {
+    $('#image-upload').on('change', function(e) {
+        var file = e.target.files[0];
+        var preview = $('#image-preview');
+        var placeholder = $('#placeholder-text');
+        
+        if (file) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.attr('src', e.target.result);
+                placeholder.hide();
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            placeholder.show();
+        }
+    });
+});
+</script>
+{% endblock %}

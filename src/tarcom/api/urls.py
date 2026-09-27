@@ -11,5 +11,6 @@ router.register(r'products', MaterialViewSet, basename='products')
 router.register(r'categories', MaterialCategoryViewSet, basename='categories')
 router.register(r'units', UnitOfMeasureViewSet, basename='units')
 router.register(r'uoms', UnitOfMeasureViewSet, basename='uoms')
+router.register(r'settings', SettingsViewSet, basename='settings')
 
 urlpatterns = router.urls
