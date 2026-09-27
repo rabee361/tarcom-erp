@@ -1,0 +1,42 @@
+services:
+  tarcom_app:
+    build:
+      context: ./tarcom
+      dockerfile: Dockerfile
+    container_name: tarcom
+    extends:
+      file: tarcom/docker-compose.yml
+      service: app
+    ports:
+      - "8000:8000"
+    env_file:
+      # - env/.${ENV_TYPE:-dev} edit
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - tarcom_db
+    volumes:
+      # - fill it
+    networks:
+      - kadnya
+
+  tarcom_db:
+    container_name: tarcom_db
+    extends:
+      file: docker-compose.yml
+      service: tarcom_db
+    volumes:
+      - tarcom-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+    networks:
+      - tarcom
+
+volumes:
+  tarcom-postgres-data:
+
+networks:
+  tarcom:
+    name: tarcom
+    driver: bridge
