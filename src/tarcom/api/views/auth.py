@@ -1,6 +1,7 @@
 from rest_framework import status, viewsets, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import Throttled, ValidationError
 from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, IsAuthenticated, SAFE_METHODS
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -209,10 +210,7 @@ class OTPViewSet(viewsets.GenericViewSet):
         email = serializer.validated_data['email']
         user = CustomUser.objects.get(email=email)
         if OTPCode.check_limit(email):
-            return Response(
-                {"error": "Too many requests. Please try again later."},
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
-            )
+            raise Throttled(detail="Too many requests. Please try again later.")
         code = user.create_otp(code_type=CodeTypes.RESET_PASSWORD)
         # send_otp_email(email, code, CodeTypes.RESET_PASSWORD)
         return Response({"message": "Password reset OTP sent to your email."})
@@ -235,16 +233,10 @@ class OTPViewSet(viewsets.GenericViewSet):
         if serializer.validated_data.get('reset_token'):
             try:
                 verified_email = signer.unsign(serializer.validated_data['reset_token'], max_age=600)
-                if verified_email != email:
-                    return Response(
-                        {"error": "Token does not match email."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
             except Exception:
-                return Response(
-                    {"error": "Invalid or expired reset token."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({"non_field_errors": ["Invalid or expired reset token."]})
+            if verified_email != email:
+                raise ValidationError({"non_field_errors": ["Token does not match email."]})
         else:
             code = serializer.validated_data['code']
             otp = OTPCode.objects.filter(
@@ -253,15 +245,9 @@ class OTPViewSet(viewsets.GenericViewSet):
                 is_used=False,
             ).first()
             if not otp:
-                return Response(
-                    {"error": "Invalid or already used OTP code."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({"non_field_errors": ["Invalid or already used OTP code."]})
             if otp.is_expired:
-                return Response(
-                    {"error": "OTP code has expired."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({"non_field_errors": ["OTP code has expired."]})
             otp.is_used = True
             otp.save()
 

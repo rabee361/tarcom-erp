@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
@@ -56,12 +57,12 @@ class FavouriteViewSet(viewsets.ModelViewSet):
     def toggle(self, request):
         material_id = request.data.get('material')
         if not material_id:
-            return Response({"error": "material field is required."}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"non_field_errors": ["material field is required."]})
 
         try:
             material = Material.objects.get(id=material_id, is_active=True)
         except (Material.DoesNotExist, ValueError, TypeError):
-            return Response({"error": "Active material not found."}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("Active material not found.")
 
         favourite = FavouriteItem.objects.filter(user=request.user, material=material).first()
         if favourite:
@@ -82,14 +83,14 @@ class FavouriteViewSet(viewsets.ModelViewSet):
         parameters=[
             OpenApiParameter(name='material', type=int, required=True, description='Material ID to check')
         ],
-        responses={200: FavouriteToggleResponseSerializer},
+        responses={200: FavouriteToggleResponseSerializer, 400: ErrorResponseSerializer},
         summary='Check if material is in favourites',
     )
     @action(detail=False, methods=['get'], url_path='check', url_name='check')
     def check(self, request):
         material_id = request.query_params.get('material')
         if not material_id:
-            return Response({"error": "material parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError({"non_field_errors": ["material parameter is required."]})
         is_fav = FavouriteItem.objects.filter(user=request.user, material_id=material_id).exists()
         return Response({"is_favourite": is_fav, "message": "Checked successfully."})
 
@@ -103,5 +104,5 @@ class FavouriteViewSet(viewsets.ModelViewSet):
     def remove_by_material(self, request, material_id=None):
         deleted_count, _ = FavouriteItem.objects.filter(user=request.user, material_id=material_id).delete()
         if deleted_count == 0:
-            return Response({"error": "Material is not in favourites."}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("Material is not in favourites.")
         return Response({"message": "Material removed from favourites."}, status=status.HTTP_200_OK)

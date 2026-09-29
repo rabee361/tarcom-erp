@@ -60,7 +60,8 @@ class LoginViewTest(TestCase):
         data = {'email': 'unverified@example.com', 'password': 'StrongPass123!'}
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('needs_verification', response.data)
+        self.assertEqual(response.data['status'], 'error')
+        self.assertIn('needs_verification', response.data['errors'])
 
 
 class VerifyOtpViewTest(TestCase):
@@ -175,14 +176,16 @@ class AuthViewSetTokenRefreshTest(TestCase):
 
     def test_token_refresh_invalid_token(self):
         # Matches rest_framework_simplejwt's TokenRefreshView behavior:
-        # an invalid refresh token yields 401 with a "detail" payload.
+        # an invalid refresh token yields 401 with the error envelope,
+        # where the original detail payload lives under `errors.detail`.
         response = self.client.post(
             '/api/auth/token/refresh/',
             {'refresh': 'not-a-valid-token'},
             format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
+        self.assertEqual(response.data['status'], 'error')
+        self.assertIn('detail', response.data['errors'])
 
 
 

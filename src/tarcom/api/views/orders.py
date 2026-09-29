@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
@@ -82,16 +83,14 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         if not (user.is_staff or getattr(user, 'is_admin', False)):
             if order.status != OrderStatus.PENDING:
-                return Response(
-                    {"error": "Orders can only be cancelled while in PENDING status."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError({"non_field_errors": [
+                    "Orders can only be cancelled while in PENDING status."
+                ]})
 
         if order.status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED]:
-            return Response(
-                {"error": f"Cannot cancel order with current status: {order.status}."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError({"non_field_errors": [
+                f"Cannot cancel order with current status: {order.status}."
+            ]})
 
         order.status = OrderStatus.CANCELLED
         order.save(update_fields=['status'])

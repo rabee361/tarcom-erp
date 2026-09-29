@@ -136,10 +136,11 @@ class VerifyOtpResponseSerializer(serializers.Serializer):
 
 
 class ErrorResponseSerializer(serializers.Serializer):
-    """Loose schema for DRF validation and permission error payloads."""
-    detail = serializers.CharField(required=False)
-    error = serializers.CharField(required=False)
-    non_field_errors = serializers.ListField(child=serializers.CharField(), required=False)
+    """Standard envelope returned for every DRF error response."""
+    status = serializers.CharField()
+    code = serializers.IntegerField()
+    message = serializers.CharField()
+    errors = serializers.JSONField()
 
 
 class SignupSerializer(serializers.Serializer):

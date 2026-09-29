@@ -7,8 +7,7 @@ paths:
   /api/auth/forget-password/:
     post:
       operationId: auth_forget_password_create
-      description: Generates a RESET_PASSWORD OTP for the given email.
-      summary: Start password recovery
+      summary: Start password recovery (backward-compatible alias)
       tags:
       - OTP & Password
       requestBody:
@@ -84,8 +83,7 @@ paths:
   /api/auth/reset-password/:
     post:
       operationId: auth_reset_password_create
-      description: Accepts either a `code` (OTP) or a `reset_token` issued by verify-otp.
-      summary: Reset the account password
+      summary: Reset the account password (backward-compatible alias)
       tags:
       - OTP & Password
       requestBody:
@@ -119,8 +117,7 @@ paths:
   /api/auth/send-otp/:
     post:
       operationId: auth_send_otp_create
-      description: 'Rate limited: at most 5 codes per email within 15 minutes.'
-      summary: Send an OTP code by email
+      summary: Send an OTP code by email (backward-compatible alias)
       tags:
       - OTP & Password
       requestBody:
@@ -235,9 +232,7 @@ paths:
   /api/auth/verify-otp/:
     post:
       operationId: auth_verify_otp_create
-      description: 'SIGNUP: marks the account verified and returns JWT tokens. Password
-        flows: returns a signed `reset_token` valid for 10 minutes.'
-      summary: Verify an OTP code
+      summary: Verify an OTP code (backward-compatible alias)
       tags:
       - OTP & Password
       requestBody:
@@ -450,6 +445,185 @@ paths:
               schema:
                 $ref: '#/components/schemas/MaterialCategory'
           description: ''
+  /api/favourites/:
+    get:
+      operationId: favourites_list
+      summary: List user favourites
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - Favourites
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FavouriteItem'
+          description: ''
+    post:
+      operationId: favourites_create
+      summary: Add material to favourites
+      tags:
+      - Favourites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteCreate'
+          description: ''
+  /api/favourites/{id}/:
+    get:
+      operationId: favourites_retrieve
+      summary: Retrieve favourite item details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this favourite item.
+        required: true
+      tags:
+      - Favourites
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteItem'
+          description: ''
+    delete:
+      operationId: favourites_destroy
+      summary: Remove item from favourites by favourite ID
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this favourite item.
+        required: true
+      tags:
+      - Favourites
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/favourites/check/:
+    get:
+      operationId: favourites_check_retrieve
+      summary: Check if material is in favourites
+      parameters:
+      - in: query
+        name: material
+        schema:
+          type: integer
+        description: Material ID to check
+        required: true
+      tags:
+      - Favourites
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteToggleResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/favourites/remove-by-material/{material_id}/:
+    delete:
+      operationId: favourites_remove_by_material_destroy
+      summary: Remove material from favourites by material ID
+      parameters:
+      - in: path
+        name: material_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Favourites
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/favourites/toggle/:
+    post:
+      operationId: favourites_toggle_create
+      description: If the material is already in favourites, it is removed; otherwise,
+        it is added.
+      summary: Toggle favourite status for a material
+      tags:
+      - Favourites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FavouriteCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteToggleResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/materials/:
     get:
       operationId: materials_list
@@ -481,7 +655,6 @@ paths:
       - Materials (Products)
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -510,7 +683,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -533,7 +705,6 @@ paths:
       - Materials (Products)
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -567,7 +738,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -600,7 +770,6 @@ paths:
               $ref: '#/components/schemas/PatchedMaterialRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -622,10 +791,202 @@ paths:
       - Materials (Products)
       security:
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
+  /api/orders/:
+    get:
+      operationId: orders_list
+      description: Buyers see only their own orders. Staff and admins see all orders
+        across the system.
+      summary: List orders
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: payment_status
+        schema:
+          type: string
+        description: Filter by payment status
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filter by order status
+      tags:
+      - Orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderList'
+          description: ''
+    post:
+      operationId: orders_create
+      summary: Create/place an order (Checkout)
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCreate'
+          description: ''
+  /api/orders/{id}/:
+    get:
+      operationId: orders_retrieve
+      summary: Retrieve order details with items
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+    patch:
+      operationId: orders_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+  /api/orders/{id}/cancel/:
+    post:
+      operationId: orders_cancel_create
+      description: Buyers can cancel their own order only while status is PENDING.
+        Admins can cancel anytime prior to delivery.
+      summary: Cancel an order
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/orders/{id}/status/:
+    patch:
+      operationId: orders_status_partial_update
+      description: Admins may update the order status, the payment status, or both
+        in a single call.
+      summary: Update order or payment status (Admin only)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this order.
+        required: true
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderStatusUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderStatusUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderStatusUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/otp/forget-password/:
     post:
       operationId: otp_forget_password_create
@@ -810,7 +1171,6 @@ paths:
       - Materials (Products)
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -839,7 +1199,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -862,7 +1221,6 @@ paths:
       - Materials (Products)
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -896,7 +1254,6 @@ paths:
         required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -929,7 +1286,6 @@ paths:
               $ref: '#/components/schemas/PatchedMaterialRequest'
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -949,6 +1305,152 @@ paths:
         required: true
       tags:
       - Materials (Products)
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/settings/:
+    get:
+      operationId: settings_list
+      tags:
+      - settings
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Setting'
+          description: ''
+    post:
+      operationId: settings_create
+      tags:
+      - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setting'
+          description: ''
+  /api/settings/{id}/:
+    get:
+      operationId: settings_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this setting.
+        required: true
+      tags:
+      - Settings
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setting'
+          description: ''
+    put:
+      operationId: settings_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this setting.
+        required: true
+      tags:
+      - settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SettingRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setting'
+          description: ''
+    patch:
+      operationId: settings_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this setting.
+        required: true
+      tags:
+      - settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setting'
+          description: ''
+    delete:
+      operationId: settings_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this setting.
+        required: true
+      tags:
+      - settings
       security:
       - jwtAuth: []
       - {}
@@ -1278,9 +1780,6 @@ paths:
   /api/users/:
     get:
       operationId: users_list
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: List all users (admin only)
       tags:
       - Users
@@ -1297,9 +1796,6 @@ paths:
           description: ''
     post:
       operationId: users_create
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: Create a user (admin only)
       tags:
       - Users
@@ -1327,9 +1823,6 @@ paths:
   /api/users/{id}/:
     get:
       operationId: users_retrieve
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: Retrieve a user (admin only)
       parameters:
       - in: path
@@ -1351,9 +1844,6 @@ paths:
           description: ''
     put:
       operationId: users_update
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: Replace a user (admin only)
       parameters:
       - in: path
@@ -1387,9 +1877,6 @@ paths:
           description: ''
     patch:
       operationId: users_partial_update
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: Partially update a user (admin only)
       parameters:
       - in: path
@@ -1422,9 +1909,6 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
-      description: |-
-        User administration (staff only) plus the authenticated user's own profile
-        at `/api/users/me/` (GET/PATCH).
       summary: Delete a user (admin only)
       parameters:
       - in: path
@@ -1440,14 +1924,92 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/users/change-password/:
+    post:
+      operationId: users_change_password_create
+      summary: Change current user's password
+      tags:
+      - Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/users/deactivate/:
+    post:
+      operationId: users_deactivate_create
+      summary: Deactivate account
+      tags:
+      - Profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountDeactivateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountDeactivateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountDeactivateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
   /api/users/me/:
     get:
       operationId: users_me_retrieve
-      description: Authenticated users can read and update their own profile (first
-        name, last name, phone, avatar).
+      description: Authenticated users can view and update their profile (first name,
+        last name, phone, avatar). DELETE deactivates the account after password confirmation.
       summary: Get or update the current user's profile
       tags:
-      - Users
+      - Profile
       security:
       - jwtAuth: []
       responses:
@@ -1456,6 +2018,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    put:
+      operationId: users_me_update
+      description: Authenticated users can view and update their profile (first name,
+        last name, phone, avatar). DELETE deactivates the account after password confirmation.
+      summary: Get or update the current user's profile
+      tags:
+      - Profile
+      requestBody:
+        content:
+          PUT:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+          PATCH:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+          DELETE:
+            schema:
+              $ref: '#/components/schemas/AccountDeactivateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
           description: ''
         '401':
           content:
@@ -1465,16 +2072,22 @@ paths:
           description: ''
     patch:
       operationId: users_me_partial_update
-      description: Authenticated users can read and update their own profile (first
-        name, last name, phone, avatar).
+      description: Authenticated users can view and update their profile (first name,
+        last name, phone, avatar). DELETE deactivates the account after password confirmation.
       summary: Get or update the current user's profile
       tags:
-      - Users
+      - Profile
       requestBody:
         content:
+          PUT:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileUpdateRequest'
           PATCH:
             schema:
               $ref: '#/components/schemas/PatchedUserProfileUpdateRequest'
+          DELETE:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountDeactivateRequest'
       security:
       - jwtAuth: []
       responses:
@@ -1484,6 +2097,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+    delete:
+      operationId: users_me_destroy
+      description: Authenticated users can view and update their profile (first name,
+        last name, phone, avatar). DELETE deactivates the account after password confirmation.
+      summary: Get or update the current user's profile
+      tags:
+      - Profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: ''
+  /api/users/me/avatar/:
+    delete:
+      operationId: users_me_avatar_destroy
+      summary: Remove current user's avatar
+      tags:
+      - Profile
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+          description: ''
         '401':
           content:
             application/json:
@@ -1492,6 +2160,37 @@ paths:
           description: ''
 components:
   schemas:
+    AccountDeactivateRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+    ChangePasswordRequest:
+      type: object
+      description: |-
+        Serializer for authenticated user changing password.
+        Requires current password confirmation and new password validation.
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        new_password_confirm:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - new_password
+      - new_password_confirm
+      - old_password
     CodeTypeEnum:
       enum:
       - SIGNUP
@@ -1504,16 +2203,70 @@ components:
         * `FORGET_PASSWORD` - Forget Password
     ErrorResponse:
       type: object
-      description: Loose schema for DRF validation and permission error payloads.
+      description: Standard envelope returned for every DRF error response.
       properties:
-        detail:
+        status:
           type: string
-        error:
+        code:
+          type: integer
+        message:
           type: string
-        non_field_errors:
-          type: array
-          items:
-            type: string
+        errors: {}
+      required:
+      - code
+      - errors
+      - message
+      - status
+    FavouriteCreate:
+      type: object
+      description: Write serializer for adding a material to favourites.
+      properties:
+        material:
+          type: integer
+          description: ID of the active material to favourite.
+      required:
+      - material
+    FavouriteCreateRequest:
+      type: object
+      description: Write serializer for adding a material to favourites.
+      properties:
+        material:
+          type: integer
+          description: ID of the active material to favourite.
+      required:
+      - material
+    FavouriteItem:
+      type: object
+      description: Read serializer with nested material details.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        material:
+          type: integer
+        material_detail:
+          allOf:
+          - $ref: '#/components/schemas/MaterialCompact'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - material
+      - material_detail
+    FavouriteToggleResponse:
+      type: object
+      properties:
+        is_favourite:
+          type: boolean
+        message:
+          type: string
+      required:
+      - is_favourite
+      - message
     ForgetPasswordRequest:
       type: object
       properties:
@@ -1805,6 +2558,48 @@ components:
           nullable: true
       required:
       - name
+    MaterialCompact:
+      type: object
+      description: Lightweight material representation for favourite and order item
+        listings.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        consumer_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        supplier_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        is_active:
+          type: boolean
+        image1:
+          type: string
+          format: uri
+          nullable: true
+        category:
+          type: integer
+        category_name:
+          type: string
+          readOnly: true
+        uom:
+          type: integer
+        uom_name:
+          type: string
+          readOnly: true
+      required:
+      - category
+      - category_name
+      - id
+      - name
+      - uom
+      - uom_name
     MaterialRequest:
       type: object
       description: |-
@@ -1925,6 +2720,292 @@ components:
           type: string
       required:
       - message
+    OrderCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order_number:
+          type: string
+          readOnly: true
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        shipping_address:
+          type: string
+        shipping_phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        notes:
+          type: string
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        discount_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - discount_amount
+      - id
+      - order_number
+      - subtotal
+      - total_amount
+    OrderCreateRequest:
+      type: object
+      properties:
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        shipping_address:
+          type: string
+        shipping_phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemInputRequest'
+          writeOnly: true
+      required:
+      - items
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order_number:
+          type: string
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        user_email:
+          type: string
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          readOnly: true
+        payment_status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          readOnly: true
+        shipping_address:
+          type: string
+          readOnly: true
+        shipping_phone:
+          type: string
+          readOnly: true
+          nullable: true
+        notes:
+          type: string
+          readOnly: true
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        discount_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemRead'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - discount_amount
+      - id
+      - items
+      - notes
+      - order_number
+      - payment_method
+      - payment_status
+      - shipping_address
+      - shipping_phone
+      - status
+      - subtotal
+      - total_amount
+      - updated_at
+      - user
+      - user_email
+      - user_name
+    OrderItemInput:
+      type: object
+      properties:
+        material:
+          type: integer
+          description: ID of the active material to purchase.
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Quantity ordered (must be greater than 0).
+      required:
+      - material
+      - quantity
+    OrderItemInputRequest:
+      type: object
+      properties:
+        material:
+          type: integer
+          description: ID of the active material to purchase.
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Quantity ordered (must be greater than 0).
+      required:
+      - material
+      - quantity
+    OrderItemRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        material:
+          type: integer
+          readOnly: true
+        material_name:
+          type: string
+          readOnly: true
+        material_image:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        uom_code:
+          type: string
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        discount_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - discount_amount
+      - id
+      - line_total
+      - material
+      - material_image
+      - material_name
+      - quantity
+      - unit_price
+      - uom_code
+    OrderList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        order_number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        payment_method:
+          allOf:
+          - $ref: '#/components/schemas/PaymentMethodEnum'
+          readOnly: true
+        payment_status:
+          allOf:
+          - $ref: '#/components/schemas/PaymentStatusEnum'
+          readOnly: true
+        total_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        items_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - items_count
+      - order_number
+      - payment_method
+      - payment_status
+      - status
+      - total_amount
+    PatchedAccountDeactivateRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
     PatchedMaterialCategoryRequest:
       type: object
       description: |-
@@ -2057,6 +3138,40 @@ components:
           type: string
           format: binary
           nullable: true
+    PatchedOrderStatusUpdateRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+    PatchedSettingRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 100
+        value:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          nullable: true
+        key_en:
+          type: string
+          nullable: true
+          title: Key [en]
+          maxLength: 100
+        key_ar:
+          type: string
+          nullable: true
+          title: Key [ar]
+          maxLength: 100
     PatchedUnitOfMeasureRequest:
       type: object
       description: |-
@@ -2084,7 +3199,9 @@ components:
           maxLength: 20
     PatchedUserProfileUpdateRequest:
       type: object
-      description: Allowed fields for the authenticated user's own profile (`/api/users/me/`).
+      description: |-
+        Allowed fields for the authenticated user's own profile (`/api/users/me/`).
+        Includes avatar format and file size validation (<= 2MB).
       properties:
         first_name:
           type: string
@@ -2130,6 +3247,28 @@ components:
           type: string
           format: binary
           nullable: true
+    PaymentMethodEnum:
+      enum:
+      - CASH
+      - BANK_TRANSFER
+      - CHECK
+      - CARD
+      type: string
+      description: |-
+        * `CASH` - Cash
+        * `BANK_TRANSFER` - Bank Transfer
+        * `CHECK` - Check
+        * `CARD` - Credit/Debit Card
+    PaymentStatusEnum:
+      enum:
+      - UNPAID
+      - PAID
+      - REFUNDED
+      type: string
+      description: |-
+        * `UNPAID` - Unpaid
+        * `PAID` - Paid
+        * `REFUNDED` - Refunded
     ResetPasswordRequest:
       type: object
       properties:
@@ -2164,6 +3303,64 @@ components:
       required:
       - code_type
       - email
+    Setting:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        key:
+          type: string
+          maxLength: 100
+        value:
+          type: string
+        description:
+          type: string
+          nullable: true
+        key_en:
+          type: string
+          nullable: true
+          title: Key [en]
+          maxLength: 100
+        key_ar:
+          type: string
+          nullable: true
+          title: Key [ar]
+          maxLength: 100
+      required:
+      - key
+      - value
+    SettingRequest:
+      type: object
+      description: |-
+        Base serializer integrating with django-modeltranslation TranslationOptions.
+        Automatically discovers and includes translated fields (e.g. name_en, name_ar)
+        based on the specified translation_options.
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 100
+        value:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          nullable: true
+        key_en:
+          type: string
+          nullable: true
+          title: Key [en]
+          maxLength: 100
+        key_ar:
+          type: string
+          nullable: true
+          title: Key [ar]
+          maxLength: 100
+      required:
+      - key
+      - value
     SignupRequest:
       type: object
       properties:
@@ -2208,6 +3405,22 @@ components:
       required:
       - email
       - message
+    StatusEnum:
+      enum:
+      - PENDING
+      - CONFIRMED
+      - PROCESSING
+      - SHIPPED
+      - DELIVERED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `CONFIRMED` - Confirmed
+        * `PROCESSING` - Processing
+        * `SHIPPED` - Shipped
+        * `DELIVERED` - Delivered
+        * `CANCELLED` - Cancelled
     TokenPair:
       type: object
       properties:
@@ -2357,6 +3570,30 @@ components:
       - id
       - is_verified
       - user_type
+    UserProfileUpdateRequest:
+      type: object
+      description: |-
+        Allowed fields for the authenticated user's own profile (`/api/users/me/`).
+        Includes avatar format and file size validation (<= 2MB).
+      properties:
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          nullable: true
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9]{7,15}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        avatar:
+          type: string
+          format: binary
+          nullable: true
     UserRequest:
       type: object
       properties:
