@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل الطلب{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'orders-list' %}">الطلبات</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>{{ order.order_number }}</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <div class="form-container">
+        <div class="form-grid">
+            <div class="form-section">
+                <div class="form-group">
+                    <label>رقم الطلب</label>
+                    <div>{{ order.order_number }}</div>
+                </div>
+                <div class="form-group">
+                    <label>العميل</label>
+                    <div>{{ order.user.get_full_name|default:order.user.email }}</div>
+                </div>
+                <div class="form-group">
+                    <label>الحالة</label>
+                    <div>
+                        <span class="status {% if order.status == 'CANCELLED' %}text-danger{% elif order.status == 'DELIVERED' %}text-success{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>حالة الدفع</label>
+                    <div>
+                        <span class="status {% if order.payment_status == 'PAID' %}text-success{% else %}text-danger{% endif %}">
+                            {{ order.get_payment_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>طريقة الدفع</label>
+                    <div>{{ order.get_payment_method_display }}</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>عنوان الشحن</label>
+                    <div>{{ order.shipping_address|default:"-" }}</div>
+                </div>
+                <div class="form-group">
+                    <label>هاتف الشحن</label>
+                    <div>{{ order.shipping_phone|default:"-" }}</div>
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات</label>
+                    <div>{{ order.notes|default:"-" }}</div>
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الإنشاء</label>
+                    <div>{{ order.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>المادة</th>
+                    <th>وحدة القياس</th>
+                    <th>الكمية</th>
+                    <th>سعر الوحدة</th>
+                    <th>الخصم</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.material.name }}</td>
+                    <td>{{ item.material.uom.code }}</td>
+                    <td>{{ item.quantity|floatformat:3 }}</td>
+                    <td>{{ item.unit_price|floatformat:2 }}</td>
+                    <td>{{ item.discount_amount|floatformat:2 }}</td>
+                    <td>{{ item.line_total|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">لا توجد مواد في هذا الطلب.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-container">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>المجموع الفرعي</td>
+                    <td>{{ order.subtotal|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>الخصم</td>
+                    <td>{{ order.discount_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>الإجمالي</td>
+                    <td><strong>{{ order.total_amount|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <form method="post" action="{% url 'order-status-update' order.pk %}">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-grid">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ status_form.status.label }}</label>
+                        {{ status_form.status }}
+                        {% if status_form.status.errors %}
+                            <div class="error">{{ status_form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ status_form.payment_status.label }}</label>
+                        {{ status_form.payment_status }}
+                        {% if status_form.payment_status.errors %}
+                            <div class="error">{{ status_form.payment_status.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">تحديث الحالة</button>
+            <a href="{% url 'orders-list' %}" class="btn btn-white">رجوع</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

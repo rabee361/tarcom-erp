@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}المستخدمون{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>المستخدمون</span>
+    </nav>
+</div>
+
+<div class="actions">
+    <div class="search-container">
+        <form method="get" class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" placeholder="بحث بالاسم أو البريد أو الهاتف" value="{{ request.GET.q }}">
+        </form>
+    </div>
+
+    <div class="actions-dropdown">
+        <div class="action-controls">
+            <form method="get" id="user-type-filter">
+                {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                <select name="user_type" onchange="document.getElementById('user-type-filter').submit()">
+                    <option value="">كل أنواع المستخدمين</option>
+                    <option value="buyer" {% if request.GET.user_type == 'buyer' %}selected{% endif %}>مشترٍ</option>
+                    <option value="seller" {% if request.GET.user_type == 'seller' %}selected{% endif %}>بائع</option>
+                    <option value="admin" {% if request.GET.user_type == 'admin' %}selected{% endif %}>مدير</option>
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>البريد الإلكتروني</th>
+                <th>الاسم الكامل</th>
+                <th>الهاتف</th>
+                <th>نوع المستخدم</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.email }}</td>
+                <td>{{ u.get_full_name|default:"-" }}</td>
+                <td>{{ u.phone|default:"-" }}</td>
+                <td>{{ u.get_user_type_display }}</td>
+                <td>
+                    <span class="status {% if u.is_active %}text-success{% else %}text-danger{% endif %}">
+                        {% if u.is_active %}نشط{% else %}موقوف{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'user-edit' u.pk %}" class="btn-white">تعديل</a>
+                        <a href="{% url 'user-delete' u.pk %}" class="btn-white">حذف</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">لا توجد نتائج.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="table-controls">
+    <div class="action-button-container">
+        <a href="{% url 'user-create' %}" class="btn btn-brown">إضافة</a>
+    </div>
+</div>
+
+{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% endblock %}

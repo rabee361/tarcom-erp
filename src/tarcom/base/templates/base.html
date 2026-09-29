@@ -41,27 +41,10 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="user-profile">
-                    {% if request.user.is_authenticated %}
-                        {% if request.user.avatar %}
-                            <img src="{{ request.user.avatar.url }}" alt="User Profile" class="profile-image">
-                        {% else %}
-                            <div class="profile-image default-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        {% endif %}
-                        <div class="user-info">
-                            <h3>{{ request.user.get_full_name|default:request.user.email }}</h3>
-                            <p>{{ request.user.get_user_type_display|default:request.user.user_type }}</p>
-                        </div>
-                    {% else %}
-                        <div class="profile-image default-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="user-info">
-                            <h3>زائر</h3>
-                            <p>غير مسجل</p>
-                        </div>
-                    {% endif %}
+                    <img src="{% static 'assets/images/tarcom_logo.png' %}" alt="User Profile" class="profile-image">
+                    <div class="user-info">
+                        <h3>{{ request.user.get_full_name|default:request.user.username }}</h3>
+                    </div>
                 </div>
             </div>
             
@@ -82,13 +65,13 @@
                     <div class="nav-item collapsible">
                         <div class="nav-header">
                             <i class="fa-solid fa-boxes-stacked"></i>
-                            <span>المنتجات والتصنيفات</span>
+                            <span>المنتجات</span>
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
                         <div class="nav-content">
-                            <a href="" class="sub-item">المنتجات والمواد</a>
-                            <a href="" class="sub-item">التصنيفات</a>
-                            <a href="" class="sub-item">وحدات القياس</a>
+                            <a href="{% url 'materials-list' %}" class="sub-item">المنتجات والمواد</a>
+                            <a href="{% url 'categories-list' %}" class="sub-item">التصنيفات</a>
+                            <a href="{% url 'units-list' %}" class="sub-item">وحدات القياس</a>
                         </div>
                     </div>
 
@@ -114,7 +97,7 @@
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
                         <div class="nav-content">
-                            <a href="" class="sub-item">الطلبات</a>
+                            <a href="{% url 'orders-list' %}" class="sub-item">الطلبات</a>
                             <a href="" class="sub-item">فواتير المبيعات</a>
                             <a href="" class="sub-item">فواتير الشراء</a>
                             <a href="" class="sub-item">عروض الأسعار</a>
@@ -130,7 +113,7 @@
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
                         <div class="nav-content">
-                            <a href="" class="sub-item">المدراء</a>
+                            <a href="{% url 'users-list' %}" class="sub-item">المدراء</a>
                             <a href="" class="sub-item">العملاء والمشترين</a>
                             <a href="" class="sub-item">الموردين والبائعين</a>
                         </div>
@@ -193,7 +176,7 @@
 
                     <!-- Logout -->
                     <div class="nav-item">
-                        <form action="" method="post" id="logout-form">
+                        <form action="{% url 'logout' %}" method="post" id="logout-form">
                             {% csrf_token %}
                             <button type="submit" class="logout-btn">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -207,6 +190,13 @@
         </aside>
 
         <main class="main-content">
+            {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="flash-message {% if message.tags == 'success' %}flash-success{% else %}flash-error{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% block content %}
             {% endblock %}
         </main>

@@ -58,3 +58,26 @@ class FavouriteItemAdmin(admin.ModelAdmin):
 class SettingAdmin(admin.ModelAdmin):
     list_display = ('key', 'value')
     search_fields = ('key',)
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 1
+    readonly_fields = ('line_total',)
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('order_number', 'user', 'status', 'payment_status', 'payment_method', 'total_amount', 'created_at')
+    list_filter = ('status', 'payment_status', 'payment_method', 'created_at')
+    search_fields = ('order_number', 'user__email', 'shipping_phone')
+    readonly_fields = ('order_number', 'subtotal', 'total_amount', 'created_at', 'updated_at')
+    inlines = [OrderItemInline]
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('order', 'material', 'quantity', 'unit_price', 'discount_amount', 'line_total')
+    list_filter = ('created_at',)
+    search_fields = ('order__order_number', 'material__name')
+    readonly_fields = ('line_total',)

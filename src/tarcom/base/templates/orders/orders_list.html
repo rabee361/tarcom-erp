@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الطلبات{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>الطلبات</span>
+    </nav>
+</div>
+
+<div class="actions">
+    <div class="search-container">
+        <form method="get" class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" placeholder="بحث برقم الطلب أو هاتف العميل" value="{{ request.GET.q }}">
+        </form>
+    </div>
+
+    <div class="actions-dropdown">
+        <div class="action-controls">
+            <form method="get" id="order-status-filter">
+                {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                <select name="status" onchange="document.getElementById('order-status-filter').submit()">
+                    <option value="">كل الحالات</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>رقم الطلب</th>
+                <th>العميل</th>
+                <th>الحالة</th>
+                <th>حالة الدفع</th>
+                <th>الإجمالي</th>
+                <th>تاريخ الإنشاء</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.user.email }}</td>
+                <td>
+                    <span class="status {% if order.status == 'CANCELLED' %}text-danger{% elif order.status == 'DELIVERED' %}text-success{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status {% if order.payment_status == 'PAID' %}text-success{% else %}text-danger{% endif %}">
+                        {{ order.get_payment_status_display }}
+                    </span>
+                </td>
+                <td>{{ order.total_amount|floatformat:2 }}</td>
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'order-detail' order.pk %}" class="btn-white">عرض</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">لا توجد طلبات.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% endblock %}

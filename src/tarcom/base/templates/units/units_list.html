@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}وحدات القياس{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>وحدات القياس</span>
+    </nav>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>اسم الوحدة</th>
+                <th>الرمز (Code)</th>
+                <th>عدد المنتجات</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for unit in units %}
+            <tr>
+                <td>{{ unit.name }}</td>
+                <td>{{ unit.code }}</td>
+                <td>{{ unit.materials.count }}</td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'unit-edit' unit.pk %}" class="btn-white">تعديل</a>
+                        <a href="{% url 'unit-delete' unit.pk %}" class="btn-white">حذف</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">لا توجد وحدات قياس.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="table-controls">
+    <div class="action-button-container">
+        <a href="{% url 'unit-create' %}" class="btn btn-brown">إضافة</a>
+    </div>
+</div>
+
+{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% endblock %}

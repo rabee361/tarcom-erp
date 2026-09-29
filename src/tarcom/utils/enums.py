@@ -43,3 +43,19 @@ class UserType(models.TextChoices):
     BUYER = 'buyer', 'Buyer'
     SELLER = 'seller', 'Seller'
     ADMIN = 'admin', 'Admin'
+
+
+class OrderStatus(models.TextChoices):
+    PENDING = 'PENDING', _('Pending')
+    CONFIRMED = 'CONFIRMED', _('Confirmed')
+    PROCESSING = 'PROCESSING', _('Processing')
+    SHIPPED = 'SHIPPED', _('Shipped')
+    DELIVERED = 'DELIVERED', _('Delivered')
+    CANCELLED = 'CANCELLED', _('Cancelled')
+
+
+class PaymentStatus(models.TextChoices):
+    UNPAID = 'UNPAID', _('Unpaid')
+    PAID = 'PAID', _('Paid')
+    REFUNDED = 'REFUNDED', _('Refunded')
+

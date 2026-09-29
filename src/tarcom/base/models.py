@@ -1,3 +1,5 @@
+import uuid
+from decimal import Decimal
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -8,6 +10,7 @@ from tarcom.utils.validators import PhoneNumberValidator
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from tarcom.utils.managers import CustomUserManager
+
 
 
 class TimeStampModel(models.Model):
@@ -395,3 +398,91 @@ class Setting(TimeStampModel):
 
     def __str__(self):
         return self.key
+
+
+# ==========================================
+# 6. Orders & Order Items
+# ==========================================
+
+class Order(TimeStampModel):
+    order_number = models.CharField(max_length=64,unique=True,db_index=True,editable=False,)
+    user = models.ForeignKey(CustomUser,on_delete=models.PROTECT,related_name='orders',)
+    status = models.CharField(max_length=20,choices=OrderStatus.choices,default=OrderStatus.PENDING,db_index=True,)
+    payment_method = models.CharField(max_length=20,choices=PaymentMethod.choices,default=PaymentMethod.CASH,)
+    payment_status = models.CharField(max_length=20,choices=PaymentStatus.choices,default=PaymentStatus.UNPAID,)
+    shipping_address = models.TextField(blank=True)
+    shipping_phone = models.CharField(max_length=20,blank=True,null=True,validators=[PhoneNumberValidator],)
+    notes = models.TextField(blank=True)
+    subtotal = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
+    discount_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
+    total_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.order_number} ({self.user.email})"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            for _ in range(5):
+                candidate = f"ORD-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+                if not Order.objects.filter(order_number=candidate).exists():
+                    self.order_number = candidate
+                    break
+        super().save(*args, **kwargs)
+
+    def calculate_totals(self, save_instance=True):
+        """
+        Recalculates subtotal and total_amount based on associated OrderItems.
+        """
+        items = self.items.all()
+        self.subtotal = sum(item.line_total for item in items) if items.exists() else Decimal('0.00')
+        self.total_amount = max(Decimal('0.00'), self.subtotal - (self.discount_amount or Decimal('0.00')))
+        if save_instance and self.pk:
+            self.save(update_fields=['subtotal', 'total_amount'])
+        return self.total_amount
+
+
+class OrderItem(TimeStampModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='order_items',)
+    quantity = models.DecimalField(max_digits=12,decimal_places=3,validators=[MinValueValidator(Decimal('0.001'))],)
+    unit_price = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
+    discount_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
+    line_total = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
+
+    class Meta:
+        unique_together = ('order', 'material')
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.material.name} x {self.quantity} ({self.order.order_number})"
+
+    def clean(self):
+        if self.quantity is not None and self.quantity <= 0:
+            raise ValidationError({'quantity': _("Quantity must be greater than zero.")})
+        if self.unit_price is not None and self.unit_price < 0:
+            raise ValidationError({'unit_price': _("Unit price cannot be negative.")})
+        if self.discount_amount is not None and self.discount_amount < 0:
+            raise ValidationError({'discount_amount': _("Discount amount cannot be negative.")})
+
+    def save(self, *args, **kwargs):
+        if not self.unit_price and self.material:
+            self.unit_price = self.material.consumer_price or Decimal('0.00')
+
+        qty = self.quantity or Decimal('0.000')
+        price = self.unit_price or Decimal('0.00')
+        disc = self.discount_amount or Decimal('0.00')
+        self.line_total = max(Decimal('0.00'), (qty * price) - disc)
+
+        super().save(*args, **kwargs)
+        if self.order_id:
+            self.order.calculate_totals()
+
+    def delete(self, *args, **kwargs):
+        order = self.order
+        super().delete(*args, **kwargs)
+        if order:
+            order.calculate_totals()
+

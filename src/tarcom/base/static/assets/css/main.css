@@ -339,13 +339,15 @@
 
 .user-profile {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     gap: 15px;
 }
 
 .profile-image {
-    width: 60px;
-    height: 60px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -358,7 +360,6 @@
 }
 
 .user-info p {
-    margin: 5px 0 0;
     font-size: 14px;
     color: var(--text-secondary);
 }
@@ -2071,4 +2072,69 @@ select.dropdown-checklist {
     color: var(--color-placeholder);
     font-size: 0.9rem;
     margin-top: 0.5rem;
+}
+
+
+/* ==========================================
+ * Dashboard utilities: flash messages, table row actions, textarea fields
+ * ========================================== */
+
+.flash-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.flash-message {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.flash-message.flash-error {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.flash-message.flash-success {
+    color: var(--color-success);
+    border-color: var(--color-success);
+}
+
+.row-actions {
+    display: flex;
+    gap: 0.35rem;
+    justify-content: center;
+}
+
+.form-group textarea {
+    padding: 0.5rem 0.55rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 90px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.form-group input[type="checkbox"] {
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: none;
+    line-height: normal;
+    accent-color: var(--accent-color);
+}
+
+.image-preview img.is-visible {
+    display: block;
 }

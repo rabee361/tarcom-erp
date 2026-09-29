@@ -1,17 +1,17 @@
 <!-- First Row: Core E-Commerce Stats -->
-<a href="#" class="stat-card">
+<a href="{% url 'materials-list' %}" class="stat-card">
     <h3>إجمالي المنتجات</h3>
     <div class="stat-number">{{ products_count|default:"0" }}</div>
     <div class="stat-wave"></div>
 </a>
 
-<a href="#" class="stat-card">
+<a href="{% url 'categories-list' %}" class="stat-card">
     <h3>التصنيفات</h3>
     <div class="stat-number">{{ categories_count|default:"0" }}</div>
     <div class="stat-wave"></div>
 </a>
 
-<a href="#" class="stat-card">
+<a href="{% url 'orders-list' %}" class="stat-card">
     <h3>الطلبات الجديدة</h3>
     <div class="stat-number">{{ orders_count|default:"0" }}</div>
     <div class="stat-wave"></div>
@@ -42,7 +42,7 @@
     <div class="stat-wave"></div>
 </a>
 
-<a href="#" class="stat-card">
+<a href="{% url 'users-list' %}" class="stat-card">
     <h3>المدراء والمشرفين</h3>
     <div class="stat-number">{{ admins_count|default:"0" }}</div>
     <div class="stat-wave"></div>

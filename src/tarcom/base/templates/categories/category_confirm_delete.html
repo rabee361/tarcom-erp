@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حذف تصنيف{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'categories-list' %}">التصنيفات</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>حذف تصنيف</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-container">
+            <p>هل أنت متأكد من حذف التصنيف <strong>{{ object.name }}</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">حذف</button>
+            <a href="{% url 'categories-list' %}" class="btn btn-white">إلغاء</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

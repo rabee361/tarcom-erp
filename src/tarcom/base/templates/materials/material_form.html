@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}تعديل مادة{% else %}إضافة مادة{% endif %}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'materials-list' %}">المنتجات والمواد</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>{% if object %}تعديل مادة{% else %}إضافة مادة{% endif %}</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-grid">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="error">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.name_en.label }}</label>
+                        {{ form.name_en }}
+                        {% if form.name_en.errors %}
+                            <div class="error">{{ form.name_en.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.name_ar.label }}</label>
+                        {{ form.name_ar }}
+                        {% if form.name_ar.errors %}
+                            <div class="error">{{ form.name_ar.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="error">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.uom.label }}</label>
+                        {{ form.uom }}
+                        {% if form.uom.errors %}
+                            <div class="error">{{ form.uom.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.supplier_price.label }}</label>
+                        {{ form.supplier_price }}
+                        {% if form.supplier_price.errors %}
+                            <div class="error">{{ form.supplier_price.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.consumer_price.label }}</label>
+                        {{ form.consumer_price }}
+                        {% if form.consumer_price.errors %}
+                            <div class="error">{{ form.consumer_price.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="error">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.description_en.label }}</label>
+                        {{ form.description_en }}
+                        {% if form.description_en.errors %}
+                            <div class="error">{{ form.description_en.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.description_ar.label }}</label>
+                        {{ form.description_ar }}
+                        {% if form.description_ar.errors %}
+                            <div class="error">{{ form.description_ar.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.is_active.label }}</label>
+                        {{ form.is_active }}
+                        {% if form.is_active.errors %}
+                            <div class="error">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group image-picker">
+                        <label>{{ form.image1.label }}</label>
+                        {{ form.image1 }}
+                        <div class="image-preview">
+                            <img id="image-preview" width="100" height="100"
+                                 src="{% if form.instance.image1 %}{{ form.instance.image1.url }}{% endif %}"
+                                 class="{% if form.instance.image1 %}is-visible{% endif %}" alt="Preview">
+                            {% if not form.instance.image1 %}
+                                <div class="placeholder-text" id="placeholder-text">لا توجد صورة محددة</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group image-picker">
+                        <label>{{ form.image2.label }}</label>
+                        {{ form.image2 }}
+                    </div>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">حفظ</button>
+            <a href="{% url 'materials-list' %}" class="btn btn-white">إلغاء</a>
+        </div>
+    </form>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#{{ form.image1.id_for_label }}').on('change', function(e) {
+        var file = e.target.files[0];
+        var preview = $('#image-preview');
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                preview.attr('src', ev.target.result).css('display', 'block');
+                $('#placeholder-text').hide();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.attr('src', '').css('display', 'none');
+            $('#placeholder-text').show();
+        }
+    });
+});
+</script>
+{% endblock %}

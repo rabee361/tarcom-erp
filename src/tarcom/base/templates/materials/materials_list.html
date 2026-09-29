@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}المنتجات والمواد{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>المنتجات والمواد</span>
+    </nav>
+</div>
+
+<div class="actions">
+    <div class="search-container">
+        <form method="get" class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" placeholder="بحث باسم المادة" value="{{ request.GET.q }}">
+        </form>
+    </div>
+
+    <div class="actions-dropdown">
+        <div class="action-controls">
+            <form method="get" id="material-category-filter">
+                {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                <select name="category" onchange="document.getElementById('material-category-filter').submit()">
+                    <option value="">كل التصنيفات</option>
+                    {% for category in categories %}
+                        <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>الصورة</th>
+                <th>الاسم</th>
+                <th>التصنيف</th>
+                <th>وحدة القياس</th>
+                <th>سعر المورد</th>
+                <th>سعر المستهلك</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %}
+            <tr>
+                <td>
+                    {% if material.image1 %}
+                        <img src="{{ material.image1.url }}" alt="{{ material.name }}" width="40" height="40">
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ material.name }}</td>
+                <td>{{ material.category.name }}</td>
+                <td>{{ material.uom }}</td>
+                <td>{{ material.supplier_price|floatformat:2 }}</td>
+                <td>{{ material.consumer_price|floatformat:2 }}</td>
+                <td>
+                    <span class="status {% if material.is_active %}text-success{% else %}text-danger{% endif %}">
+                        {% if material.is_active %}نشط{% else %}موقوف{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'material-edit' material.pk %}" class="btn-white">تعديل</a>
+                        <a href="{% url 'material-delete' material.pk %}" class="btn-white">حذف</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">لا توجد منتجات.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="table-controls">
+    <div class="action-button-container">
+        <a href="{% url 'material-create' %}" class="btn btn-brown">إضافة</a>
+    </div>
+</div>
+
+{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% endblock %}
