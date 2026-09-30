@@ -17,6 +17,7 @@ dependencies = [
     "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular>=0.30.0",
     "pillow>=12.3.0",
+    "requests>=2.34.2",
 ]
 
 [project.scripts]

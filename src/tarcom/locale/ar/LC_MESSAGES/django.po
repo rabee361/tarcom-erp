@@ -1,0 +1,532 @@
+# Arabic translations for tarcom.
+# Copyright (C) 2026 Tarcom
+# This file is distributed under the same license as the tarcom package.
+msgid ""
+msgstr ""
+"Project-Id-Version: tarcom 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-30 00:00+0000\n"
+"PO-Revision-Date: 2026-09-30 00:00+0000\n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: base/forms.py:112
+msgid "A password is required to create a new user."
+msgstr "كلمة المرور مطلوبة لإنشاء مستخدم جديد."
+
+#: api/serializers.py:156
+msgid "A user with this email already exists."
+msgstr "يوجد مستخدم بهذا البريد الإلكتروني بالفعل."
+
+#: api/views/auth.py:49
+msgid "Account created. Please verify your email."
+msgstr "تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني."
+
+#: api/views/auth.py:297, api/views/auth.py:344
+msgid "Account deactivated successfully."
+msgstr "تم تعطيل الحساب بنجاح."
+
+#: api/serializers.py:184
+msgid "Account not verified"
+msgstr "الحساب غير موثق"
+
+#: api/views/auth.py:185
+msgid "Account verified successfully."
+msgstr "تم التحقق من الحساب بنجاح."
+
+#: api/views/favourites.py:66
+msgid "Active material not found."
+msgstr "لم يتم العثور على مادة نشطة."
+
+#: api/views/favourites.py:79
+msgid "Added to favourites."
+msgstr "تمت الإضافة إلى المفضلة."
+
+#: utils/exceptions.py:47
+msgid "An error occurred."
+msgstr "حدث خطأ ما."
+
+#: settings.py:140
+msgid "Arabic"
+msgstr "العربية"
+
+#: utils/enums.py:18
+msgid "Asset"
+msgstr "الأصول"
+
+#: api/serializers.py:545
+msgid "At least one of status or payment_status must be provided."
+msgstr "يجب توفير الحالة أو حالة الدفع على الأقل."
+
+#: utils/exceptions.py:38
+msgid "Authentication required, please login to continue."
+msgstr "مطلوب تسجيل الدخول، يرجى تسجيل الدخول للمتابعة."
+
+#: api/serializers.py:52
+msgid "Avatar file must be one of: JPG, JPEG, PNG, WEBP, JFIF."
+msgstr "يجب أن تكون الصورة الشخصية بصيغة JPG أو JPEG أو PNG أو WEBP أو JFIF."
+
+#: api/views/auth.py:314
+msgid "Avatar removed successfully."
+msgstr "تمت إزالة الصورة الشخصية بنجاح."
+
+#: api/serializers.py:48
+msgid "Avatar size cannot exceed 2MB."
+msgstr "لا يمكن أن يتجاوز حجم الصورة الشخصية 2 ميجابايت."
+
+#: utils/enums.py:13
+msgid "Bank Transfer"
+msgstr "تحويل بنكي"
+
+#: utils/enums.py:28, utils/enums.py:54
+msgid "Cancelled"
+msgstr "ملغي"
+
+#: api/views/orders.py:93
+msgid "Cannot cancel order with current status: %(status)s."
+msgstr "لا يمكن إلغاء الطلب وحالته الحالية: %(status)s."
+
+#: utils/enums.py:12
+msgid "Cash"
+msgstr "نقدًا"
+
+#: utils/enums.py:14
+msgid "Check"
+msgstr "شيك"
+
+#: api/views/favourites.py:96
+msgid "Checked successfully."
+msgstr "تم الفحص بنجاح."
+
+#: utils/enums.py:50
+msgid "Confirmed"
+msgstr "مؤكد"
+
+#: utils/enums.py:15
+msgid "Credit/Debit Card"
+msgstr "بطاقة ائتمان/خصم"
+
+#: api/serializers.py:69, base/forms.py:65
+msgid "Current password is incorrect."
+msgstr "كلمة المرور الحالية غير صحيحة."
+
+#: utils/enums.py:33
+msgid "Customer Return"
+msgstr "مرتجع عميل"
+
+#: utils/enums.py:53
+msgid "Delivered"
+msgstr "تم التوصيل"
+
+#: base/models.py:468
+msgid "Discount amount cannot be negative."
+msgstr "لا يمكن أن يكون مبلغ الخصم سالبًا."
+
+#: utils/enums.py:25
+msgid "Draft"
+msgstr "مسودة"
+
+#: api/serializers.py:476
+msgid "Duplicate materials in single order are not allowed."
+msgstr "لا يُسمح بتكرار المواد في الطلب الواحد."
+
+#: api/serializers.py:247
+msgid "Either code or reset_token must be provided."
+msgstr "يجب توفير كود التحقق أو رمز إعادة التعيين."
+
+#: settings.py:139
+msgid "English"
+msgstr "الإنجليزية"
+
+#: utils/enums.py:20
+msgid "Equity"
+msgstr "حقوق الملكية"
+
+#: utils/enums.py:22
+msgid "Expense"
+msgstr "مصروف"
+
+#: base/models.py:115
+msgid "From and To units of measure must be different."
+msgstr "يجب أن تكون وحدتا القياس مختلفتين."
+
+#: api/serializers.py:406
+msgid "ID of the active material to favourite."
+msgstr "معرّف المادة النشطة المضافة إلى المفضلة."
+
+#: api/serializers.py:446
+msgid "ID of the active material to purchase."
+msgstr "معرّف المادة النشطة المراد شراؤها."
+
+#: base/models.py:43
+msgid "Image must be in JPG, JPEG, PNG or WEBP format."
+msgstr "يجب أن تكون الصورة بصيغة JPG أو JPEG أو PNG أو WEBP."
+
+#: base/models.py:40
+msgid "Image size must not exceed 2MB."
+msgstr "حجم الصورة يجب أن لا يتجاوز 2 ميجابايت."
+
+#: utils/enums.py:8
+msgid "Internal Transfer"
+msgstr "تحويل داخلي"
+
+#: utils/exceptions.py:43
+msgid "Internal server error. Please try again later."
+msgstr "خطأ داخلي في الخادم. يرجى المحاولة لاحقًا."
+
+#: api/serializers.py:181
+msgid "Invalid credentials."
+msgstr "بيانات الدخول غير صحيحة."
+
+#: api/serializers.py:220, api/views/auth.py:248
+msgid "Invalid or already used OTP code."
+msgstr "رمز التحقق غير صالح أو تم استخدامه مسبقًا."
+
+#: api/views/auth.py:237
+msgid "Invalid or expired reset token."
+msgstr "رمز إعادة التعيين غير صالح أو منتهي الصلاحية."
+
+#: utils/enums.py:19
+msgid "Liability"
+msgstr "الالتزامات"
+
+#: base/models.py:128
+msgid "Material Categories"
+msgstr "تصنيفات المواد"
+
+#: base/models.py:127
+msgid "Material Category"
+msgstr "تصنيف المادة"
+
+#: api/serializers.py:412
+msgid "Material is already in your favourites."
+msgstr "المادة موجودة بالفعل في المفضلة لديك."
+
+#: api/views/favourites.py:109
+msgid "Material is not in favourites."
+msgstr "المادة ليست في المفضلة."
+
+#: api/views/favourites.py:110
+msgid "Material removed from favourites."
+msgstr "تمت إزالة المادة من المفضلة."
+
+#: utils/exceptions.py:41
+msgid "Method not allowed."
+msgstr "الطريقة غير مسموح بها."
+
+#: api/serializers.py:76
+msgid "New password cannot be the same as current password."
+msgstr "لا يمكن أن تكون كلمة المرور الجديدة مطابقة لكلمة المرور الحالية."
+
+#: api/serializers.py:197, api/serializers.py:232
+msgid "No user found with this email."
+msgstr "لم يتم العثور على مستخدم بهذا البريد الإلكتروني."
+
+#: api/serializers.py:222, api/views/auth.py:250
+msgid "OTP code has expired."
+msgstr "انتهت صلاحية رمز التحقق."
+
+#: api/views/auth.py:159
+msgid "OTP code sent successfully."
+msgstr "تم إرسال رمز التحقق بنجاح."
+
+#: api/views/auth.py:195
+msgid "OTP verified. Use the reset token to reset your password."
+msgstr "تم التحقق من الرمز. استخدم رمز إعادة التعيين لإعادة تعيين كلمة المرور."
+
+#: api/views/orders.py:98
+msgid "Order #%(number)s cancelled successfully."
+msgstr "تم إلغاء الطلب رقم %(number)s بنجاح."
+
+#: api/serializers.py:472
+msgid "Order must contain at least one item."
+msgstr "يجب أن يحتوي الطلب على صنف واحد على الأقل."
+
+#: api/views/orders.py:88
+msgid "Orders can only be cancelled while in PENDING status."
+msgstr "يمكن إلغاء الطلبات فقط وهي في حالة الانتظار."
+
+#: utils/enums.py:27, utils/enums.py:59
+msgid "Paid"
+msgstr "مدفوع"
+
+#: api/views/auth.py:328
+msgid "Password changed successfully."
+msgstr "تم تغيير كلمة المرور بنجاح."
+
+#: api/serializers.py:92
+msgid "Password is incorrect."
+msgstr "كلمة المرور غير صحيحة."
+
+#: api/views/auth.py:216
+msgid "Password reset OTP sent to your email."
+msgstr "تم إرسال رمز إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+
+#: api/views/auth.py:256
+msgid "Password reset successfully. You can now log in."
+msgstr "تم إعادة تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول."
+
+#: api/serializers.py:74, api/serializers.py:245, base/forms.py:73, base/forms.py:114
+msgid "Passwords do not match."
+msgstr "كلمتا المرور غير متطابقتين."
+
+#: utils/enums.py:49
+msgid "Pending"
+msgstr "قيد الانتظار"
+
+#: utils/validators.py:6
+msgid "Phone number must be entered in the format: \"+999999999\". Up to 15 digits allowed."
+msgstr "يجب إدخال رقم الهاتف بالصيغة: \"+999999999\". يُسمح بحد أقصى 15 رقمًا."
+
+#: utils/enums.py:9
+msgid "Physical Count Adjustment"
+msgstr "تسوية الجرد الفعلي"
+
+#: utils/exceptions.py:37
+msgid "Please correct the errors in the form."
+msgstr "يرجى تصحيح الأخطاء في النموذج."
+
+#: utils/enums.py:26
+msgid "Posted / Confirmed"
+msgstr "مرحّل / مؤكد"
+
+#: utils/enums.py:51
+msgid "Processing"
+msgstr "قيد المعالجة"
+
+#: utils/enums.py:35
+msgid "Proforma Invoice"
+msgstr "فاتورة أولية"
+
+#: utils/enums.py:32
+msgid "Purchase Bill"
+msgstr "فاتورة شراء"
+
+#: base/models.py:464
+msgid "Quantity must be greater than zero."
+msgstr "يجب أن تكون الكمية أكبر من صفر."
+
+#: api/serializers.py:453
+msgid "Quantity ordered (must be greater than 0)."
+msgstr "الكمية المطلوبة (يجب أن تكون أكبر من 0)."
+
+#: utils/enums.py:60
+msgid "Refunded"
+msgstr "مسترد"
+
+#: api/views/favourites.py:73
+msgid "Removed from favourites."
+msgstr "تمت الإزالة من المفضلة."
+
+#: utils/exceptions.py:40
+msgid "Resource not found."
+msgstr "المورد غير موجود."
+
+#: utils/enums.py:21
+msgid "Revenue"
+msgstr "إيراد"
+
+#: utils/enums.py:31
+msgid "Sales Invoice"
+msgstr "فاتورة مبيعات"
+
+#: utils/exceptions.py:44
+msgid "Service unavailable. Please try again later."
+msgstr "الخدمة غير متاحة. يرجى المحاولة لاحقًا."
+
+#: utils/enums.py:52
+msgid "Shipped"
+msgstr "تم الشحن"
+
+#: utils/enums.py:6
+msgid "Stock In (Purchase/Return)"
+msgstr "إدخال مخزون (شراء/مرتجع)"
+
+#: utils/enums.py:7
+msgid "Stock Out (Sale/Disposal)"
+msgstr "إخراج مخزون (بيع/إتلاف)"
+
+#: utils/enums.py:34
+msgid "Supplier Return"
+msgstr "مرتجع مورد"
+
+#: api/views/auth.py:239
+msgid "Token does not match email."
+msgstr "الرمز لا يطابق البريد الإلكتروني."
+
+#: api/serializers.py:203
+msgid "Too many OTP requests. Please try again later."
+msgstr "طلبات رمز التحقق كثيرة جدًا. يرجى المحاولة لاحقًا."
+
+#: api/views/auth.py:213, utils/exceptions.py:42
+msgid "Too many requests. Please try again later."
+msgstr "طلبات كثيرة جدًا. يرجى المحاولة لاحقًا."
+
+#: base/models.py:110
+msgid "Unit Conversion"
+msgstr "تحويل الوحدات"
+
+#: base/models.py:111
+msgid "Unit Conversions"
+msgstr "تحويلات الوحدات"
+
+#: base/models.py:466
+msgid "Unit price cannot be negative."
+msgstr "لا يمكن أن يكون سعر الوحدة سالبًا."
+
+#: utils/enums.py:58
+msgid "Unpaid"
+msgstr "غير مدفوع"
+
+#: utils/exceptions.py:39
+msgid "You do not have permission to perform this action."
+msgstr "ليس لديك صلاحية لتنفيذ هذا الإجراء."
+
+#: api/views/favourites.py:61
+msgid "material field is required."
+msgstr "حقل المادة مطلوب."
+
+#: api/views/favourites.py:94
+msgid "material parameter is required."
+msgstr "معامل المادة مطلوب."
+
+#: base/forms.py:162
+msgid "اسم التصنيف"
+msgstr "اسم التصنيف"
+
+#: base/forms.py:100
+msgid "اسم العائلة"
+msgstr "اسم العائلة"
+
+#: base/forms.py:141
+msgid "اسم المادة"
+msgstr "اسم المادة"
+
+#: base/forms.py:174
+msgid "اسم الوحدة"
+msgstr "اسم الوحدة"
+
+#: base/forms.py:99
+msgid "الاسم الأول"
+msgstr "الاسم الأول"
+
+#: base/forms.py:142, base/forms.py:163, base/forms.py:175
+msgid "الاسم بالإنجليزية"
+msgstr "الاسم بالإنجليزية"
+
+#: base/forms.py:143, base/forms.py:164, base/forms.py:176
+msgid "الاسم بالعربية"
+msgstr "الاسم بالعربية"
+
+#: base/forms.py:98
+msgid "البريد الإلكتروني"
+msgstr "البريد الإلكتروني"
+
+#: base/forms.py:144
+msgid "التصنيف"
+msgstr "التصنيف"
+
+#: base/forms.py:165
+msgid "التصنيف الرئيسي (اختياري)"
+msgstr "التصنيف الرئيسي (اختياري)"
+
+#: base/forms.py:103
+msgid "الحساب نشط"
+msgstr "الحساب نشط"
+
+#: base/forms.py:152
+msgid "الصورة الرئيسية"
+msgstr "الصورة الرئيسية"
+
+#: base/forms.py:104
+msgid "الصورة الشخصية"
+msgstr "الصورة الشخصية"
+
+#: base/forms.py:148
+msgid "الوصف"
+msgstr "الوصف"
+
+#: base/forms.py:149
+msgid "الوصف بالإنجليزية"
+msgstr "الوصف بالإنجليزية"
+
+#: base/forms.py:150
+msgid "الوصف بالعربية"
+msgstr "الوصف بالعربية"
+
+#: base/forms.py:89, base/forms.py:91
+msgid "تأكيد كلمة المرور"
+msgstr "تأكيد كلمة المرور"
+
+#: base/forms.py:51, base/forms.py:53
+msgid "تأكيد كلمة المرور الجديدة"
+msgstr "تأكيد كلمة المرور الجديدة"
+
+#: base/forms.py:29
+msgid "تذكرني"
+msgstr "تذكرني"
+
+#: base/forms.py:189
+msgid "حالة الدفع"
+msgstr "حالة الدفع"
+
+#: base/forms.py:184
+msgid "حالة الطلب"
+msgstr "حالة الطلب"
+
+#: base/forms.py:101
+msgid "رقم الهاتف"
+msgstr "رقم الهاتف"
+
+#: base/forms.py:14
+msgid "رقم الهاتف أو البريد"
+msgstr "رقم الهاتف أو البريد"
+
+#: base/forms.py:12
+msgid "رقم الهاتف أو البريد الإلكتروني"
+msgstr "رقم الهاتف أو البريد الإلكتروني"
+
+#: base/forms.py:177
+msgid "رمز الوحدة (Code)"
+msgstr "رمز الوحدة (Code)"
+
+#: base/forms.py:147
+msgid "سعر المستهلك"
+msgstr "سعر المستهلك"
+
+#: base/forms.py:146
+msgid "سعر المورد"
+msgstr "سعر المورد"
+
+#: base/forms.py:153
+msgid "صورة إضافية"
+msgstr "صورة إضافية"
+
+#: base/forms.py:20, base/forms.py:22, base/forms.py:84, base/forms.py:86
+msgid "كلمة المرور"
+msgstr "كلمة المرور"
+
+#: base/forms.py:43, base/forms.py:45
+msgid "كلمة المرور الجديدة"
+msgstr "كلمة المرور الجديدة"
+
+#: base/forms.py:36, base/forms.py:38
+msgid "كلمة المرور الحالية"
+msgstr "كلمة المرور الحالية"
+
+#: base/forms.py:151
+msgid "نشط"
+msgstr "نشط"
+
+#: base/forms.py:102
+msgid "نوع المستخدم"
+msgstr "نوع المستخدم"
+
+#: base/forms.py:145
+msgid "وحدة القياس"
+msgstr "وحدة القياس"
+

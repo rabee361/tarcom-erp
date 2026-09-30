@@ -142,6 +142,11 @@ LANGUAGES = (
 
 LANGUAGE_CODE = 'en'
 
+# Project-wide translation catalogs (src/tarcom/locale/<lang>/LC_MESSAGES/django.mo).
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True

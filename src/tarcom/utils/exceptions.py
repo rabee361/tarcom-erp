@@ -3,7 +3,8 @@ from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.translation import gettext as _
-from tarcom.utils.translation import get_language_codes, translate_message
+from django.utils.translation import override
+from tarcom.utils.translation import canonical_msgid, get_language_codes, translate_message
 import logging
 import json
 
@@ -14,25 +15,38 @@ NON_FIELD_ERRORS_KEY = 'non_field_errors'
 ALL_ERRORS_KEY = '__all__'
 
 
-def get_error_summary(status_code, language_codes):
-    summaries = {
-        400: _("Please correct the errors in the form."),
-        401: _("Authentication required, please login to continue."),
-        403: _("You do not have permission to perform this action."),
-        404: _("Resource not found."),
-        405: _("Method not allowed."),
-        429: _("Too many requests. Please try again later."),
-        500: _("Internal server error. Please try again later."),
-        503: _("Service unavailable. Please try again later."),
+def _bilingual_json(message, language_codes):
+    """Render `message` as a ``{"en": ..., "ar": ...}`` JSON string.
+
+    The msgid is resolved once in its canonical English form, so the payload
+    does not depend on the language the request happens to be handled in.
+    """
+    canonical = canonical_msgid(message)
+    multilingual = {
+        lang_code: translate_message(canonical, lang_code)
+        for lang_code in language_codes
     }
-    
-    base_message = summaries.get(status_code, _("An error occurred."))
-    
-    multilingual = {}
-    for lang_code in language_codes:
-        multilingual[lang_code] = translate_message(base_message, lang_code)
-    
     return json.dumps(multilingual, ensure_ascii=False)
+
+
+def get_error_summary(status_code, language_codes):
+    # `_()` here is the eager gettext: build the lookup table with English
+    # forced, otherwise the active request language leaks into the msgid.
+    with override('en'):
+        summaries = {
+            400: _("Please correct the errors in the form."),
+            401: _("Authentication required, please login to continue."),
+            403: _("You do not have permission to perform this action."),
+            404: _("Resource not found."),
+            405: _("Method not allowed."),
+            429: _("Too many requests. Please try again later."),
+            500: _("Internal server error. Please try again later."),
+            503: _("Service unavailable. Please try again later."),
+        }
+
+        base_message = summaries.get(status_code, _("An error occurred."))
+
+    return _bilingual_json(base_message, language_codes)
 
 
 def translate_errors_recursively(errors, language_codes):
@@ -41,35 +55,21 @@ def translate_errors_recursively(errors, language_codes):
             field: translate_errors_recursively(field_errors, language_codes)
             for field, field_errors in errors.items()
         }
-    
+
     if isinstance(errors, list):
         # Check if this is a list of ErrorDetail objects
         if errors and hasattr(errors[0], 'code'):
             # Process ALL errors in the list (not just the first one)
-            translated_list = []
-            for error in errors:
-                multilingual_error = {}
-                for lang_code in language_codes:
-                    multilingual_error[lang_code] = translate_message(
-                        str(error), lang_code
-                    )
-                # Convert each error to a JSON string and add to array
-                translated_list.append(json.dumps(multilingual_error, ensure_ascii=False))
-            return translated_list
-        
+            return [_bilingual_json(error, language_codes) for error in errors]
+
         # Handle nested structures
         return [
             translate_errors_recursively(error, language_codes)
             for error in errors
         ]
-    
+
     # Single error message (edge case) - wrap in array for consistency
-    multilingual_error = {}
-    for lang_code in language_codes:
-        multilingual_error[lang_code] = translate_message(
-            str(errors), lang_code
-        )
-    return [json.dumps(multilingual_error, ensure_ascii=False)]
+    return [_bilingual_json(errors, language_codes)]
 
 
 def _normalize_validation_errors(data):

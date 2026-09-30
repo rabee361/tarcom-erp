@@ -62,7 +62,7 @@ class DashboardChangePasswordForm(forms.Form):
     def clean_old_password(self):
         old_password = self.cleaned_data.get('old_password')
         if not self.user.check_password(old_password):
-            raise ValidationError(_("كلمة المرور الحالية غير صحيحة."))
+            raise ValidationError(_("Current password is incorrect."))
         return old_password
 
     def clean(self):
@@ -70,7 +70,7 @@ class DashboardChangePasswordForm(forms.Form):
         p1 = cleaned_data.get('new_password1')
         p2 = cleaned_data.get('new_password2')
         if p1 and p2 and p1 != p2:
-            raise ValidationError({'new_password2': _("كلمتا المرور غير متطابقتين.")})
+            raise ValidationError({'new_password2': _("Passwords do not match.")})
         return cleaned_data
 
     def save(self):
@@ -109,9 +109,9 @@ class UserForm(forms.ModelForm):
         password = cleaned_data.get('password')
         confirm = cleaned_data.get('confirm_password')
         if not self.instance.pk and not password:
-            self.add_error('password', _("كلمة المرور مطلوبة لإنشاء مستخدم جديد."))
+            self.add_error('password', _("A password is required to create a new user."))
         if password and password != confirm:
-            self.add_error('confirm_password', _("كلمتا المرور غير متطابقتين."))
+            self.add_error('confirm_password', _("Passwords do not match."))
         return cleaned_data
 
     def save(self, commit=True):

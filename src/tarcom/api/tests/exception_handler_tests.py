@@ -50,6 +50,51 @@ class CustomExceptionHandlerTest(TestCase):
         self.assertEqual(response.data['errors'], {})
 
 
+class BilingualEnvelopeTest(TestCase):
+    """`message` and every `errors` leaf must carry both languages, and must not
+    depend on the language the request was handled in (Accept-Language)."""
+
+    def assert_leaf_bilingual(self, leaf):
+        parsed = json.loads(leaf)
+        self.assertEqual(set(parsed.keys()), {'en', 'ar'})
+        self.assertNotEqual(parsed['en'], parsed['ar'])
+
+    def test_unauthenticated_error_is_bilingual_for_both_accept_languages(self):
+        snapshots = {}
+        for lang in ('en', 'ar'):
+            client = APIClient()
+            response = client.get('/api/orders/', HTTP_ACCEPT_LANGUAGE=lang)
+            assert_envelope(self, response, status.HTTP_401_UNAUTHORIZED)
+            self.assert_leaf_bilingual(response.data['message'])
+            self.assert_leaf_bilingual(response.data['errors']['detail'][0])
+            snapshots[lang] = (response.data['message'], response.data['errors']['detail'][0])
+
+        # Language-independent: the payload is the same whichever language was requested.
+        self.assertEqual(snapshots['en'], snapshots['ar'])
+
+    def test_validation_error_leaves_are_bilingual_under_arabic(self):
+        client = APIClient()
+        response = client.post('/api/auth/login/', {}, format='json', HTTP_ACCEPT_LANGUAGE='ar')
+        assert_envelope(self, response, status.HTTP_400_BAD_REQUEST)
+        for leaf in response.data['errors']['email'] + response.data['errors']['password']:
+            self.assert_leaf_bilingual(leaf)
+
+    def test_project_literal_error_is_bilingual_under_arabic(self):
+        user = CustomUser.objects.create_user(
+            email='bilingual@example.com', password='StrongPass123!', is_verified=True
+        )
+        client = APIClient()
+        client.force_authenticate(user=user)
+        response = client.post(
+            '/api/favourites/toggle/', {}, format='json', HTTP_ACCEPT_LANGUAGE='ar'
+        )
+        assert_envelope(self, response, status.HTTP_400_BAD_REQUEST)
+        leaf = response.data['errors']['non_field_errors'][0]
+        self.assert_leaf_bilingual(leaf)
+        self.assertIn('material field is required.', leaf)
+        self.assertIn('حقل المادة مطلوب.', leaf)
+
+
 class ApiErrorResponseEnvelopeTest(TestCase):
     def setUp(self):
         self.client = APIClient()

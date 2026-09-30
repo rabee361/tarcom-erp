@@ -46,7 +46,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         code = user.create_otp(code_type=CodeTypes.SIGNUP)
         # send_otp_email(user.email, code, CodeTypes.SIGNUP)
         return Response(
-            {"message": "Account created. Please verify your email.", "email": user.email},
+            {"message": _("Account created. Please verify your email."), "email": user.email},
             status=status.HTTP_201_CREATED,
         )
 
@@ -156,7 +156,7 @@ class OTPViewSet(viewsets.GenericViewSet):
         user = CustomUser.objects.get(email=email)
         code = user.create_otp(code_type=code_type)
         # send_otp_email(email, code, code_type)
-        return Response({"message": "OTP code sent successfully."})
+        return Response({"message": _("OTP code sent successfully.")})
 
     @extend_schema(
         tags=['OTP & Password'],
@@ -182,7 +182,7 @@ class OTPViewSet(viewsets.GenericViewSet):
             user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
-                "message": "Account verified successfully.",
+                "message": _("Account verified successfully."),
                 "tokens": {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
@@ -192,7 +192,7 @@ class OTPViewSet(viewsets.GenericViewSet):
         else:
             reset_token = signer.sign(otp.email)
             return Response({
-                "message": "OTP verified. Use the reset token to reset your password.",
+                "message": _("OTP verified. Use the reset token to reset your password."),
                 "reset_token": reset_token,
             })
 
@@ -210,10 +210,10 @@ class OTPViewSet(viewsets.GenericViewSet):
         email = serializer.validated_data['email']
         user = CustomUser.objects.get(email=email)
         if OTPCode.check_limit(email):
-            raise Throttled(detail="Too many requests. Please try again later.")
+            raise Throttled(detail=_("Too many requests. Please try again later."))
         code = user.create_otp(code_type=CodeTypes.RESET_PASSWORD)
         # send_otp_email(email, code, CodeTypes.RESET_PASSWORD)
-        return Response({"message": "Password reset OTP sent to your email."})
+        return Response({"message": _("Password reset OTP sent to your email.")})
 
     @extend_schema(
         tags=['OTP & Password'],
@@ -234,9 +234,9 @@ class OTPViewSet(viewsets.GenericViewSet):
             try:
                 verified_email = signer.unsign(serializer.validated_data['reset_token'], max_age=600)
             except Exception:
-                raise ValidationError({"non_field_errors": ["Invalid or expired reset token."]})
+                raise ValidationError({"non_field_errors": [_("Invalid or expired reset token.")]})
             if verified_email != email:
-                raise ValidationError({"non_field_errors": ["Token does not match email."]})
+                raise ValidationError({"non_field_errors": [_("Token does not match email.")]})
         else:
             code = serializer.validated_data['code']
             otp = OTPCode.objects.filter(
@@ -245,15 +245,15 @@ class OTPViewSet(viewsets.GenericViewSet):
                 is_used=False,
             ).first()
             if not otp:
-                raise ValidationError({"non_field_errors": ["Invalid or already used OTP code."]})
+                raise ValidationError({"non_field_errors": [_("Invalid or already used OTP code.")]})
             if otp.is_expired:
-                raise ValidationError({"non_field_errors": ["OTP code has expired."]})
+                raise ValidationError({"non_field_errors": [_("OTP code has expired.")]})
             otp.is_used = True
             otp.save()
 
         user.set_password(new_password)
         user.save()
-        return Response({"message": "Password reset successfully. You can now log in."})
+        return Response({"message": _("Password reset successfully. You can now log in.")})
 
 
 @extend_schema_view(

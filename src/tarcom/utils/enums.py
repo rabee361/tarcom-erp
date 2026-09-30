@@ -40,8 +40,8 @@ class CodeTypes(models.TextChoices):
     FORGET_PASSWORD = 'FORGET_PASSWORD'
 
 class UserType(models.TextChoices):
-    BUYER = 'buyer', 'Buyer'
-    SELLER = 'seller', 'Seller'
+    SUPPLIER = 'supplier', 'Supplier'
+    CUSTOMER = 'customer', 'Customer'
     ADMIN = 'admin', 'Admin'
 
 

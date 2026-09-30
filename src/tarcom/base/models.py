@@ -21,15 +21,15 @@ class TimeStampModel(models.Model):
         abstract = True
 
 class CustomUser(AbstractUser):
-    user_type = models.CharField(max_length=10, choices=UserType.choices, default=UserType.BUYER)
+    user_type = models.CharField(max_length=10, choices=UserType.choices, default=UserType.SUPPLIER)
     avatar = models.ImageField(upload_to='users/avatars/', blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True, validators=[PhoneNumberValidator])
     email = models.EmailField(max_length=140, unique=True)
     is_verified = models.BooleanField(default=False)
 
     @property
-    def is_buyer(self):
-        return self.user_type == UserType.BUYER
+    def is_supplier(self):
+        return self.user_type == UserType.SUPPLIER
 
     @property
     def is_admin(self):
@@ -37,10 +37,10 @@ class CustomUser(AbstractUser):
 
     def clean(self):
         if self.avatar and self.avatar.size > 2 * 1024 * 1024:  # 2MB in bytes
-            raise ValidationError('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت')
+            raise ValidationError(_('Image size must not exceed 2MB.'))
 
         if self.avatar and not self.avatar.name.endswith(('.jpg', '.jpeg', '.png','webp', 'jfif')):
-            raise ValidationError('يجب أن يكون الصورة بصيغة jpg أو jpeg أو png أو webp')
+            raise ValidationError(_('Image must be in JPG, JPEG, PNG or WEBP format.'))
 
     objects = CustomUserManager()
 

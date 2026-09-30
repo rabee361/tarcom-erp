@@ -149,11 +149,11 @@ class SignupSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150, required=False, default='')
     last_name = serializers.CharField(max_length=150, required=False, default='')
     phone = serializers.CharField(max_length=20, required=False, default='')
-    user_type = serializers.ChoiceField(choices=UserType.choices, default=UserType.BUYER)
+    user_type = serializers.ChoiceField(choices=UserType.choices, default=UserType.CUSTOMER)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
+            raise serializers.ValidationError(_("A user with this email already exists."))
         return value
 
     def create(self, validated_data):
@@ -163,7 +163,7 @@ class SignupSerializer(serializers.Serializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
             phone=validated_data.get('phone', ''),
-            user_type=validated_data.get('user_type', UserType.BUYER),
+            user_type=validated_data.get('user_type', UserType.CUSTOMER),
             is_verified=False,
         )
         return user
@@ -178,10 +178,10 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         user = authenticate(email=email, password=password)
         if not user:
-            raise serializers.ValidationError("Invalid credentials.")
+            raise serializers.ValidationError(_("Invalid credentials."))
         if not user.is_verified:
             raise serializers.ValidationError(
-                {"error": "Account not verified", "needs_verification": True, "email": email},
+                {"error": _("Account not verified"), "needs_verification": True, "email": email},
                 code='unverified_account'
             ) ## should be removed
         attrs['user'] = user
@@ -194,13 +194,13 @@ class SendOtpSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if not CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("No user found with this email.")
+            raise serializers.ValidationError(_("No user found with this email."))
         return value
 
     def validate(self, attrs):
         email = attrs['email']
         if OTPCode.check_limit(email):
-            raise serializers.ValidationError("Too many OTP requests. Please try again later.")
+            raise serializers.ValidationError(_("Too many OTP requests. Please try again later."))
         return attrs
 
 
@@ -217,9 +217,9 @@ class VerifyOtpSerializer(serializers.Serializer):
             email=email, code=code, code_type=code_type, is_used=False
         ).first()
         if not otp:
-            raise serializers.ValidationError("Invalid or already used OTP code.")
+            raise serializers.ValidationError(_("Invalid or already used OTP code."))
         if otp.is_expired:
-            raise serializers.ValidationError("OTP code has expired.")
+            raise serializers.ValidationError(_("OTP code has expired."))
         attrs['otp'] = otp
         return attrs
 
@@ -229,7 +229,7 @@ class ForgetPasswordSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if not CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("No user found with this email.")
+            raise serializers.ValidationError(_("No user found with this email."))
         return value
 
 
@@ -242,9 +242,9 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs.get('new_password') != attrs.get('new_password_confirm'):
-            raise serializers.ValidationError({"new_password_confirm": "Passwords do not match."})
+            raise serializers.ValidationError({"new_password_confirm": _("Passwords do not match.")})
         if not attrs.get('code') and not attrs.get('reset_token'):
-            raise serializers.ValidationError("Either code or reset_token must be provided.")
+            raise serializers.ValidationError(_("Either code or reset_token must be provided."))
         return attrs
 
 

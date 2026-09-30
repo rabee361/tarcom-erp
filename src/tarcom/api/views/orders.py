@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from tarcom.base.models import Order, OrderStatus
@@ -84,17 +85,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not (user.is_staff or getattr(user, 'is_admin', False)):
             if order.status != OrderStatus.PENDING:
                 raise ValidationError({"non_field_errors": [
-                    "Orders can only be cancelled while in PENDING status."
+                    _("Orders can only be cancelled while in PENDING status.")
                 ]})
 
         if order.status in [OrderStatus.DELIVERED, OrderStatus.CANCELLED]:
             raise ValidationError({"non_field_errors": [
-                f"Cannot cancel order with current status: {order.status}."
+                _("Cannot cancel order with current status: %(status)s.") % {'status': order.status}
             ]})
 
         order.status = OrderStatus.CANCELLED
         order.save(update_fields=['status'])
-        return Response({"message": f"Order #{order.order_number} cancelled successfully."},
+        return Response({"message": _("Order #%(number)s cancelled successfully.") % {'number': order.order_number}},
                         status=status.HTTP_200_OK)
 
     @extend_schema(
