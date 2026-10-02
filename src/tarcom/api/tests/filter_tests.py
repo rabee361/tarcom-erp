@@ -44,9 +44,7 @@ class RestFrameworkFiltersBanTest(TestCase):
                     if not isinstance(node, (ast.Import, ast.ImportFrom)):
                         continue
                     if isinstance(node, ast.ImportFrom):
-                        if (node.module or '').startswith('rest_framework.filters'):
-                            offenders.append(path)
-                        elif node.module == 'rest_framework' and any(
+                        if (node.module or '').startswith('rest_framework.filters') or node.module == 'rest_framework' and any(
                             alias.name == 'filters' for alias in node.names
                         ):
                             offenders.append(path)
@@ -94,11 +92,11 @@ class OrderListFilterTest(TestCase):
         self.assertIn(field, response.data['errors'])
 
     def test_search_matches_order_number_phone_and_email(self):
-        own = self.place_order(self.customer, '0791111111')
-        self.place_order(self.other_customer, '0792222222')
+        own = self.place_order(self.customer, '+963911111111')
+        self.place_order(self.other_customer, '+963922222222')
         self.client.force_authenticate(user=self.admin)
 
-        by_phone = self.client.get(f'{self.url}?search=0791111')
+        by_phone = self.client.get(f'{self.url}?search=9111111')
         self.assertEqual(by_phone.status_code, status.HTTP_200_OK)
         self.assertEqual([o['id'] for o in by_phone.data], [own['id']])
 
@@ -116,8 +114,8 @@ class OrderListFilterTest(TestCase):
         self.assertEqual(none.data, [])
 
     def test_status_filter_is_case_insensitive(self):
-        pending = self.place_order(self.customer, '0791111111')
-        shipped = self.place_order(self.customer, '0791111112')
+        pending = self.place_order(self.customer, '+963911111111')
+        shipped = self.place_order(self.customer, '+963911111112')
         Order.objects.filter(pk=shipped['id']).update(status=OrderStatus.SHIPPED)
         self.client.force_authenticate(user=self.customer)
 
@@ -131,7 +129,7 @@ class OrderListFilterTest(TestCase):
         self.assertEqual([o['id'] for o in response.data], [shipped['id']])
 
     def test_payment_status_filter_is_case_insensitive(self):
-        order = self.place_order(self.customer, '0791111111')
+        order = self.place_order(self.customer, '+963911111111')
         self.client.force_authenticate(user=self.customer)
 
         response = self.client.get(f'{self.url}?payment_status=unpaid')
@@ -144,13 +142,13 @@ class OrderListFilterTest(TestCase):
         self.assertEqual([o['id'] for o in response.data], [order['id']])
 
     def test_unknown_enum_values_are_rejected(self):
-        self.place_order(self.customer, '0791111111')
+        self.place_order(self.customer, '+963911111111')
         self.assertRejected('status=bogus', 'status')
         self.assertRejected('payment_status=bogus', 'payment_status')
 
     def test_ordering_by_total_amount(self):
-        cheap = self.place_order(self.customer, '0791111111', quantity='1.000')
-        pricey = self.place_order(self.customer, '0791111112', quantity='5.000')
+        cheap = self.place_order(self.customer, '+963911111111', quantity='1.000')
+        pricey = self.place_order(self.customer, '+963911111112', quantity='5.000')
         self.client.force_authenticate(user=self.customer)
 
         ascending = self.client.get(f'{self.url}?ordering=total_amount')
@@ -160,20 +158,20 @@ class OrderListFilterTest(TestCase):
         self.assertEqual([o['id'] for o in descending.data], [pricey['id'], cheap['id']])
 
     def test_unknown_ordering_field_is_rejected(self):
-        self.place_order(self.customer, '0791111111')
+        self.place_order(self.customer, '+963911111111')
         self.assertRejected('ordering=bogus', 'ordering')
 
     def test_csv_ordering_is_applied_left_to_right(self):
-        self.place_order(self.customer, '0791111111')
-        self.place_order(self.customer, '0791111112')
+        self.place_order(self.customer, '+963911111111')
+        self.place_order(self.customer, '+963911111112')
         self.client.force_authenticate(user=self.customer)
         response = self.client.get(f'{self.url}?ordering=-created_at,total_amount')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(len(response.data), 2)
 
     def test_default_ordering_is_newest_first(self):
-        older = self.place_order(self.customer, '0791111111')
-        newer = self.place_order(self.customer, '0791111112')
+        older = self.place_order(self.customer, '+963911111111')
+        newer = self.place_order(self.customer, '+963911111112')
         Order.objects.filter(pk=older['id']).update(
             created_at=Order.objects.get(pk=older['id']).created_at.replace(year=2020)
         )

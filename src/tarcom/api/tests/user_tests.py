@@ -1,7 +1,11 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
-from tarcom.base.models import CustomUser, OTPCode, UnitOfMeasure, MaterialCategory, Material
+from rest_framework.test import APIClient
+
+from tarcom.base.models import (
+    CustomUser,
+    OTPCode,
+)
 from tarcom.utils.enums import CodeTypes
 
 
@@ -284,10 +288,11 @@ class UserViewSetMeTest(TestCase):
 
     def test_me_patch_ignores_read_only_fields(self):
         self.client.force_authenticate(user=self.user)
+        original_user_type = self.user.user_type
         response = self.client.patch('/api/users/me/', {'user_type': 'admin'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.user_type, 'customer')
+        self.assertEqual(self.user.user_type, original_user_type)
 
 
 class UserViewSetAdminPermissionsTest(TestCase):

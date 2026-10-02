@@ -1,16 +1,16 @@
-from rest_framework import viewsets
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from django.core.signing import TimestampSigner
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-# from tarcom.utils.emails import send_otp_email
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.response import Response
 
+from tarcom.base.models import *
+
+# from tarcom.utils.emails import send_otp_email
 from ..filters import *
 from ..serializers import *
-from tarcom.base.models import *
 
 signer = TimestampSigner()
 

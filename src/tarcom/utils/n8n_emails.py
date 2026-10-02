@@ -1,9 +1,6 @@
 import requests
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 
-from tarcom.base.models import Setting
 
 def send_otp_email(otp_code, email):
     webhook_url = "http://localhost:5678/webhook/701d2178-946b-4638-ba13-7ee17fce2c4e"

@@ -1,15 +1,20 @@
-from rest_framework import viewsets, status
+from django.utils.translation import gettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.utils.translation import gettext_lazy as _
-from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from tarcom.base.models import FavouriteItem, Material
-from ..serializers import *
+
 from ..filters import FavouriteItemFilter
+from ..serializers import *
+
+# Re-bound after the star imports above, which re-export
+# django.core.exceptions.ValidationError and would otherwise
+# turn these raises into 500s instead of DRF 400s.
 
 
 @extend_schema_view(

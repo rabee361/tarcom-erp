@@ -1,13 +1,23 @@
 import json
-
 from decimal import Decimal
 
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.exceptions import MethodNotAllowed, NotAuthenticated, ValidationError
+from rest_framework.exceptions import (
+    MethodNotAllowed,
+    NotAuthenticated,
+    ValidationError,
+)
 from rest_framework.test import APIClient
 
-from tarcom.base.models import CustomUser, Material, MaterialCategory, OTPCode, Order, UnitOfMeasure
+from tarcom.base.models import (
+    CustomUser,
+    Material,
+    MaterialCategory,
+    Order,
+    OTPCode,
+    UnitOfMeasure,
+)
 from tarcom.utils.enums import CodeTypes, OrderStatus
 from tarcom.utils.exceptions import custom_exception_handler
 
@@ -156,7 +166,7 @@ class ApiErrorResponseEnvelopeTest(TestCase):
         payload = {
             'payment_method': 'CASH',
             'shipping_address': 'Amman, Jordan',
-            'shipping_phone': '0791234567',
+            'shipping_phone': '+963912345678',
             'items': [{'material': self.material.id, 'quantity': '2.000'}],
         }
         created = self.client.post('/api/orders/', payload, format='json')

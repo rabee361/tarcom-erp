@@ -5,8 +5,15 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
-from tarcom.base.models import CustomUser, UnitOfMeasure, MaterialCategory, Material, Order, OrderItem
-from tarcom.utils.enums import OrderStatus, PaymentStatus, PaymentMethod, UserType
+from tarcom.base.models import (
+    CustomUser,
+    Material,
+    MaterialCategory,
+    Order,
+    OrderItem,
+    UnitOfMeasure,
+)
+from tarcom.utils.enums import OrderStatus, PaymentMethod, PaymentStatus, UserType
 
 LOCKOUT_MESSAGE = "لقد تم حظر المحاولات"
 
@@ -208,7 +215,7 @@ class DashboardUsersCrudTest(TestCase):
             'email': email,
             'first_name': 'First',
             'last_name': 'User',
-            'phone': '0791234567',
+            'phone': '+963912345678',
             'user_type': UserType.CUSTOMER,
             'is_active': 'on',
             'password': 'StrongPass123!',

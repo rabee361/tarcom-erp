@@ -1,15 +1,23 @@
 from decimal import Decimal
+
 from django.contrib import messages
 from django.db.models import Q, Sum
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from tarcom.base.forms import *
 from tarcom.base.models import *
 from tarcom.utils.enums import OrderStatus, UserType
-from .auth import StaffRequiredMixin, ProtectedDeleteMixin
+
+from .auth import ProtectedDeleteMixin, StaffRequiredMixin
 
 
 class DashboardView(StaffRequiredMixin, View):

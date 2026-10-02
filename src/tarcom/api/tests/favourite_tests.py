@@ -2,7 +2,13 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from tarcom.base.models import CustomUser, FavouriteItem, Material, MaterialCategory, UnitOfMeasure
+from tarcom.base.models import (
+    CustomUser,
+    FavouriteItem,
+    Material,
+    MaterialCategory,
+    UnitOfMeasure,
+)
 
 
 class FavouriteAPITest(TestCase):

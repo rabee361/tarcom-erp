@@ -1,15 +1,16 @@
 from decimal import Decimal
 
-from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+
 from tarcom.base.models import *
 from tarcom.base.translation import *
-from tarcom.utils.enums import UserType, CodeTypes, OrderStatus, PaymentStatus
-from django.conf import settings
+from tarcom.utils.enums import CodeTypes, OrderStatus, PaymentStatus, UserType
 
 
 class UserSerializer(serializers.ModelSerializer):

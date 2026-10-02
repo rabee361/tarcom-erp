@@ -1,12 +1,18 @@
+import json
+import logging
 from ast import literal_eval
-from rest_framework.views import exception_handler
-from rest_framework.response import Response
-from rest_framework import status
+
 from django.utils.translation import gettext as _
 from django.utils.translation import override
-from tarcom.utils.translation import canonical_msgid, get_language_codes, translate_message
-import logging
-import json
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
+
+from tarcom.utils.translation import (
+    canonical_msgid,
+    get_language_codes,
+    translate_message,
+)
 
 logger = logging.getLogger(__name__)
 

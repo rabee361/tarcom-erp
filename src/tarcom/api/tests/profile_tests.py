@@ -3,9 +3,9 @@ import os
 import shutil
 import tempfile
 
-from PIL import Image
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -65,22 +65,22 @@ class ProfileAPITest(TestCase):
 
     def test_patch_profile(self):
         self.authenticate()
-        data = {'first_name': 'New', 'last_name': 'Person', 'phone': '0791234567'}
+        data = {'first_name': 'New', 'last_name': 'Person', 'phone': '+963912345678'}
         response = self.client.patch(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'New')
         self.assertEqual(self.user.last_name, 'Person')
-        self.assertEqual(self.user.phone, '0791234567')
+        self.assertEqual(self.user.phone, '+963912345678')
 
     def test_put_profile(self):
         self.authenticate()
-        data = {'first_name': 'Replaced', 'last_name': 'Entirely', 'phone': '0790000000'}
+        data = {'first_name': 'Replaced', 'last_name': 'Entirely', 'phone': '+963900000000'}
         response = self.client.put(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'Replaced')
-        self.assertEqual(self.user.phone, '0790000000')
+        self.assertEqual(self.user.phone, '+963900000000')
 
     # ---------------------------------------------
     # Avatar validation

@@ -1,18 +1,17 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
 from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from tarcom.utils.mixins import ProtectedDeleteMixin, StaffRequiredMixin
-from tarcom.utils.helper import get_client_ip
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from tarcom.base.forms import *
 from tarcom.base.models import CustomUser
-
+from tarcom.utils.helper import get_client_ip
+from tarcom.utils.mixins import ProtectedDeleteMixin, StaffRequiredMixin
 
 
 class DashboardLoginView(View):

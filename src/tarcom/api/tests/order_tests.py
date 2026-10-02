@@ -4,7 +4,13 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from tarcom.base.models import CustomUser, Material, MaterialCategory, Order, OrderItem, UnitOfMeasure
+from tarcom.base.models import (
+    CustomUser,
+    Material,
+    MaterialCategory,
+    Order,
+    UnitOfMeasure,
+)
 from tarcom.utils.enums import OrderStatus, PaymentStatus
 
 
@@ -48,7 +54,7 @@ class OrderAPITest(TestCase):
         payload = {
             'payment_method': 'CASH',
             'shipping_address': 'Amman, Jordan',
-            'shipping_phone': '0791234567',
+            'shipping_phone': '+963912345678',
             'items': items or [
                 {'material': self.material1.id, 'quantity': '2.000'},
                 {'material': self.material2.id, 'quantity': '3.000'},

@@ -1,28 +1,31 @@
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.exceptions import Throttled
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, SAFE_METHODS
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from django.core.signing import TimestampSigner
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from tarcom.utils.emails import send_otp_email
-
-from tarcom.base.models import CustomUser, OTPCode
-from tarcom.utils.enums import CodeTypes
-
-from ..serializers import *
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 
 # Re-bound after the star import above, which re-exports
 # django.core.exceptions.ValidationError and would otherwise
 # turn these raises into 500s instead of DRF 400s.
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import Throttled, ValidationError
+from rest_framework.permissions import (
+    AllowAny,
+    IsAdminUser,
+    IsAuthenticated,
+)
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings as jwt_settings
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from tarcom.base.models import CustomUser, OTPCode
+from tarcom.utils.emails import send_otp_email
+from tarcom.utils.enums import CodeTypes
+
+from ..serializers import *
 
 signer = TimestampSigner()
 
@@ -54,7 +57,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         # header must be available so token errors (InvalidToken, an
         # AuthenticationFailed subclass) keep their 401 status instead of being
         # downgraded to 403 by DRF when authentication classes are empty.
-        return '{} realm="api"'.format(jwt_settings.AUTH_HEADER_TYPES[0])
+        return f'{jwt_settings.AUTH_HEADER_TYPES[0]} realm="api"'
 
     @extend_schema(
         tags=['Auth'],

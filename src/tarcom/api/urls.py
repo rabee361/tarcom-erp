@@ -1,9 +1,9 @@
 from rest_framework.routers import DefaultRouter
+
 from .views.auth import *
 from .views.core import *
 from .views.favourites import FavouriteViewSet
 from .views.orders import OrderViewSet
-
 
 router = DefaultRouter()
 router.register(r'auth', AuthViewSet, basename='auth')

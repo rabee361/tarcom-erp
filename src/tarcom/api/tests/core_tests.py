@@ -1,10 +1,14 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
-from tarcom.base.models import CustomUser, OTPCode, UnitOfMeasure, MaterialCategory, Material
+from rest_framework.test import APIClient
+
+from tarcom.base.models import (
+    CustomUser,
+    Material,
+    MaterialCategory,
+    UnitOfMeasure,
+)
 from tarcom.utils.enums import CodeTypes
-
-
 
 
 class ResetPasswordViewTest(TestCase):
