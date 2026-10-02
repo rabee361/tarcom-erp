@@ -12,3 +12,5 @@ wheels/
 *.sqlite3
 db.sqlite3
 .sql
+
+.env
