@@ -413,7 +413,7 @@
                 "users"
               ]
             },
-            "description": "Admin only (`IsAdminUser`). Creates a user; `avatar` must be uploaded as multipart form data (max 2MB, jpg/jpeg/png/webp/jfif).\n\n**Responses:** `201` user object, `400` validation error."
+            "description": "Admin only (`IsAdminUser`). Creates a user via `UserSerializer` (writable fields: `email`, `first_name`, `last_name`, `phone`, `avatar`). `user_type` and `is_verified` are read-only. Note: this serializer does not accept a `password` and does not enforce the 2MB / jpg-jpeg-png-webp-jfif avatar rules (those live on `UserProfileUpdateSerializer` used by `/api/users/me/`).\n\n**Responses:** `201` user object, `400` validation error."
           },
           "response": []
         },
@@ -840,6 +840,16 @@
                   "description": "Filter by active flag (true/false)"
                 },
                 {
+                  "key": "spec_key1",
+                  "value": "RAM",
+                  "description": "Match a spec key (spec_key1..5). Pair with the same-numbered spec_valN to require key+value on the same slot"
+                },
+                {
+                  "key": "spec_val1",
+                  "value": "12",
+                  "description": "Match a spec value (spec_val1..5). Pairs with spec_key1 when both are given"
+                },
+                {
                   "key": "search",
                   "value": "phone",
                   "description": "Search term (name, name_en, name_ar)"
@@ -851,7 +861,7 @@
                 }
               ]
             },
-            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `search`, `ordering`."
+            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `category`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. A `spec_keyN`/`spec_valN` pair matches materials carrying that key and value on the same slot; either may be used alone to match across all five slots."
           },
           "response": []
         },
@@ -1070,11 +1080,6 @@
               ],
               "query": [
                 {
-                  "key": "parent",
-                  "value": "root",
-                  "description": "Parent id, or null/none/root for top-level categories"
-                },
-                {
                   "key": "search",
                   "value": "elect",
                   "description": "Search term (name, name_en, name_ar)"
@@ -1110,7 +1115,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"parent\": null\n}",
+              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"icon\": \"assets/images/categories/laptop.jpg\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1183,7 +1188,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"parent\": null\n}",
+              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"icon\": \"assets/images/categories/laptop.jpg\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1269,38 +1274,6 @@
               ]
             },
             "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
-          },
-          "response": []
-        },
-        {
-          "name": "Get category tree",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/categories/tree/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "categories",
-                "tree"
-              ]
-            },
-            "description": "Returns root categories with nested `subcategories`.\n\n**Auth:** public read\n**Responses:** `200` array of nested categories."
           },
           "response": []
         }
@@ -1569,9 +1542,21 @@
               "path": [
                 "api",
                 "settings"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "site",
+                  "description": "Search term (key, key_en, key_ar)"
+                },
+                {
+                  "key": "ordering",
+                  "value": "key",
+                  "description": "key | -key"
+                }
               ]
             },
-            "description": "Settings key/value store.\n\n**Responses:** `200` array."
+            "description": "Settings key/value store.\n\n**Responses:** `200` array.\n\nQuery: `search` (icontains on key/key_en/key_ar), `ordering=key|-key`."
           },
           "response": []
         },
@@ -1779,13 +1764,18 @@
               ],
               "query": [
                 {
+                  "key": "name",
+                  "value": "phone",
+                  "description": "Filter by favourite material name (icontains)"
+                },
+                {
                   "key": "ordering",
                   "value": "-created_at",
-                  "description": "created_at"
+                  "description": "created_at | -created_at"
                 }
               ]
             },
-            "description": "Only the authenticated user's favourites (default ordering `-created_at`).\n\n**Auth:** bearer required\n**Responses:** `200` array with nested `material_detail`, `401`.\n\nQuery: `ordering=created_at|-created_at`."
+            "description": "Only the authenticated user's favourites (default ordering `-created_at`).\n\n**Auth:** bearer required\n**Responses:** `200` array with nested `material_detail`, `401`.\n\nQuery: `name` (icontains on material name), `ordering=created_at|-created_at`."
           },
           "response": []
         },
@@ -2131,7 +2121,7 @@
                 "{{id}}"
               ]
             },
-            "description": "Limited update of order fields (e.g. `shipping_address`, `shipping_phone`, `notes`).\n\n**Responses:** `200`, `400`, `401`, `404`."
+            "description": "Routed as `partial_update` on `OrderViewSet`, but the viewset resolves this action to `OrderDetailSerializer`, which declares `read_only_fields = fields`. The endpoint therefore returns `200` with the current order detail and silently ignores any writable payload (e.g. `shipping_address`, `shipping_phone`, `notes`) until a writable order-update serializer is added.\n\n**Responses:** `200` order detail (unchanged), `401`, `404`."
           },
           "response": []
         },

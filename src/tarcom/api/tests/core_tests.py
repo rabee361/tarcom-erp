@@ -137,7 +137,7 @@ class MaterialCategoryAPITest(TestCase):
         self.admin_user = CustomUser.objects.create_superuser(
             email='admin@tarcom.com', password='AdminPass123!'
         )
-        self.parent_cat = MaterialCategory.objects.create(
+        self.category = MaterialCategory.objects.create(
             name='Electronics',
             name_en='Electronics',
             name_ar='إلكترونيات',
@@ -148,34 +148,20 @@ class MaterialCategoryAPITest(TestCase):
         data = {
             'name_en': 'Smartphones',
             'name_ar': 'هواتف ذكية',
-            'parent': self.parent_cat.id,
+            'icon': 'assets/images/categories/laptop.jpg',
         }
         response = self.client.post('/api/categories/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name_en'], 'Smartphones')
         self.assertEqual(response.data['name_ar'], 'هواتف ذكية')
-        self.assertEqual(response.data['parent'], self.parent_cat.id)
-
-    def test_category_tree_action(self):
-        MaterialCategory.objects.create(
-            name='Laptops',
-            name_en='Laptops',
-            name_ar='حواسيب محمولة',
-            parent=self.parent_cat
-        )
-        response = self.client.get('/api/categories/tree/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name_en'], 'Electronics')
-        self.assertEqual(len(response.data[0]['subcategories']), 1)
-        self.assertEqual(response.data[0]['subcategories'][0]['name_en'], 'Laptops')
+        self.assertEqual(response.data['icon'], 'assets/images/categories/laptop.jpg')
 
     def test_category_translation_header(self):
-        res_ar = self.client.get(f'/api/categories/{self.parent_cat.id}/', HTTP_ACCEPT_LANGUAGE='ar')
+        res_ar = self.client.get(f'/api/categories/{self.category.id}/', HTTP_ACCEPT_LANGUAGE='ar')
         self.assertEqual(res_ar.status_code, status.HTTP_200_OK)
         self.assertEqual(res_ar.data['name'], 'إلكترونيات')
 
-        res_en = self.client.get(f'/api/categories/{self.parent_cat.id}/', HTTP_ACCEPT_LANGUAGE='en')
+        res_en = self.client.get(f'/api/categories/{self.category.id}/', HTTP_ACCEPT_LANGUAGE='en')
         self.assertEqual(res_en.status_code, status.HTTP_200_OK)
         self.assertEqual(res_en.data['name'], 'Electronics')
 

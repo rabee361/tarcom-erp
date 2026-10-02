@@ -85,6 +85,17 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Registration, login, token refresh, and OTP / password recovery.'},
+        {'name': 'Users', 'description': 'Administrative user management (staff only).'},
+        {'name': 'Profile', 'description': "The authenticated user's own profile, avatar and password."},
+        {'name': 'Categories', 'description': 'Material categories.'},
+        {'name': 'Units of Measure', 'description': 'Units of measure referenced by materials.'},
+        {'name': 'Materials', 'description': 'Product catalogue.'},
+        {'name': 'Favourites', 'description': "A user's saved materials."},
+        {'name': 'Orders', 'description': 'Checkout, order listing and order lifecycle.'},
+        {'name': 'Settings', 'description': 'Key/value application settings.'},
+    ],
 }
 
 ROOT_URLCONF = 'tarcom.urls'

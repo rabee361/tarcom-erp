@@ -120,9 +120,7 @@ class UnitConversion(TimeStampModel):
 
 class MaterialCategory(TimeStampModel):
     name = models.CharField(max_length=100, unique=True)
-    parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories'
-    )
+    icon = models.CharField(max_length=255, blank=True, default='')
 
     class Meta:
         verbose_name = _("Material Category")

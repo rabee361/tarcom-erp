@@ -47,10 +47,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label>{{ form.parent.label }}</label>
-                        {{ form.parent }}
-                        {% if form.parent.errors %}
-                            <div class="error">{{ form.parent.errors }}</div>
+                        <label>{{ form.icon.label }}</label>
+                        {{ form.icon }}
+                        {% if object.icon %}
+                            <img src="{% static object.icon %}" alt="{{ object.name }}" style="max-width:64px;margin-top:8px;">
+                        {% endif %}
+                        {% if form.icon.errors %}
+                            <div class="error">{{ form.icon.errors }}</div>
                         {% endif %}
                     </div>
                 </div>

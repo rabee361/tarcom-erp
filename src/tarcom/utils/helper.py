@@ -1,11 +1,16 @@
-import random
+import secrets
 
 from django.utils import timezone
 
+OTP_CODE_DIGITS = 6
+OTP_CODE_MIN = 100000
+OTP_CODE_MAX = 999999
 OTP_EXPIRY_MINUTES = 10
 
 def generate_code():
-    return random.randint(100000, 999999)
+    # `random` is a Mersenne Twister and predictable from observed output; this
+    # value is emailed as an account-takeover credential, so use the OS CSPRNG.
+    return secrets.randbelow(OTP_CODE_MAX - OTP_CODE_MIN + 1) + OTP_CODE_MIN
 
 def get_expiration_time():
     from datetime import timedelta

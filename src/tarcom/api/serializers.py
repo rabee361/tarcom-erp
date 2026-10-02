@@ -319,22 +319,16 @@ class MaterialCategoryChildSerializer(TranslateModelSerializer):
 
     class Meta:
         model = MaterialCategory
-        fields = ['id', 'name', 'name_en', 'name_ar', 'parent']
+        fields = ['id', 'name', 'name_en', 'name_ar', 'icon']
 
 
 class MaterialCategorySerializer(TranslateModelSerializer):
     translation_options = MaterialCategoryTranslationOptions
-    subcategories = serializers.SerializerMethodField()
 
     class Meta:
         model = MaterialCategory
-        fields = ['id', 'name', 'name_en', 'name_ar', 'parent', 'subcategories', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'name_en', 'name_ar', 'icon', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
-
-    @extend_schema_field(MaterialCategoryChildSerializer(many=True))
-    def get_subcategories(self, obj):
-        children = obj.subcategories.all()
-        return MaterialCategoryChildSerializer(children, many=True, context=self.context).data
 
 
 class MaterialSerializer(TranslateModelSerializer):

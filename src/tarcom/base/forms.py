@@ -157,12 +157,12 @@ class MaterialForm(forms.ModelForm):
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = MaterialCategory
-        fields = ['name', 'name_en', 'name_ar', 'parent']
+        fields = ['name', 'name_en', 'name_ar', 'icon']
         labels = {
             'name': _("اسم التصنيف"),
             'name_en': _("الاسم بالإنجليزية"),
             'name_ar': _("الاسم بالعربية"),
-            'parent': _("التصنيف الرئيسي (اختياري)"),
+            'icon': _("أيقونة التصنيف (مسار الصورة)"),
         }
 
 

@@ -9,7 +9,6 @@ reproduces DRF's ``?search=`` semantics and each FilterSet declares its own
 """
 
 import django_filters
-from django import forms
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_filters.fields import ChoiceField
@@ -26,9 +25,6 @@ from tarcom.utils.enums import OrderStatus, PaymentStatus
 
 SEARCH_HELP = _("A search term.")
 ORDERING_HELP = _("Which field to use when ordering the results.")
-
-# Accepted by the `parent` filter as shorthand for "categories without a parent".
-TOP_LEVEL_KEYWORDS = ("null", "none", "root")
 
 
 class SearchableFilterSet(django_filters.FilterSet):
@@ -71,27 +67,6 @@ class CaseInsensitiveChoiceFilter(django_filters.ChoiceFilter):
     field_class = _CaseInsensitiveChoiceField
 
 
-class _ParentCategoryField(forms.CharField):
-    """Validate a category id (or a top-level keyword) at form level, so a
-    malformed ``?parent=`` is a 400 instead of a 500 from the ORM."""
-
-    def clean(self, value):
-        value = super().clean(value)
-        if not value or value.lower() in TOP_LEVEL_KEYWORDS:
-            return value
-        if not value.isdigit():
-            raise forms.ValidationError(
-                _("Must be a category id, or one of `null`/`none`/`root`.")
-            )
-        return value
-
-
-class ParentCategoryFilter(django_filters.CharFilter):
-    """``CharFilter`` restricted to numeric ids and the top-level keywords."""
-
-    field_class = _ParentCategoryField
-
-
 class UnitOfMeasureFilter(SearchableFilterSet):
     search_fields = ("name", "name_en", "name_ar", "code")
     search = django_filters.CharFilter(method="filter_search", help_text=SEARCH_HELP)
@@ -107,24 +82,26 @@ class UnitOfMeasureFilter(SearchableFilterSet):
 class MaterialCategoryFilter(SearchableFilterSet):
     search_fields = ("name", "name_en", "name_ar")
     search = django_filters.CharFilter(method="filter_search", help_text=SEARCH_HELP)
-    parent = ParentCategoryFilter(
-        method="filter_parent",
-        help_text=_(
-            "Filter by parent category id, or one of `null`/`none`/`root` for top-level categories."
-        ),
-    )
     ordering = django_filters.OrderingFilter(
         fields=("name", "created_at"), help_text=ORDERING_HELP
     )
 
     class Meta:
         model = MaterialCategory
-        fields = ["parent"]
+        fields = []
 
-    def filter_parent(self, queryset, name, value):
-        if value.lower() in TOP_LEVEL_KEYWORDS:
-            return queryset.filter(parent__isnull=True)
-        return queryset.filter(parent_id=value)
+
+# Material specs live in five positional (spec_keyN, spec_valN) column pairs.
+SPEC_SLOTS = (1, 2, 3, 4, 5)
+
+SPEC_KEY_HELP = _(
+    "Match materials whose specs include this key. Pair it with the same-numbered "
+    "spec_valN to require that key and value on the same spec slot."
+)
+SPEC_VAL_HELP = _(
+    "Match materials whose specs include this value. Pair it with the same-numbered "
+    "spec_keyN to require that key and value on the same spec slot."
+)
 
 
 class MaterialFilter(SearchableFilterSet):
@@ -139,9 +116,42 @@ class MaterialFilter(SearchableFilterSet):
         help_text=ORDERING_HELP,
     )
 
+    spec_key1 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
+    spec_key2 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
+    spec_key3 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
+    spec_key4 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
+    spec_key5 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
+    spec_val1 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+    spec_val2 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+    spec_val3 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+    spec_val4 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+    spec_val5 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+
     class Meta:
         model = Material
         fields = ["category", "is_active"]
+
+    def filter_spec_key(self, queryset, name, value):
+        # A (spec_keyN, spec_valN) pair must land on the *same* slot, so OR the
+        # per-slot ANDs together rather than matching key and value independently.
+        slot_value = self.data.get(f"spec_val{name[-1]}")
+        condition = Q()
+        for slot in SPEC_SLOTS:
+            slot_q = Q(**{f"spec_key{slot}__icontains": value})
+            if slot_value:
+                slot_q &= Q(**{f"spec_val{slot}__icontains": slot_value})
+            condition |= slot_q
+        return queryset.filter(condition)
+
+    def filter_spec_val(self, queryset, name, value):
+        # When the matching spec_keyN is present the key filter already applied the
+        # pair; only act here to support value-only lookups across all slots.
+        if self.data.get(f"spec_key{name[-1]}"):
+            return queryset
+        condition = Q()
+        for slot in SPEC_SLOTS:
+            condition |= Q(**{f"spec_val{slot}__icontains": value})
+        return queryset.filter(condition)
 
 
 class SettingFilter(SearchableFilterSet):

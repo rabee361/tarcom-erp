@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-
 from tarcom.base.models import Order, OrderStatus
 
 from ..filters import OrderFilter
@@ -25,6 +24,11 @@ from ..serializers import *
     ),
     retrieve=extend_schema(tags=['Orders'], summary='Retrieve order details with items'),
     create=extend_schema(tags=['Orders'], summary='Create/place an order (Checkout)'),
+    partial_update=extend_schema(
+        tags=['Orders'],
+        summary='Partially update an order',
+        description='http_method_names restricts this viewset to GET/POST/PATCH, so PUT and DELETE are not routed.',
+    ),
 )
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()

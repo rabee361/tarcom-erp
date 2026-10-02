@@ -4,11 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-
-# Re-bound after the star import above, which re-exports
-# django.core.exceptions.ValidationError and would otherwise
-# turn these raises into 500s instead of DRF 400s.
-from rest_framework.exceptions import Throttled, ValidationError
+from rest_framework.exceptions import Throttled
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import (
     AllowAny,
     IsAdminUser,
@@ -20,12 +17,13 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from tarcom.base.models import CustomUser, OTPCode
 from tarcom.utils.emails import send_otp_email
 from tarcom.utils.enums import CodeTypes
 
 from ..serializers import *
+
+ValidationError = DRFValidationError
 
 signer = TimestampSigner()
 
@@ -142,7 +140,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         return Response(serializer.validated_data)
 
     @extend_schema(
-        tags=['OTP & Password'],
+        tags=['Auth'],
         request=SendOtpSerializer,
         responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer, 429: ErrorResponseSerializer},
         summary='Send an OTP code by email',
@@ -163,7 +161,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     
 
     @extend_schema(
-        tags=['OTP & Password'],
+        tags=['Auth'],
         request=VerifyOtpSerializer,
         responses={200: VerifyOtpResponseSerializer, 400: ErrorResponseSerializer},
         summary='Verify an OTP code',
@@ -201,7 +199,7 @@ class AuthViewSet(viewsets.GenericViewSet):
             })
 
     @extend_schema(
-        tags=['OTP & Password'],
+        tags=['Auth'],
         request=ForgetPasswordSerializer,
         responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer, 429: ErrorResponseSerializer},
         summary='Start password recovery',
@@ -226,7 +224,7 @@ class AuthViewSet(viewsets.GenericViewSet):
         )
 
     @extend_schema(
-        tags=['OTP & Password'],
+        tags=['Auth'],
         request=ResetPasswordSerializer,
         responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer},
         summary='Reset the account password',

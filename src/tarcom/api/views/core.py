@@ -2,10 +2,7 @@ from django.core.signing import TimestampSigner
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, BasePermission
-from rest_framework.response import Response
-
 from tarcom.base.models import *
 
 # from tarcom.utils.emails import send_otp_email
@@ -53,18 +50,6 @@ class MaterialCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaterialCategoryFilter
-
-    @extend_schema(
-        tags=['Categories'],
-        summary='Get the category tree',
-        description='Returns root categories with nested subcategories.',
-    )
-    @action(detail=False, methods=['get'])
-    def tree(self, request):
-        """Returns root categories with nested subcategories."""
-        roots = self.get_queryset().filter(parent__isnull=True)
-        serializer = self.get_serializer(roots, many=True)
-        return Response(serializer.data)
 
 
 @extend_schema_view(

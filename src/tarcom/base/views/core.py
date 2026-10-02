@@ -98,7 +98,7 @@ class CategoryListView(StaffRequiredMixin, ListView):
     context_object_name = "categories"
 
     def get_queryset(self):
-        return MaterialCategory.objects.select_related('parent').all().order_by('name')
+        return MaterialCategory.objects.all().order_by('name')
 
 
 class CategoryCreateView(StaffRequiredMixin, CreateView):
@@ -127,7 +127,7 @@ class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = MaterialCategory
     template_name = "dashboard/categories/category_confirm_delete.html"
     success_url = reverse_lazy('categories-list')
-    protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات أو تصنيفات فرعية."
+    protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات في النظام."
     deleted_message = "تم حذف التصنيف بنجاح."
 
 
