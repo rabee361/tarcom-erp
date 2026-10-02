@@ -48,7 +48,6 @@ class UserType(models.TextChoices):
 class OrderStatus(models.TextChoices):
     PENDING = 'PENDING', _('Pending')
     CONFIRMED = 'CONFIRMED', _('Confirmed')
-    PROCESSING = 'PROCESSING', _('Processing')
     SHIPPED = 'SHIPPED', _('Shipped')
     DELIVERED = 'DELIVERED', _('Delivered')
     CANCELLED = 'CANCELLED', _('Cancelled')

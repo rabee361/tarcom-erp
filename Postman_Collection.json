@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Tarcom E-Commerce API",
-    "description": "Postman collection for the **Tarcom E-Commerce API** (Django REST Framework + SimpleJWT + drf-spectacular), generated from `schema.yml` and the source under `src/tarcom/api/`.\n\n**Setup**\n1. `POST /api/auth/signup/` then verify with `POST /api/otp/verify-otp/`.\n2. `POST /api/auth/login/` and copy `tokens.access` -> `{{token}}` (and `tokens.refresh` -> `{{refresh_token}}`).\n3. Protected requests send `Authorization: Bearer {{token}}` automatically (collection-level auth). Public requests are set to *noauth*.\n4. Set `{{id}}` / `{{material_id}}` to real record ids before using detail routes.\n\n**Notes**\n- All endpoints are prefixed with `/api/` (see `src/tarcom/api/urls.py`).\n- Translated resources accept `Accept-Language: en|ar` (fields `*_en`, `*_ar`).\n- No pagination is configured - list endpoints return plain JSON arrays.\n- Error envelope: `{status, code, message, errors}`.\n- Enums: `order.status` PENDING|CONFIRMED|PROCESSING|SHIPPED|DELIVERED|CANCELLED; `payment_status` UNPAID|PAID|REFUNDED; `payment_method` CASH|BANK_TRANSFER|CHECK|CARD; `code_type` SIGNUP|RESET_PASSWORD|FORGET_PASSWORD; `user_type` buyer|seller|admin.",
+    "description": "Postman collection for the **Tarcom E-Commerce API** (Django REST Framework + SimpleJWT + drf-spectacular), generated from `schema.yml` and the source under `src/tarcom/api/`.\n\n**Setup**\n1. `POST /api/auth/signup/` then verify with `POST /api/auth/verify-otp/`.\n2. `POST /api/auth/login/` and copy `tokens.access` -> `{{token}}` (and `tokens.refresh` -> `{{refresh_token}}`).\n3. Protected requests send `Authorization: Bearer {{token}}` automatically (collection-level auth). Public requests are set to *noauth*.\n4. Set `{{id}}` / `{{material_id}}` to real record ids before using detail routes.\n\n**Notes**\n- All endpoints are prefixed with `/api/` (see `src/tarcom/api/urls.py`).\n- Translated resources accept `Accept-Language: en|ar` (fields `*_en`, `*_ar`).\n- No pagination is configured - list endpoints return plain JSON arrays.\n- Error envelope: `{status, code, message, errors}`.\n- Enums: `order.status` PENDING|CONFIRMED|PROCESSING|SHIPPED|DELIVERED|CANCELLED; `payment_status` UNPAID|PAID|REFUNDED; `payment_method` CASH|BANK_TRANSFER|CHECK|CARD; `code_type` SIGNUP|RESET_PASSWORD|FORGET_PASSWORD; `user_type` customer|seller|admin.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -69,7 +69,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Buyer\",\n  \"phone\": \"0791234567\",\n  \"user_type\": \"buyer\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Customer\",\n  \"phone\": \"0791234567\",\n  \"user_type\": \"customer\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -87,7 +87,7 @@
                 "signup"
               ]
             },
-            "description": "Creates an unverified account and generates a SIGNUP OTP code.\n\n**Auth:** none (public)\n**Responses:** `201` account created `{message, email}`, `400` validation error (duplicate email, weak password). `user_type` one of `buyer`, `seller`, `admin`."
+            "description": "Creates an unverified account and generates a SIGNUP OTP code.\n\n**Auth:** none (public)\n**Responses:** `201` account created `{message, email}`, `400` validation error (duplicate email, weak password). `user_type` one of `customer`, `seller`, `admin`."
           },
           "response": []
         },
@@ -110,7 +110,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"password\": \"StrongPass123!\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"StrongPass123!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -180,7 +180,7 @@
       "name": "OTP & Password",
       "item": [
         {
-          "name": "Send OTP (canonical)",
+          "name": "Send OTP",
           "request": {
             "method": "POST",
             "auth": {
@@ -198,171 +198,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"code_type\": \"SIGNUP\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/otp/send-otp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "otp",
-                "send-otp"
-              ]
-            },
-            "description": "Sends an OTP code by email. Rate limited: max 5 codes per email / 15 min.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` unknown email / limit reached, `429` throttled.\n`code_type`: `SIGNUP` | `RESET_PASSWORD` | `FORGET_PASSWORD`."
-          },
-          "response": []
-        },
-        {
-          "name": "Verify OTP (canonical)",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"code\": 123456,\n  \"code_type\": \"SIGNUP\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/otp/verify-otp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "otp",
-                "verify-otp"
-              ]
-            },
-            "description": "Verifies an OTP code.\n\n**Auth:** none (public)\n**Responses:** `200` - SIGNUP returns `{message, tokens, user}`; password flows return `{message, reset_token}` (valid 10 minutes). `400` invalid/expired code."
-          },
-          "response": []
-        },
-        {
-          "name": "Start password recovery (canonical)",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/otp/forget-password/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "otp",
-                "forget-password"
-              ]
-            },
-            "description": "Generates a RESET_PASSWORD OTP for the given email.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` unknown email, `429` throttled."
-          },
-          "response": []
-        },
-        {
-          "name": "Reset password - with reset_token (canonical)",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"reset_token\": \"{{reset_token}}\",\n  \"new_password\": \"NewPass123!\",\n  \"new_password_confirm\": \"NewPass123!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/otp/reset-password/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "otp",
-                "reset-password"
-              ]
-            },
-            "description": "Resets the password using the signed `reset_token` from verify-otp (either `code` or `reset_token` is required).\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` token mismatch / password mismatch."
-          },
-          "response": []
-        },
-        {
-          "name": "Send OTP (legacy alias)",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"code_type\": \"SIGNUP\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"code_type\": \"SIGNUP\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -380,12 +216,12 @@
                 "send-otp"
               ]
             },
-            "description": "Backward-compatible alias of `/api/otp/send-otp/`.\n\n**Auth:** none (public) - **Responses:** `200`, `400`, `429`."
+            "description": "Sends an OTP code by email. Rate limited: max 5 codes per email / 15 min.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` unknown email / limit reached, `429` throttled.\n`code_type`: `SIGNUP` | `RESET_PASSWORD` | `FORGET_PASSWORD`."
           },
           "response": []
         },
         {
-          "name": "Verify OTP (legacy alias)",
+          "name": "Verify OTP",
           "request": {
             "method": "POST",
             "auth": {
@@ -403,7 +239,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"code\": 123456,\n  \"code_type\": \"SIGNUP\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"code\": 123456,\n  \"code_type\": \"SIGNUP\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -421,12 +257,12 @@
                 "verify-otp"
               ]
             },
-            "description": "Backward-compatible alias of `/api/otp/verify-otp/`.\n\n**Auth:** none (public) - **Responses:** `200`, `400`."
+            "description": "Verifies an OTP code. `SIGNUP`: marks the account verified and returns JWT tokens. Password flows: return a signed `reset_token` valid for 10 minutes.\n\n**Auth:** none (public)\n**Responses:** `200` `{message, tokens|user|reset_token}`, `400` invalid or already used code."
           },
           "response": []
         },
         {
-          "name": "Forget password (legacy alias)",
+          "name": "Forget password",
           "request": {
             "method": "POST",
             "auth": {
@@ -444,7 +280,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -462,12 +298,12 @@
                 "forget-password"
               ]
             },
-            "description": "Backward-compatible alias of `/api/otp/forget-password/`.\n\n**Auth:** none (public) - **Responses:** `200`, `400`, `429`."
+            "description": "Starts password recovery by emailing a `FORGET_PASSWORD` code. Rate limited: max 5 codes per email / 15 min.\n\n**Auth:** none (public)\n**Responses:** `200`, `400`, `429` throttled."
           },
           "response": []
         },
         {
-          "name": "Reset password with OTP code (legacy alias)",
+          "name": "Reset password with OTP code",
           "request": {
             "method": "POST",
             "auth": {
@@ -485,7 +321,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"code\": 123456,\n  \"new_password\": \"NewPass123!\",\n  \"new_password_confirm\": \"NewPass123!\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"code\": 123456,\n  \"new_password\": \"NewPass123!\",\n  \"new_password_confirm\": \"NewPass123!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -503,7 +339,7 @@
                 "reset-password"
               ]
             },
-            "description": "Backward-compatible alias of `/api/otp/reset-password/`. Accepts an OTP `code` instead of a `reset_token`.\n\n**Auth:** none (public) - **Responses:** `200`, `400`."
+            "description": "Resets the password accepting an OTP `code` directly instead of the signed `reset_token`.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` token mismatch / password mismatch."
           },
           "response": []
         }
@@ -967,7 +803,7 @@
       "name": "Materials",
       "item": [
         {
-          "name": "List materialss",
+          "name": "List materials",
           "request": {
             "method": "GET",
             "auth": {
@@ -1204,250 +1040,10 @@
       ]
     },
     {
-      "name": "Products",
-      "item": [
-        {
-          "name": "List productss",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/products/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products"
-              ],
-              "query": [
-                {
-                  "key": "category",
-                  "value": "1",
-                  "description": "Filter by category id"
-                },
-                {
-                  "key": "is_active",
-                  "value": "true",
-                  "description": "Filter by active flag (true/false)"
-                },
-                {
-                  "key": "search",
-                  "value": "phone",
-                  "description": "Search term (name, name_en, name_ar)"
-                },
-                {
-                  "key": "ordering",
-                  "value": "-created_at",
-                  "description": "consumer_price | supplier_price | created_at | name"
-                }
-              ]
-            },
-            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `search`, `ordering`."
-          },
-          "response": []
-        },
-        {
-          "name": "Create products",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/products/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products"
-              ]
-            },
-            "description": "Create a products - write requires staff (bearer token).\n\n**Responses:** `201` object, `400` validation error, `401`/`403`."
-          },
-          "response": []
-        },
-        {
-          "name": "Retrieve products",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/products/{{id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products",
-                "{{id}}"
-              ]
-            },
-            "description": "Retrieve a single products by id.\n\n**Responses:** `200` object, `404` not found."
-          },
-          "response": []
-        },
-        {
-          "name": "Replace products",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/products/{{id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products",
-                "{{id}}"
-              ]
-            },
-            "description": "Full update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
-          },
-          "response": []
-        },
-        {
-          "name": "Partially update products",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Accept-Language",
-                "value": "en"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"consumer_price\": \"750.00\",\n  \"name_en\": \"Phone Pro\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/products/{{id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products",
-                "{{id}}"
-              ]
-            },
-            "description": "Partial update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete products",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/products/{{id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "products",
-                "{{id}}"
-              ]
-            },
-            "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Categories",
       "item": [
         {
-          "name": "List categoriess",
+          "name": "List categories",
           "request": {
             "method": "GET",
             "auth": {
@@ -1717,7 +1313,7 @@
           "name": "units",
           "item": [
             {
-              "name": "List unitss",
+              "name": "List units",
               "request": {
                 "method": "GET",
                 "auth": {
@@ -1934,236 +1530,6 @@
                   "path": [
                     "api",
                     "units",
-                    "{{id}}"
-                  ]
-                },
-                "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "uoms",
-          "item": [
-            {
-              "name": "List uomss",
-              "request": {
-                "method": "GET",
-                "auth": {
-                  "type": "noauth"
-                },
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept-Language",
-                    "value": "en"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms"
-                  ],
-                  "query": [
-                    {
-                      "key": "search",
-                      "value": "kilogram",
-                      "description": "Search term (name, name_en, name_ar, code)"
-                    },
-                    {
-                      "key": "ordering",
-                      "value": "name",
-                      "description": "Ordering field"
-                    }
-                  ]
-                },
-                "description": "Units of Measure list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `search`, `ordering`."
-              },
-              "response": []
-            },
-            {
-              "name": "Create uoms",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept-Language",
-                    "value": "en"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name_en\": \"Kilogram\",\n  \"name_ar\": \"كيلوجرام\",\n  \"code\": \"KG\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms"
-                  ]
-                },
-                "description": "Create a uoms - write requires staff (bearer token).\n\n**Responses:** `201` object, `400` validation error, `401`/`403`."
-              },
-              "response": []
-            },
-            {
-              "name": "Retrieve uoms",
-              "request": {
-                "method": "GET",
-                "auth": {
-                  "type": "noauth"
-                },
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept-Language",
-                    "value": "en"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/{{id}}/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms",
-                    "{{id}}"
-                  ]
-                },
-                "description": "Retrieve a single uoms by id.\n\n**Responses:** `200` object, `404` not found."
-              },
-              "response": []
-            },
-            {
-              "name": "Replace uoms",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept-Language",
-                    "value": "en"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name_en\": \"Kilogram\",\n  \"name_ar\": \"كيلوجرام\",\n  \"code\": \"KG\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/{{id}}/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms",
-                    "{{id}}"
-                  ]
-                },
-                "description": "Full update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
-              },
-              "response": []
-            },
-            {
-              "name": "Partially update uoms",
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept-Language",
-                    "value": "en"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name_en\": \"Kilogram Updated\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/{{id}}/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms",
-                    "{{id}}"
-                  ]
-                },
-                "description": "Partial update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
-              },
-              "response": []
-            },
-            {
-              "name": "Delete uoms",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/uoms/{{id}}/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "uoms",
                     "{{id}}"
                   ]
                 },
@@ -2661,7 +2027,7 @@
                 }
               ]
             },
-            "description": "Buyers see only their own orders; staff/admins see all.\n\n**Auth:** bearer required\n**Responses:** `200` array (`order_number`, `status`, `payment_status`, `total_amount`, `items_count`, `created_at`), `401`.\n\nQuery: `status`, `payment_status`, `search` (order_number, shipping_phone, user__email), `ordering`."
+            "description": "Customers see only their own orders; staff/admins see all.\n\n**Auth:** bearer required\n**Responses:** `200` array (`order_number`, `status`, `payment_status`, `total_amount`, `items_count`, `created_at`), `401`.\n\nQuery: `status`, `payment_status`, `search` (order_number, shipping_phone, user__email), `ordering`."
           },
           "response": []
         },
@@ -2791,7 +2157,7 @@
                 "cancel"
               ]
             },
-            "description": "Buyers can cancel their own order only while `PENDING`; admins can cancel any time before delivery.\n\n**Responses:** `200` `{message}`, `400` invalid status, `403`, `401`."
+            "description": "Customers can cancel their own order only while `PENDING`; admins can cancel any time before delivery.\n\n**Responses:** `200` `{message}`, `400` invalid status, `403`, `401`."
           },
           "response": []
         },

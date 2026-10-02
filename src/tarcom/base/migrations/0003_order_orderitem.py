@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('subtotal', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Subtotal')),
                 ('discount_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Discount Amount')),
                 ('total_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Total Amount')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to=settings.AUTH_USER_MODEL, verbose_name='Buyer / Customer')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to=settings.AUTH_USER_MODEL, verbose_name='Customer / Customer')),
             ],
             options={
                 'verbose_name': 'Order',

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base.html' %}
 {% load static %}
 
 {% block title %}المنتجات والمواد{% endblock %}
@@ -91,5 +91,5 @@
     </div>
 </div>
 
-{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}
 {% endblock %}

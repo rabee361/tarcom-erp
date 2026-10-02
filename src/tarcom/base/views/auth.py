@@ -16,7 +16,7 @@ from tarcom.base.models import CustomUser
 
 
 class DashboardLoginView(View):
-    template_name = "login.html"
+    template_name = "dashboard/login.html"
     max_attempts = 3
     lockout_duration = 900  # 15 minutes
 
@@ -88,7 +88,7 @@ class DashboardLogoutView(View):
 
 
 class DashboardChangePasswordView(StaffRequiredMixin, View):
-    template_name = "users/change_password.html"
+    template_name = "dashboard/users/change_password.html"
 
     def get(self, request):
         form = DashboardChangePasswordForm(user=request.user)
@@ -105,7 +105,7 @@ class DashboardChangePasswordView(StaffRequiredMixin, View):
 
 class UsersListView(StaffRequiredMixin, ListView):
     model = CustomUser
-    template_name = "users/users_list.html"
+    template_name = "dashboard/users/users_list.html"
     context_object_name = "users"
     paginate_by = 20
 
@@ -128,7 +128,7 @@ class UsersListView(StaffRequiredMixin, ListView):
 class UserCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = UserForm
-    template_name = "users/user_form.html"
+    template_name = "dashboard/users/user_form.html"
     success_url = reverse_lazy('users-list')
 
     def form_valid(self, form):
@@ -139,7 +139,7 @@ class UserCreateView(StaffRequiredMixin, CreateView):
 class UserUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = UserForm
-    template_name = "users/user_form.html"
+    template_name = "dashboard/users/user_form.html"
     success_url = reverse_lazy('users-list')
 
     def form_valid(self, form):
@@ -149,7 +149,7 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
 
 class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
-    template_name = "users/user_confirm_delete.html"
+    template_name = "dashboard/users/user_confirm_delete.html"
     success_url = reverse_lazy('users-list')
     protected_message = "لا يمكن حذف هذا المستخدم لارتباطه بطلبات أو بيانات أخرى في النظام."
     deleted_message = "تم حذف المستخدم بنجاح."

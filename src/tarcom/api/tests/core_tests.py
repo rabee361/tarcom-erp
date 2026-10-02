@@ -38,6 +38,44 @@ class ResetPasswordViewTest(TestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def _reset_payload(self, **extra):
+        data = {
+            'email': 'test@example.com',
+            'new_password': 'NewStrongPass123!',
+            'new_password_confirm': 'NewStrongPass123!',
+        }
+        data.update(extra)
+        return data
+
+    def _assert_non_field_error(self, response, message):
+        # The custom handler emits bilingual leaves: '{"en": "...", "ar": "..."}'.
+        self.assertIn(message, response.data['errors']['non_field_errors'][0])
+
+    def test_reset_password_invalid_token_returns_400(self):
+        # Regression: auth.py shadowed DRF's ValidationError with Django's,
+        # so this used to escape DRF and surface as a 500.
+        response = self.client.post(
+            self.url, self._reset_payload(reset_token='not-a-real-token'), format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self._assert_non_field_error(response, 'Invalid or expired reset token.')
+
+    def test_reset_password_token_email_mismatch_returns_400(self):
+        from django.core.signing import TimestampSigner
+
+        response = self.client.post(
+            self.url,
+            self._reset_payload(reset_token=TimestampSigner().sign('other@example.com')),
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self._assert_non_field_error(response, 'Token does not match email.')
+
+    def test_reset_password_unknown_otp_returns_400(self):
+        response = self.client.post(self.url, self._reset_payload(code=999999), format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self._assert_non_field_error(response, 'Invalid or already used OTP code.')
+
 class UnitOfMeasureAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -82,6 +120,12 @@ class UnitOfMeasureAPITest(TestCase):
         res_en = self.client.get(f'/api/units/{self.uom.id}/', HTTP_ACCEPT_LANGUAGE='en')
         self.assertEqual(res_en.status_code, status.HTTP_200_OK)
         self.assertEqual(res_en.data['name'], 'Piece')
+
+    def test_uoms_alias_route_is_removed(self):
+        for url in (f'/api/uoms/{self.uom.id}/', '/api/uoms/'):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class MaterialCategoryAPITest(TestCase):
     def setUp(self):
@@ -157,17 +201,18 @@ class MaterialAPITest(TestCase):
             is_active=True,
         )
 
-    def test_list_materials_and_products_alias(self):
+    def test_list_materials(self):
         res_materials = self.client.get('/api/materials/')
         self.assertEqual(res_materials.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_materials.data), 1)
         self.assertEqual(res_materials.data[0]['category_name'], 'Devices')
         self.assertEqual(res_materials.data[0]['uom_name'], 'Piece')
 
-        # Test products alias route
-        res_products = self.client.get('/api/products/')
-        self.assertEqual(res_products.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_products.data), 1)
+    def test_products_alias_route_is_removed(self):
+        for url in (f'/api/products/{self.material.id}/', '/api/products/'):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_admin_create_material_with_translations(self):
         self.client.force_authenticate(user=self.admin_user)

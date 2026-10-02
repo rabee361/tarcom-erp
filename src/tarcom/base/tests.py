@@ -49,10 +49,10 @@ class DashboardAuthTest(TestCase):
             password='StaffPass123!',
             is_staff=True,
         )
-        self.buyer = CustomUser.objects.create_user(
-            email='buyer@tarcom.com',
-            password='BuyerPass123!',
-            user_type=UserType.BUYER,
+        self.customer = CustomUser.objects.create_user(
+            email='customer@tarcom.com',
+            password='CustomerPass123!',
+            user_type=UserType.CUSTOMER,
         )
         self.cache_key = 'dashboard_login_attempts_127.0.0.1_staff@tarcom.com'
 
@@ -94,14 +94,14 @@ class DashboardAuthTest(TestCase):
         self.assertEqual(cache.get(self.cache_key), 3)
 
     def test_non_staff_redirected_from_dashboard(self):
-        self.client.force_login(self.buyer)
+        self.client.force_login(self.customer)
         response = self.client.get('/dashboard/')
         self.assertRedirects(response, '/login/?next=/dashboard/')
 
     def test_non_staff_login_rejected(self):
         response = self.client.post('/login/', {
-            'phonenumber': 'buyer@tarcom.com',
-            'password': 'BuyerPass123!',
+            'phonenumber': 'customer@tarcom.com',
+            'password': 'CustomerPass123!',
         })
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(self.client.session.get('_auth_user_id'))
@@ -162,11 +162,11 @@ class DashboardOrdersTest(TestCase):
             password='StaffPass123!',
             is_staff=True,
         )
-        self.buyer = CustomUser.objects.create_user(
-            email='buyer@tarcom.com',
-            password='BuyerPass123!',
+        self.customer = CustomUser.objects.create_user(
+            email='customer@tarcom.com',
+            password='CustomerPass123!',
         )
-        self.order = Order.objects.create(user=self.buyer)
+        self.order = Order.objects.create(user=self.customer)
         self.client.force_login(self.staff)
 
     def test_dashboard_orders_status_update(self):
@@ -177,17 +177,17 @@ class DashboardOrdersTest(TestCase):
         self.assertContains(detail, self.order.order_number)
 
         response = self.client.post(f'/dashboard/orders/{self.order.pk}/status/', {
-            'status': OrderStatus.PROCESSING,
+            'status': OrderStatus.PENDING,
             'payment_status': PaymentStatus.PAID,
         })
         self.assertRedirects(response, f'/dashboard/orders/{self.order.pk}/')
 
         self.order.refresh_from_db()
-        self.assertEqual(self.order.status, OrderStatus.PROCESSING)
+        self.assertEqual(self.order.status, OrderStatus.PENDING)
         self.assertEqual(self.order.payment_status, PaymentStatus.PAID)
 
     def test_dashboard_orders_list_filters_by_status(self):
-        other = Order.objects.create(user=self.buyer, status=OrderStatus.SHIPPED)
+        other = Order.objects.create(user=self.customer, status=OrderStatus.SHIPPED)
         response = self.client.get('/dashboard/orders/', {'status': OrderStatus.SHIPPED})
         self.assertEqual(response.status_code, 200)
         orders = list(response.context['orders'])
@@ -209,7 +209,7 @@ class DashboardUsersCrudTest(TestCase):
             'first_name': 'First',
             'last_name': 'User',
             'phone': '0791234567',
-            'user_type': UserType.BUYER,
+            'user_type': UserType.CUSTOMER,
             'is_active': 'on',
             'password': 'StrongPass123!',
             'confirm_password': 'StrongPass123!',
@@ -293,9 +293,9 @@ class DashboardPageRenderTest(TestCase):
             password='StaffPass123!',
             is_staff=True,
         )
-        self.buyer = CustomUser.objects.create_user(
-            email='buyer@tarcom.com',
-            password='BuyerPass123!',
+        self.customer = CustomUser.objects.create_user(
+            email='customer@tarcom.com',
+            password='CustomerPass123!',
         )
         self.uom = UnitOfMeasure.objects.create(name='Piece', code='PCS')
         self.category = MaterialCategory.objects.create(name='Steel')
@@ -305,7 +305,7 @@ class DashboardPageRenderTest(TestCase):
             uom=self.uom,
             consumer_price=Decimal('100.00'),
         )
-        self.order = Order.objects.create(user=self.buyer)
+        self.order = Order.objects.create(user=self.customer)
         self.client.force_login(self.staff)
 
     def test_dashboard_pages_render(self):
@@ -314,8 +314,8 @@ class DashboardPageRenderTest(TestCase):
             '/dashboard/',
             '/dashboard/users/',
             '/dashboard/users/create/',
-            f'/dashboard/users/{self.buyer.pk}/edit/',
-            f'/dashboard/users/{self.buyer.pk}/delete/',
+            f'/dashboard/users/{self.customer.pk}/edit/',
+            f'/dashboard/users/{self.customer.pk}/delete/',
             '/dashboard/materials/',
             '/dashboard/materials/create/',
             f'/dashboard/materials/{self.material.pk}/edit/',

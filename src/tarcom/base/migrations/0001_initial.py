@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('user_type', models.CharField(choices=[('buyer', 'Buyer'), ('seller', 'Seller'), ('admin', 'Admin')], default='buyer', max_length=10)),
+                ('user_type', models.CharField(choices=[('customer', 'Customer'), ('seller', 'Seller'), ('admin', 'Admin')], default='customer', max_length=10)),
                 ('avatar', models.ImageField(blank=True, null=True, upload_to='users/avatars/')),
                 ('phone', models.CharField(blank=True, max_length=20, null=True, validators=[django.core.validators.RegexValidator(message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.', regex='^\\+?[0-9]{7,15}$')])),
                 ('email', models.EmailField(max_length=140, unique=True)),

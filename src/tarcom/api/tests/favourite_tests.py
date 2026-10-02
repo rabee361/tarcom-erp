@@ -9,7 +9,7 @@ class FavouriteAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = CustomUser.objects.create_user(
-            email='buyer@example.com', password='StrongPass123!', is_verified=True
+            email='customer@example.com', password='StrongPass123!', is_verified=True
         )
         self.other_user = CustomUser.objects.create_user(
             email='other@example.com', password='StrongPass123!', is_verified=True

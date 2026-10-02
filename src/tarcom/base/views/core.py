@@ -15,7 +15,7 @@ from .auth import StaffRequiredMixin, ProtectedDeleteMixin
 class DashboardView(StaffRequiredMixin, View):
     def get(self, request):
         context = {}
-        return render(request, "dashboard.html", context=context)
+        return render(request, "dashboard/dashboard.html", context=context)
 
 
 class DashboardPartialView(StaffRequiredMixin, View):
@@ -24,17 +24,17 @@ class DashboardPartialView(StaffRequiredMixin, View):
             "products_count": Material.objects.count(),
             "categories_count": MaterialCategory.objects.count(),
             "orders_count": Order.objects.filter(status=OrderStatus.PENDING).count(),
-            "clients_count": CustomUser.objects.filter(user_type=UserType.BUYER).count(),
+            "clients_count": CustomUser.objects.filter(user_type=UserType.CUSTOMER).count(),
             "admins_count": CustomUser.objects.filter(is_staff=True).count(),
             "total_sales": Order.objects.exclude(status=OrderStatus.CANCELLED)
             .aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
         }
-        return render(request, "partials/dashboard_partial.html", context=context)
+        return render(request, "dashboard/partials/dashboard_partial.html", context=context)
 
 
 class MaterialListView(StaffRequiredMixin, ListView):
     model = Material
-    template_name = "materials/materials_list.html"
+    template_name = "dashboard/materials/materials_list.html"
     context_object_name = "materials"
     paginate_by = 20
 
@@ -57,7 +57,7 @@ class MaterialListView(StaffRequiredMixin, ListView):
 class MaterialCreateView(StaffRequiredMixin, CreateView):
     model = Material
     form_class = MaterialForm
-    template_name = "materials/material_form.html"
+    template_name = "dashboard/materials/material_form.html"
     success_url = reverse_lazy('materials-list')
 
     def form_valid(self, form):
@@ -68,7 +68,7 @@ class MaterialCreateView(StaffRequiredMixin, CreateView):
 class MaterialUpdateView(StaffRequiredMixin, UpdateView):
     model = Material
     form_class = MaterialForm
-    template_name = "materials/material_form.html"
+    template_name = "dashboard/materials/material_form.html"
     success_url = reverse_lazy('materials-list')
 
     def form_valid(self, form):
@@ -78,7 +78,7 @@ class MaterialUpdateView(StaffRequiredMixin, UpdateView):
 
 class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = Material
-    template_name = "materials/material_confirm_delete.html"
+    template_name = "dashboard/materials/material_confirm_delete.html"
     success_url = reverse_lazy('materials-list')
     protected_message = "لا يمكن حذف المادة لارتباطها بطلبات أو حركات أخرى في النظام."
     deleted_message = "تم حذف المادة بنجاح."
@@ -86,7 +86,7 @@ class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
 
 class CategoryListView(StaffRequiredMixin, ListView):
     model = MaterialCategory
-    template_name = "categories/categories_list.html"
+    template_name = "dashboard/categories/categories_list.html"
     context_object_name = "categories"
 
     def get_queryset(self):
@@ -96,7 +96,7 @@ class CategoryListView(StaffRequiredMixin, ListView):
 class CategoryCreateView(StaffRequiredMixin, CreateView):
     model = MaterialCategory
     form_class = CategoryForm
-    template_name = "categories/category_form.html"
+    template_name = "dashboard/categories/category_form.html"
     success_url = reverse_lazy('categories-list')
 
     def form_valid(self, form):
@@ -107,7 +107,7 @@ class CategoryCreateView(StaffRequiredMixin, CreateView):
 class CategoryUpdateView(StaffRequiredMixin, UpdateView):
     model = MaterialCategory
     form_class = CategoryForm
-    template_name = "categories/category_form.html"
+    template_name = "dashboard/categories/category_form.html"
     success_url = reverse_lazy('categories-list')
 
     def form_valid(self, form):
@@ -117,7 +117,7 @@ class CategoryUpdateView(StaffRequiredMixin, UpdateView):
 
 class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = MaterialCategory
-    template_name = "categories/category_confirm_delete.html"
+    template_name = "dashboard/categories/category_confirm_delete.html"
     success_url = reverse_lazy('categories-list')
     protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات أو تصنيفات فرعية."
     deleted_message = "تم حذف التصنيف بنجاح."
@@ -125,7 +125,7 @@ class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
 
 class UnitListView(StaffRequiredMixin, ListView):
     model = UnitOfMeasure
-    template_name = "units/units_list.html"
+    template_name = "dashboard/units/units_list.html"
     context_object_name = "units"
 
     def get_queryset(self):
@@ -135,7 +135,7 @@ class UnitListView(StaffRequiredMixin, ListView):
 class UnitCreateView(StaffRequiredMixin, CreateView):
     model = UnitOfMeasure
     form_class = UnitOfMeasureForm
-    template_name = "units/unit_form.html"
+    template_name = "dashboard/units/unit_form.html"
     success_url = reverse_lazy('units-list')
 
     def form_valid(self, form):
@@ -146,7 +146,7 @@ class UnitCreateView(StaffRequiredMixin, CreateView):
 class UnitUpdateView(StaffRequiredMixin, UpdateView):
     model = UnitOfMeasure
     form_class = UnitOfMeasureForm
-    template_name = "units/unit_form.html"
+    template_name = "dashboard/units/unit_form.html"
     success_url = reverse_lazy('units-list')
 
     def form_valid(self, form):
@@ -156,7 +156,7 @@ class UnitUpdateView(StaffRequiredMixin, UpdateView):
 
 class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = UnitOfMeasure
-    template_name = "units/unit_confirm_delete.html"
+    template_name = "dashboard/units/unit_confirm_delete.html"
     success_url = reverse_lazy('units-list')
     protected_message = "لا يمكن حذف وحدة القياس لارتباطها بمنتجات في النظام."
     deleted_message = "تم حذف وحدة القياس بنجاح."
@@ -164,7 +164,7 @@ class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
 
 class OrderListView(StaffRequiredMixin, ListView):
     model = Order
-    template_name = "orders/orders_list.html"
+    template_name = "dashboard/orders/orders_list.html"
     context_object_name = "orders"
     paginate_by = 20
 
@@ -190,7 +190,7 @@ class OrderListView(StaffRequiredMixin, ListView):
 
 class OrderDetailView(StaffRequiredMixin, DetailView):
     model = Order
-    template_name = "orders/order_detail.html"
+    template_name = "dashboard/orders/order_detail.html"
     context_object_name = "order"
 
     def get_context_data(self, **kwargs):

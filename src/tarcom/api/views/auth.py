@@ -1,28 +1,53 @@
-from rest_framework import status, viewsets, filters
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.exceptions import Throttled, ValidationError
-from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, IsAuthenticated, SAFE_METHODS
+from rest_framework.exceptions import Throttled
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, SAFE_METHODS
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from django.core.signing import TimestampSigner
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from tarcom.utils.emails import send_otp_email
 
-from tarcom.base.models import CustomUser, OTPCode, UnitOfMeasure, MaterialCategory, Material
+from tarcom.base.models import CustomUser, OTPCode
 from tarcom.utils.enums import CodeTypes
-# from tarcom.utils.helper import send_otp_email
 
 from ..serializers import *
 
+# Re-bound after the star import above, which re-exports
+# django.core.exceptions.ValidationError and would otherwise
+# turn these raises into 500s instead of DRF 400s.
+from rest_framework.exceptions import ValidationError
+
 signer = TimestampSigner()
+
+
+def _otp_delivery_response(email_sent, success_message=None, failure_message=None):
+    """
+    Report whether the OTP actually reached the mail provider.
+
+    A 200 here means accepted for delivery, not delivered -- Gmail takes the
+    address at face value and bounces unknown recipients later, so the client
+    must still handle "code never arrived".
+    """
+    if email_sent:
+        message = success_message or _("OTP code sent successfully.")
+    else:
+        message = failure_message or _(
+            "We could not send the OTP code. Please try again in a few minutes."
+        )
+    return Response({"message": message, "email_sent": email_sent})
 
 
 
 class AuthViewSet(viewsets.GenericViewSet):
     permission_classes = [AllowAny]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
 
     def get_authenticate_header(self, request):
         # Mirrors rest_framework_simplejwt.views.TokenViewBase: a WWW-Authenticate
@@ -42,11 +67,28 @@ class AuthViewSet(viewsets.GenericViewSet):
     def signup(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        code = user.create_otp(code_type=CodeTypes.SIGNUP)
-        # send_otp_email(user.email, code, CodeTypes.SIGNUP)
+
+        # The user row and its OTP are either both persisted or neither is.
+        # The network send stays outside the block: holding a transaction open
+        # across SMTP would pin a database connection for the socket timeout.
+        with transaction.atomic():
+            user = serializer.save()
+            code = user.create_otp(code_type=CodeTypes.SIGNUP)
+
+        email_sent = send_otp_email(
+            user.email, code, CodeTypes.SIGNUP, recipient_name=user.first_name
+        )
+
+        if email_sent:
+            message = _("Account created. Please verify your email.")
+        else:
+            message = _(
+                "Account created, but the verification code could not be emailed. "
+                "Request a new code with the send-otp endpoint."
+            )
+
         return Response(
-            {"message": _("Account created. Please verify your email."), "email": user.email},
+            {"message": message, "email": user.email, "email_sent": email_sent},
             status=status.HTTP_201_CREATED,
         )
 
@@ -100,50 +142,6 @@ class AuthViewSet(viewsets.GenericViewSet):
         tags=['OTP & Password'],
         request=SendOtpSerializer,
         responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer, 429: ErrorResponseSerializer},
-        summary='Send an OTP code by email (backward-compatible alias)',
-    )
-    @action(detail=False, methods=['post'], url_path='send-otp', url_name='send-otp')
-    def send_otp(self, request):
-        return OTPViewSet().send_otp(request)
-
-    @extend_schema(
-        tags=['OTP & Password'],
-        request=VerifyOtpSerializer,
-        responses={200: VerifyOtpResponseSerializer, 400: ErrorResponseSerializer},
-        summary='Verify an OTP code (backward-compatible alias)',
-    )
-    @action(detail=False, methods=['post'], url_path='verify-otp', url_name='verify-otp')
-    def verify_otp(self, request):
-        return OTPViewSet().verify_otp(request)
-
-    @extend_schema(
-        tags=['OTP & Password'],
-        request=ForgetPasswordSerializer,
-        responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer, 429: ErrorResponseSerializer},
-        summary='Start password recovery (backward-compatible alias)',
-    )
-    @action(detail=False, methods=['post'], url_path='forget-password', url_name='forget-password')
-    def forget_password(self, request):
-        return OTPViewSet().forget_password(request)
-
-    @extend_schema(
-        tags=['OTP & Password'],
-        request=ResetPasswordSerializer,
-        responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer},
-        summary='Reset the account password (backward-compatible alias)',
-    )
-    @action(detail=False, methods=['post'], url_path='reset-password', url_name='reset-password')
-    def reset_password(self, request):
-        return OTPViewSet().reset_password(request)
-
-
-class OTPViewSet(viewsets.GenericViewSet):
-    permission_classes = [AllowAny]
-
-    @extend_schema(
-        tags=['OTP & Password'],
-        request=SendOtpSerializer,
-        responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer, 429: ErrorResponseSerializer},
         summary='Send an OTP code by email',
         description='Rate limited: at most 5 codes per email within 15 minutes.',
     )
@@ -154,9 +152,12 @@ class OTPViewSet(viewsets.GenericViewSet):
         email = serializer.validated_data['email']
         code_type = serializer.validated_data['code_type']
         user = CustomUser.objects.get(email=email)
-        code = user.create_otp(code_type=code_type)
-        # send_otp_email(email, code, code_type)
-        return Response({"message": _("OTP code sent successfully.")})
+        with transaction.atomic():
+            code = user.create_otp(code_type=code_type)
+        return _otp_delivery_response(
+            send_otp_email(email, code, code_type, recipient_name=user.first_name)
+        )
+    
 
     @extend_schema(
         tags=['OTP & Password'],
@@ -211,9 +212,15 @@ class OTPViewSet(viewsets.GenericViewSet):
         user = CustomUser.objects.get(email=email)
         if OTPCode.check_limit(email):
             raise Throttled(detail=_("Too many requests. Please try again later."))
-        code = user.create_otp(code_type=CodeTypes.RESET_PASSWORD)
-        # send_otp_email(email, code, CodeTypes.RESET_PASSWORD)
-        return Response({"message": _("Password reset OTP sent to your email.")})
+        with transaction.atomic():
+            code = user.create_otp(code_type=CodeTypes.RESET_PASSWORD)
+        return _otp_delivery_response(
+            send_otp_email(email, code, CodeTypes.RESET_PASSWORD, recipient_name=user.first_name),
+            success_message=_("Password reset OTP sent to your email."),
+            failure_message=_(
+                "We could not email the password reset code. Please try again later."
+            ),
+        )
 
     @extend_schema(
         tags=['OTP & Password'],

@@ -39,8 +39,8 @@ msgid "Account verified successfully."
 msgstr "تم التحقق من الحساب بنجاح."
 
 #: api/views/favourites.py:66
-msgid "Active material not found."
-msgstr "لم يتم العثور على مادة نشطة."
+msgid "Material not found."
+msgstr "لم يتم العثور على مادة ."
 
 #: api/views/favourites.py:79
 msgid "Added to favourites."
@@ -155,12 +155,12 @@ msgid "From and To units of measure must be different."
 msgstr "يجب أن تكون وحدتا القياس مختلفتين."
 
 #: api/serializers.py:406
-msgid "ID of the active material to favourite."
-msgstr "معرّف المادة النشطة المضافة إلى المفضلة."
+msgid "ID of the material to favourite."
+msgstr "معرّف المادة المضافة إلى المفضلة."
 
 #: api/serializers.py:446
-msgid "ID of the active material to purchase."
-msgstr "معرّف المادة النشطة المراد شراؤها."
+msgid "ID of the material to purchase."
+msgstr "معرّف المادة المراد شراؤها."
 
 #: base/models.py:43
 msgid "Image must be in JPG, JPEG, PNG or WEBP format."
@@ -279,8 +279,8 @@ msgid "Pending"
 msgstr "قيد الانتظار"
 
 #: utils/validators.py:6
-msgid "Phone number must be entered in the format: \"+999999999\". Up to 15 digits allowed."
-msgstr "يجب إدخال رقم الهاتف بالصيغة: \"+999999999\". يُسمح بحد أقصى 15 رقمًا."
+msgid "Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX."
+msgstr "يجب أن يبدأ رقم الهاتف ب +963 متبوعا ب 9 أرقام"
 
 #: utils/enums.py:9
 msgid "Physical Count Adjustment"
@@ -295,7 +295,7 @@ msgid "Posted / Confirmed"
 msgstr "مرحّل / مؤكد"
 
 #: utils/enums.py:51
-msgid "Processing"
+msgid "Pending"
 msgstr "قيد المعالجة"
 
 #: utils/enums.py:35

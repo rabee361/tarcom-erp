@@ -1,19 +1,16 @@
-from rest_framework import status, viewsets, filters
+from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, BasePermission, IsAdminUser, IsAuthenticated, SAFE_METHODS
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from django.core.signing import TimestampSigner
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
+# from tarcom.utils.emails import send_otp_email
 
-from tarcom.base.models import CustomUser, OTPCode, UnitOfMeasure, MaterialCategory, Material
-from tarcom.utils.enums import CodeTypes
-# from tarcom.utils.helper import send_otp_email
-
+from ..filters import *
 from ..serializers import *
+from tarcom.base.models import *
 
 signer = TimestampSigner()
 
@@ -38,25 +35,12 @@ class UnitOfMeasureViewSet(viewsets.ModelViewSet):
     queryset = UnitOfMeasure.objects.all()
     serializer_class = UnitOfMeasureSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'name_en', 'name_ar', 'code']
-    ordering_fields = ['name', 'code', 'created_at']
-    ordering = ['name']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UnitOfMeasureFilter
 
 
 @extend_schema_view(
-    list=extend_schema(
-        tags=['Categories'],
-        summary='List material categories',
-        parameters=[
-            OpenApiParameter(
-                name='parent',
-                type=str,
-                required=False,
-                description="Filter by parent category id, or one of `null`/`none`/`root` for top-level categories.",
-            ),
-        ],
-    ),
+    list=extend_schema(tags=['Categories'], summary='List material categories'),
     retrieve=extend_schema(tags=['Categories'], summary='Retrieve a material category'),
     create=extend_schema(tags=['Categories'], summary='Create a material category (admin only)'),
     update=extend_schema(tags=['Categories'], summary='Replace a material category (admin only)'),
@@ -67,20 +51,8 @@ class MaterialCategoryViewSet(viewsets.ModelViewSet):
     queryset = MaterialCategory.objects.all()
     serializer_class = MaterialCategorySerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'name_en', 'name_ar']
-    ordering_fields = ['name', 'created_at']
-    ordering = ['name']
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        parent_id = self.request.query_params.get('parent')
-        if parent_id is not None:
-            if parent_id.lower() in ['null', 'none', 'root']:
-                qs = qs.filter(parent__isnull=True)
-            else:
-                qs = qs.filter(parent_id=parent_id)
-        return qs
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MaterialCategoryFilter
 
     @extend_schema(
         tags=['Categories'],
@@ -96,40 +68,19 @@ class MaterialCategoryViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(
-        tags=['Materials (Products)'],
-        summary='List materials (products)',
-        parameters=[
-            OpenApiParameter(name='category', type=int, required=False,
-                             description='Filter by category id.'),
-            OpenApiParameter(name='is_active', type=bool, required=False,
-                             description='Filter by active flag (true/false).'),
-        ],
-    ),
-    retrieve=extend_schema(tags=['Materials (Products)'], summary='Retrieve a material (product)'),
-    create=extend_schema(tags=['Materials (Products)'], summary='Create a material (product)'),
-    update=extend_schema(tags=['Materials (Products)'], summary='Replace a material (product)'),
-    partial_update=extend_schema(tags=['Materials (Products)'], summary='Partially update a material (product)'),
-    destroy=extend_schema(tags=['Materials (Products)'], summary='Delete a material (product)'),
+    list=extend_schema(tags=['Materials'], summary='List materials'),
+    retrieve=extend_schema(tags=['Materials'], summary='Retrieve a material'),
+    create=extend_schema(tags=['Materials'], summary='Create a material'),
+    update=extend_schema(tags=['Materials'], summary='Replace a material'),
+    partial_update=extend_schema(tags=['Materials'], summary='Partially update a material'),
+    destroy=extend_schema(tags=['Materials'], summary='Delete a material'),
 )
 class MaterialViewSet(viewsets.ModelViewSet):
     queryset = Material.objects.select_related('category', 'uom').all()
     serializer_class = MaterialSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'name_en', 'name_ar']
-    ordering_fields = ['consumer_price', 'supplier_price', 'created_at', 'name']
-    ordering = ['-created_at']
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        category_id = self.request.query_params.get('category')
-        if category_id:
-            qs = qs.filter(category_id=category_id)
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            qs = qs.filter(is_active=is_active.lower() in ['true', '1'])
-        return qs
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MaterialFilter
 
 
 @extend_schema_view(
@@ -139,5 +90,5 @@ class MaterialViewSet(viewsets.ModelViewSet):
 class SettingsViewSet(viewsets.ModelViewSet):
     queryset = Setting.objects.all()
     serializer_class = SettingSerializer
-    search_fields = ['key', 'key_en', 'key_ar']
-    ordering_fields = ['key']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SettingFilter

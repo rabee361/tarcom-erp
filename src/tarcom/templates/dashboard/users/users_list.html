@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base.html' %}
 {% load static %}
 
 {% block title %}المستخدمون{% endblock %}
@@ -26,7 +26,7 @@
                 {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
                 <select name="user_type" onchange="document.getElementById('user-type-filter').submit()">
                     <option value="">كل أنواع المستخدمين</option>
-                    <option value="buyer" {% if request.GET.user_type == 'buyer' %}selected{% endif %}>مشترٍ</option>
+                    <option value="customer" {% if request.GET.user_type == 'customer' %}selected{% endif %}>مشترٍ</option>
                     <option value="seller" {% if request.GET.user_type == 'seller' %}selected{% endif %}>بائع</option>
                     <option value="admin" {% if request.GET.user_type == 'admin' %}selected{% endif %}>مدير</option>
                 </select>
@@ -81,5 +81,5 @@
     </div>
 </div>
 
-{% if page_obj %}{% include 'pagination.html' %}{% endif %}
+{% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}
 {% endblock %}

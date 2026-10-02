@@ -6,21 +6,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
-from tarcom.base.models import (
-    CustomUser,
-    OTPCode,
-    UnitOfMeasure,
-    MaterialCategory,
-    Material,
-    FavouriteItem,
-    Order,
-    OrderItem,
-)
+from tarcom.base.models import *
 from tarcom.base.translation import *
 from tarcom.utils.enums import UserType, CodeTypes, OrderStatus, PaymentStatus
-from tarcom.utils.helper import generate_code, get_expiration_time, send_otp_email
-from django.utils import timezone
-from django.core.signing import TimestampSigner
 from django.conf import settings
 
 
@@ -100,11 +88,20 @@ class AccountDeactivateSerializer(serializers.Serializer):
 class MessageResponseSerializer(serializers.Serializer):
     """Standard informational response: {"message": "..."}"""
     message = serializers.CharField()
+    email_sent = serializers.BooleanField(
+        required=False,
+        help_text=(
+            "True when the mail provider accepted the message. False means the "
+            "code was not sent and must be re-requested. Delivery is still not "
+            "guaranteed: the provider can bounce unknown recipients afterwards."
+        ),
+    )
 
 
 class SignupResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     email = serializers.EmailField()
+    email_sent = serializers.BooleanField()
 
 
 class TokenPairSerializer(serializers.Serializer):
@@ -400,10 +397,9 @@ class FavouriteItemSerializer(serializers.ModelSerializer):
 
 
 class FavouriteCreateSerializer(serializers.Serializer):
-    """Write serializer for adding a material to favourites."""
     material = serializers.PrimaryKeyRelatedField(
         queryset=Material.objects.filter(is_active=True),
-        help_text=_("ID of the active material to favourite.")
+        help_text=_("ID of the material to favourite.")
     )
 
     def validate_material(self, material):
@@ -443,7 +439,7 @@ class OrderItemReadSerializer(serializers.ModelSerializer):
 class OrderItemInputSerializer(serializers.Serializer):
     material = serializers.PrimaryKeyRelatedField(
         queryset=Material.objects.filter(is_active=True),
-        help_text=_("ID of the active material to purchase.")
+        help_text=_("ID of the material to purchase.")
     )
     quantity = serializers.DecimalField(
         max_digits=12,
@@ -464,8 +460,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             'shipping_phone', 'notes', 'items', 'subtotal', 'discount_amount',
             'total_amount', 'created_at'
         ]
-        read_only_fields = ['id', 'order_number', 'subtotal', 'discount_amount',
-                            'total_amount', 'created_at']
+        read_only_fields = ['id', 'order_number', 'subtotal', 'discount_amount','total_amount', 'created_at']
 
     def validate_items(self, items):
         if not items:

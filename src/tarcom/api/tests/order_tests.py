@@ -11,14 +11,14 @@ from tarcom.utils.enums import OrderStatus, PaymentStatus
 class OrderAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.buyer = CustomUser.objects.create_user(
-            email='buyer@example.com',
+        self.customer = CustomUser.objects.create_user(
+            email='customer@example.com',
             password='StrongPass123!',
             first_name='Buy',
             last_name='Er',
             is_verified=True,
         )
-        self.other_buyer = CustomUser.objects.create_user(
+        self.other_customer = CustomUser.objects.create_user(
             email='other@example.com', password='StrongPass123!', is_verified=True
         )
         self.admin = CustomUser.objects.create_superuser(
@@ -41,10 +41,10 @@ class OrderAPITest(TestCase):
         self.url = '/api/orders/'
 
     def authenticate(self, user=None):
-        self.client.force_authenticate(user=user or self.buyer)
+        self.client.force_authenticate(user=user or self.customer)
 
     def place_order(self, user=None, items=None):
-        self.authenticate(user or self.buyer)
+        self.authenticate(user or self.customer)
         payload = {
             'payment_method': 'CASH',
             'shipping_address': 'Amman, Jordan',
@@ -79,7 +79,7 @@ class OrderAPITest(TestCase):
         self.assertEqual(Decimal(data['total_amount']), Decimal('350.00'))
 
         order = Order.objects.get(id=data['id'])
-        self.assertEqual(order.user, self.buyer)
+        self.assertEqual(order.user, self.customer)
         self.assertEqual(order.items.count(), 2)
         self.assertEqual(order.subtotal, Decimal('350.00'))
 
@@ -123,9 +123,9 @@ class OrderAPITest(TestCase):
     # Visibility
     # ---------------------------------------------
 
-    def test_buyer_can_only_see_own_orders(self):
+    def test_customer_can_only_see_own_orders(self):
         own = self.place_order().data
-        self.place_order(user=self.other_buyer, items=[{'material': self.material2.id, 'quantity': '1.000'}])
+        self.place_order(user=self.other_customer, items=[{'material': self.material2.id, 'quantity': '1.000'}])
 
         self.authenticate()
         response = self.client.get(self.url)
@@ -133,13 +133,13 @@ class OrderAPITest(TestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], own['id'])
 
-        other_order = Order.objects.filter(user=self.other_buyer).first()
+        other_order = Order.objects.filter(user=self.other_customer).first()
         detail = self.client.get(f'{self.url}{other_order.id}/')
         self.assertEqual(detail.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_admin_can_see_all_orders(self):
         self.place_order()
-        self.place_order(user=self.other_buyer, items=[{'material': self.material2.id, 'quantity': '1.000'}])
+        self.place_order(user=self.other_customer, items=[{'material': self.material2.id, 'quantity': '1.000'}])
 
         self.authenticate(self.admin)
         response = self.client.get(self.url)
@@ -154,7 +154,7 @@ class OrderAPITest(TestCase):
     # Cancellation
     # ---------------------------------------------
 
-    def test_buyer_cancel_pending_order(self):
+    def test_customer_cancel_pending_order(self):
         order_id = self.place_order().data['id']
 
         self.authenticate()
@@ -163,7 +163,7 @@ class OrderAPITest(TestCase):
         order = Order.objects.get(id=order_id)
         self.assertEqual(order.status, OrderStatus.CANCELLED)
 
-    def test_buyer_cannot_cancel_shipped_order(self):
+    def test_customer_cannot_cancel_shipped_order(self):
         order_id = self.place_order().data['id']
         Order.objects.filter(id=order_id).update(status=OrderStatus.SHIPPED)
 
@@ -183,18 +183,18 @@ class OrderAPITest(TestCase):
         self.authenticate(self.admin)
         response = self.client.patch(
             f'{self.url}{order_id}/status/',
-            {'status': OrderStatus.PROCESSING, 'payment_status': PaymentStatus.PAID},
+            {'status': OrderStatus.SHIPPED, 'payment_status': PaymentStatus.PAID},
             format='json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], OrderStatus.PROCESSING)
+        self.assertEqual(response.data['status'], OrderStatus.SHIPPED)
         self.assertEqual(response.data['payment_status'], PaymentStatus.PAID)
 
         order = Order.objects.get(id=order_id)
-        self.assertEqual(order.status, OrderStatus.PROCESSING)
+        self.assertEqual(order.status, OrderStatus.SHIPPED)
         self.assertEqual(order.payment_status, PaymentStatus.PAID)
 
-    def test_buyer_cannot_update_order_status(self):
+    def test_customer_cannot_update_order_status(self):
         order_id = self.place_order().data['id']
 
         self.authenticate()

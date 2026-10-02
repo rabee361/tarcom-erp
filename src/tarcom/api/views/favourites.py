@@ -1,19 +1,15 @@
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils.translation import gettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
 from tarcom.base.models import FavouriteItem, Material
-from ..serializers import (
-    FavouriteItemSerializer,
-    FavouriteCreateSerializer,
-    FavouriteToggleResponseSerializer,
-    MessageResponseSerializer,
-    ErrorResponseSerializer,
-)
+from ..serializers import *
+from ..filters import FavouriteItemFilter
 
 
 @extend_schema_view(
@@ -25,14 +21,16 @@ from ..serializers import (
 class FavouriteViewSet(viewsets.ModelViewSet):
     queryset = FavouriteItem.objects.all()
     permission_classes = [IsAuthenticated]
-    filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = FavouriteItemFilter
     http_method_names = ['get', 'post', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        return FavouriteItem.objects.filter(user=self.request.user).select_related(
-            'material', 'material__category', 'material__uom'
+        # `FavouriteItem.Meta` declares no default ordering, so state it here.
+        return (
+            FavouriteItem.objects.filter(user=self.request.user)
+            .select_related('material', 'material__category', 'material__uom')
+            .order_by('-created_at')
         )
 
     def get_serializer_class(self):
@@ -63,7 +61,7 @@ class FavouriteViewSet(viewsets.ModelViewSet):
         try:
             material = Material.objects.get(id=material_id, is_active=True)
         except (Material.DoesNotExist, ValueError, TypeError):
-            raise NotFound(_("Active material not found."))
+            raise NotFound(_("Material not found."))
 
         favourite = FavouriteItem.objects.filter(user=request.user, material=material).first()
         if favourite:
@@ -100,8 +98,7 @@ class FavouriteViewSet(viewsets.ModelViewSet):
         responses={200: MessageResponseSerializer, 404: ErrorResponseSerializer},
         summary='Remove material from favourites by material ID',
     )
-    @action(detail=False, methods=['delete'], url_path='remove-by-material/(?P<material_id>[^/.]+)',
-            url_name='remove-by-material')
+    @action(detail=False, methods=['delete'], url_path='remove-by-material/(?P<material_id>[^/.]+)',url_name='remove-by-material')
     def remove_by_material(self, request, material_id=None):
         # NOTE: `_` is gettext here, so do not unpack the delete() result into it.
         deleted_count, _deleted = FavouriteItem.objects.filter(user=request.user, material_id=material_id).delete()

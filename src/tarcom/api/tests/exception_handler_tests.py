@@ -99,7 +99,7 @@ class ApiErrorResponseEnvelopeTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = CustomUser.objects.create_user(
-            email='buyer@example.com', password='StrongPass123!', is_verified=True
+            email='customer@example.com', password='StrongPass123!', is_verified=True
         )
         self.uom = UnitOfMeasure.objects.create(name='Piece', code='PCS')
         self.category = MaterialCategory.objects.create(name='Steel')
@@ -146,8 +146,8 @@ class ApiErrorResponseEnvelopeTest(TestCase):
 
     def test_converted_forget_password_throttle_envelope(self):
         for _ in range(5):
-            OTPCode.objects.create(email='buyer@example.com', code_type=CodeTypes.RESET_PASSWORD)
-        response = self.client.post('/api/auth/forget-password/', {'email': 'buyer@example.com'}, format='json')
+            OTPCode.objects.create(email='customer@example.com', code_type=CodeTypes.RESET_PASSWORD)
+        response = self.client.post('/api/auth/forget-password/', {'email': 'customer@example.com'}, format='json')
         assert_envelope(self, response, status.HTTP_429_TOO_MANY_REQUESTS)
         self.assertIn('Too many requests. Please try again later.', response.data['message'])
 

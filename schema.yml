@@ -7,7 +7,8 @@ paths:
   /api/auth/forget-password/:
     post:
       operationId: auth_forget_password_create
-      summary: Start password recovery (backward-compatible alias)
+      description: Generates a RESET_PASSWORD OTP for the given email.
+      summary: Start password recovery
       tags:
       - OTP & Password
       requestBody:
@@ -83,7 +84,8 @@ paths:
   /api/auth/reset-password/:
     post:
       operationId: auth_reset_password_create
-      summary: Reset the account password (backward-compatible alias)
+      description: Accepts either a `code` (OTP) or a `reset_token` issued by verify-otp.
+      summary: Reset the account password
       tags:
       - OTP & Password
       requestBody:
@@ -117,7 +119,8 @@ paths:
   /api/auth/send-otp/:
     post:
       operationId: auth_send_otp_create
-      summary: Send an OTP code by email (backward-compatible alias)
+      description: 'Rate limited: at most 5 codes per email within 15 minutes.'
+      summary: Send an OTP code by email
       tags:
       - OTP & Password
       requestBody:
@@ -232,7 +235,9 @@ paths:
   /api/auth/verify-otp/:
     post:
       operationId: auth_verify_otp_create
-      summary: Verify an OTP code (backward-compatible alias)
+      description: 'SIGNUP: marks the account verified and returns JWT tokens. Password
+        flows: returns a signed `reset_token` valid for 10 minutes.'
+      summary: Verify an OTP code
       tags:
       - OTP & Password
       requestBody:
@@ -268,24 +273,37 @@ paths:
       operationId: categories_list
       summary: List material categories
       parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+      - in: query
+        name: ordering
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+            enum:
+            - -created_at
+            - -name
+            - created_at
+            - name
+        description: |-
+          Which field to use when ordering the results.
+
+          * `name` - Name
+          * `-name` - Name (descending)
+          * `created_at` - Created at
+          * `-created_at` - Created at (descending)
+        explode: false
+        style: form
       - in: query
         name: parent
         schema:
           type: string
         description: Filter by parent category id, or one of `null`/`none`/`root`
           for top-level categories.
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+      - in: query
+        name: search
         schema:
           type: string
+        description: A search term.
       tags:
       - Categories
       security:
@@ -450,12 +468,27 @@ paths:
       operationId: favourites_list
       summary: List user favourites
       parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+      - in: query
+        name: name
         schema:
           type: string
+        description: Filter by favourite item name.
+      - in: query
+        name: ordering
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -created_at
+            - created_at
+        description: |-
+          Which field to use when ordering the results.
+
+          * `created_at` - Created at
+          * `-created_at` - Created at (descending)
+        explode: false
+        style: form
       tags:
       - Favourites
       security:
@@ -627,7 +660,7 @@ paths:
   /api/materials/:
     get:
       operationId: materials_list
-      summary: List materials (products)
+      summary: List materials
       parameters:
       - in: query
         name: category
@@ -639,20 +672,41 @@ paths:
         schema:
           type: boolean
         description: Filter by active flag (true/false).
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+      - in: query
+        name: ordering
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -consumer_price
+            - -created_at
+            - -name
+            - -supplier_price
+            - consumer_price
+            - created_at
+            - name
+            - supplier_price
+        description: |-
+          Which field to use when ordering the results.
+
+          * `consumer_price` - Consumer price
+          * `-consumer_price` - Consumer price (descending)
+          * `supplier_price` - Supplier price
+          * `-supplier_price` - Supplier price (descending)
+          * `created_at` - Created at
+          * `-created_at` - Created at (descending)
+          * `name` - Name
+          * `-name` - Name (descending)
+        explode: false
+        style: form
+      - in: query
+        name: search
         schema:
           type: string
-      - name: search
-        required: false
-        in: query
         description: A search term.
-        schema:
-          type: string
       tags:
-      - Materials (Products)
+      - Materials
       security:
       - jwtAuth: []
       responses:
@@ -666,9 +720,9 @@ paths:
           description: ''
     post:
       operationId: materials_create
-      summary: Create a material (product)
+      summary: Create a material
       tags:
-      - Materials (Products)
+      - Materials
       requestBody:
         content:
           application/json:
@@ -693,7 +747,7 @@ paths:
   /api/materials/{id}/:
     get:
       operationId: materials_retrieve
-      summary: Retrieve a material (product)
+      summary: Retrieve a material
       parameters:
       - in: path
         name: id
@@ -702,7 +756,7 @@ paths:
         description: A unique integer value identifying this material.
         required: true
       tags:
-      - Materials (Products)
+      - Materials
       security:
       - jwtAuth: []
       responses:
@@ -714,7 +768,7 @@ paths:
           description: ''
     put:
       operationId: materials_update
-      summary: Replace a material (product)
+      summary: Replace a material
       parameters:
       - in: path
         name: id
@@ -723,7 +777,7 @@ paths:
         description: A unique integer value identifying this material.
         required: true
       tags:
-      - Materials (Products)
+      - Materials
       requestBody:
         content:
           application/json:
@@ -747,7 +801,7 @@ paths:
           description: ''
     patch:
       operationId: materials_partial_update
-      summary: Partially update a material (product)
+      summary: Partially update a material
       parameters:
       - in: path
         name: id
@@ -756,7 +810,7 @@ paths:
         description: A unique integer value identifying this material.
         required: true
       tags:
-      - Materials (Products)
+      - Materials
       requestBody:
         content:
           application/json:
@@ -779,7 +833,7 @@ paths:
           description: ''
     delete:
       operationId: materials_destroy
-      summary: Delete a material (product)
+      summary: Delete a material
       parameters:
       - in: path
         name: id
@@ -788,7 +842,7 @@ paths:
         description: A unique integer value identifying this material.
         required: true
       tags:
-      - Materials (Products)
+      - Materials
       security:
       - jwtAuth: []
       responses:
@@ -797,32 +851,71 @@ paths:
   /api/orders/:
     get:
       operationId: orders_list
-      description: Buyers see only their own orders. Staff and admins see all orders
+      description: Customers see only their own orders. Staff and admins see all orders
         across the system.
       summary: List orders
       parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+      - in: query
+        name: ordering
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+            enum:
+            - -created_at
+            - -status
+            - -total_amount
+            - created_at
+            - status
+            - total_amount
+        description: |-
+          Which field to use when ordering the results.
+
+          * `created_at` - Created at
+          * `-created_at` - Created at (descending)
+          * `total_amount` - Total amount
+          * `-total_amount` - Total amount (descending)
+          * `status` - Status
+          * `-status` - Status (descending)
+        explode: false
+        style: form
       - in: query
         name: payment_status
         schema:
           type: string
-        description: Filter by payment status
-      - name: search
-        required: false
-        in: query
-        description: A search term.
+          enum:
+          - PAID
+          - REFUNDED
+          - UNPAID
+        description: |-
+          Filter by payment status.
+
+          * `UNPAID` - Unpaid
+          * `PAID` - Paid
+          * `REFUNDED` - Refunded
+      - in: query
+        name: search
         schema:
           type: string
+        description: A search term.
       - in: query
         name: status
         schema:
           type: string
-        description: Filter by order status
+          enum:
+          - CANCELLED
+          - CONFIRMED
+          - DELIVERED
+          - PENDING
+          - SHIPPED
+        description: |-
+          Filter by order status.
+
+          * `PENDING` - Pending
+          * `CONFIRMED` - Confirmed
+          * `SHIPPED` - Shipped
+          * `DELIVERED` - Delivered
+          * `CANCELLED` - Cancelled
       tags:
       - Orders
       security:
@@ -907,7 +1000,7 @@ paths:
   /api/orders/{id}/cancel/:
     post:
       operationId: orders_cancel_create
-      description: Buyers can cancel their own order only while status is PENDING.
+      description: Customers can cancel their own order only while status is PENDING.
         Admins can cancel anytime prior to delivery.
       summary: Cancel an order
       parameters:
@@ -987,332 +1080,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: ''
-  /api/otp/forget-password/:
-    post:
-      operationId: otp_forget_password_create
-      description: Generates a RESET_PASSWORD OTP for the given email.
-      summary: Start password recovery
-      tags:
-      - OTP & Password
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ForgetPasswordRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ForgetPasswordRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ForgetPasswordRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '429':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-  /api/otp/reset-password/:
-    post:
-      operationId: otp_reset_password_create
-      description: Accepts either a `code` (OTP) or a `reset_token` issued by verify-otp.
-      summary: Reset the account password
-      tags:
-      - OTP & Password
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ResetPasswordRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-  /api/otp/send-otp/:
-    post:
-      operationId: otp_send_otp_create
-      description: 'Rate limited: at most 5 codes per email within 15 minutes.'
-      summary: Send an OTP code by email
-      tags:
-      - OTP & Password
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendOtpRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/SendOtpRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/SendOtpRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-        '429':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-  /api/otp/verify-otp/:
-    post:
-      operationId: otp_verify_otp_create
-      description: 'SIGNUP: marks the account verified and returns JWT tokens. Password
-        flows: returns a signed `reset_token` valid for 10 minutes.'
-      summary: Verify an OTP code
-      tags:
-      - OTP & Password
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VerifyOtpRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/VerifyOtpRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/VerifyOtpRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VerifyOtpResponse'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: ''
-  /api/products/:
-    get:
-      operationId: products_list
-      summary: List materials (products)
-      parameters:
-      - in: query
-        name: category
-        schema:
-          type: integer
-        description: Filter by category id.
-      - in: query
-        name: is_active
-        schema:
-          type: boolean
-        description: Filter by active flag (true/false).
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
-        schema:
-          type: string
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
-      tags:
-      - Materials (Products)
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Material'
-          description: ''
-    post:
-      operationId: products_create
-      summary: Create a material (product)
-      tags:
-      - Materials (Products)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Material'
-          description: ''
-  /api/products/{id}/:
-    get:
-      operationId: products_retrieve
-      summary: Retrieve a material (product)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this material.
-        required: true
-      tags:
-      - Materials (Products)
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Material'
-          description: ''
-    put:
-      operationId: products_update
-      summary: Replace a material (product)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this material.
-        required: true
-      tags:
-      - Materials (Products)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MaterialRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Material'
-          description: ''
-    patch:
-      operationId: products_partial_update
-      summary: Partially update a material (product)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this material.
-        required: true
-      tags:
-      - Materials (Products)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMaterialRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Material'
-          description: ''
-    delete:
-      operationId: products_destroy
-      summary: Delete a material (product)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this material.
-        required: true
-      tags:
-      - Materials (Products)
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/settings/:
     get:
       operationId: settings_list
+      parameters:
+      - in: query
+        name: ordering
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -key
+            - key
+        description: |-
+          Which field to use when ordering the results.
+
+          * `key` - Key
+          * `-key` - Key (descending)
+        explode: false
+        style: form
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: A search term.
       tags:
       - settings
       security:
@@ -1462,18 +1254,35 @@ paths:
       operationId: units_list
       summary: List units of measure
       parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+      - in: query
+        name: ordering
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -code
+            - -created_at
+            - -name
+            - code
+            - created_at
+            - name
+        description: |-
+          Which field to use when ordering the results.
+
+          * `name` - Name
+          * `-name` - Name (descending)
+          * `code` - Code
+          * `-code` - Code (descending)
+          * `created_at` - Created at
+          * `-created_at` - Created at (descending)
+        explode: false
+        style: form
+      - in: query
+        name: search
         schema:
           type: string
-      - name: search
-        required: false
-        in: query
         description: A search term.
-        schema:
-          type: string
       tags:
       - Units of Measure
       security:
@@ -1602,166 +1411,6 @@ paths:
           description: ''
     delete:
       operationId: units_destroy
-      summary: Delete a unit of measure (admin only)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this unit of measure.
-        required: true
-      tags:
-      - Units of Measure
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/uoms/:
-    get:
-      operationId: uoms_list
-      summary: List units of measure
-      parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
-        schema:
-          type: string
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
-      tags:
-      - Units of Measure
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UnitOfMeasure'
-          description: ''
-    post:
-      operationId: uoms_create
-      summary: Create a unit of measure (admin only)
-      tags:
-      - Units of Measure
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnitOfMeasure'
-          description: ''
-  /api/uoms/{id}/:
-    get:
-      operationId: uoms_retrieve
-      summary: Retrieve a unit of measure
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this unit of measure.
-        required: true
-      tags:
-      - Units of Measure
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnitOfMeasure'
-          description: ''
-    put:
-      operationId: uoms_update
-      summary: Replace a unit of measure (admin only)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this unit of measure.
-        required: true
-      tags:
-      - Units of Measure
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UnitOfMeasureRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnitOfMeasure'
-          description: ''
-    patch:
-      operationId: uoms_partial_update
-      summary: Partially update a unit of measure (admin only)
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this unit of measure.
-        required: true
-      tags:
-      - Units of Measure
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUnitOfMeasureRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UnitOfMeasure'
-          description: ''
-    delete:
-      operationId: uoms_destroy
       summary: Delete a unit of measure (admin only)
       parameters:
       - in: path
@@ -2219,20 +1868,18 @@ components:
       - status
     FavouriteCreate:
       type: object
-      description: Write serializer for adding a material to favourites.
       properties:
         material:
           type: integer
-          description: ID of the active material to favourite.
+          description: ID of the material to favourite.
       required:
       - material
     FavouriteCreateRequest:
       type: object
-      description: Write serializer for adding a material to favourites.
       properties:
         material:
           type: integer
-          description: ID of the active material to favourite.
+          description: ID of the material to favourite.
       required:
       - material
     FavouriteItem:
@@ -2718,6 +2365,11 @@ components:
       properties:
         message:
           type: string
+        email_sent:
+          type: boolean
+          description: 'True when the mail provider accepted the message. False means
+            the code was not sent and must be re-requested. Delivery is still not
+            guaranteed: the provider can bounce unknown recipients afterwards.'
       required:
       - message
     OrderCreate:
@@ -2737,7 +2389,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -2780,7 +2432,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -2884,7 +2536,7 @@ components:
       properties:
         material:
           type: integer
-          description: ID of the active material to purchase.
+          description: ID of the material to purchase.
         quantity:
           type: string
           format: decimal
@@ -2898,7 +2550,7 @@ components:
       properties:
         material:
           type: integer
-          description: ID of the active material to purchase.
+          description: ID of the material to purchase.
         quantity:
           type: string
           format: decimal
@@ -3213,7 +2865,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -3239,7 +2891,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -3390,7 +3042,7 @@ components:
         user_type:
           allOf:
           - $ref: '#/components/schemas/UserTypeEnum'
-          default: buyer
+          default: customer
       required:
       - email
       - password
@@ -3402,14 +3054,16 @@ components:
         email:
           type: string
           format: email
+        email_sent:
+          type: boolean
       required:
       - email
+      - email_sent
       - message
     StatusEnum:
       enum:
       - PENDING
       - CONFIRMED
-      - PROCESSING
       - SHIPPED
       - DELIVERED
       - CANCELLED
@@ -3417,7 +3071,6 @@ components:
       description: |-
         * `PENDING` - Pending
         * `CONFIRMED` - Confirmed
-        * `PROCESSING` - Processing
         * `SHIPPED` - Shipped
         * `DELIVERED` - Delivered
         * `CANCELLED` - Cancelled
@@ -3550,7 +3203,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -3586,7 +3239,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -3612,7 +3265,7 @@ components:
           nullable: true
           oneOf:
           - type: string
-            pattern: ^\+?[0-9]{7,15}$
+            pattern: ^\+963[0-9]{9}$
             maxLength: 20
           - type: string
             maxLength: 0
@@ -3624,13 +3277,13 @@ components:
       - email
     UserTypeEnum:
       enum:
-      - buyer
-      - seller
+      - supplier
+      - customer
       - admin
       type: string
       description: |-
-        * `buyer` - Buyer
-        * `seller` - Seller
+        * `supplier` - Supplier
+        * `customer` - Customer
         * `admin` - Admin
     VerifyOtpRequest:
       type: object

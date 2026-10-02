@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_spectacular',
     'django_htmx',
+    'django_filters',
     'silk',
     'tarcom.base',
     'tarcom.api'
@@ -70,6 +71,12 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'tarcom.utils.exceptions.custom_exception_handler',
+    # Applied explicitly on the auth/OTP viewsets; per-IP because those
+    # endpoints are anonymous and each call can trigger an outbound email.
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/min',
+        'user': '120/min',
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -85,7 +92,9 @@ ROOT_URLCONF = 'tarcom.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -170,8 +179,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'no-reply@tarcom.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'johnalisan521@gmail.com'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'johnalisan521@gmail.com'
+EMAIL_HOST_PASSWORD = 'jbeplldxmvqzjcjl'
+# Bounds the request thread when the provider stalls or blackholes the socket.
+EMAIL_TIMEOUT = 10
 
 
 SIMPLE_JWT = {

@@ -191,10 +191,10 @@ class AuthViewSetTokenRefreshTest(TestCase):
 
 
 # ==========================================
-# OTPViewSet (canonical /api/otp/ routes)
+# OTP routes (canonical /api/auth/ routes)
 # ==========================================
 
-class OTPViewSetRoutingTest(TestCase):
+class OTPRoutingTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = CustomUser.objects.create_user(
@@ -202,34 +202,28 @@ class OTPViewSetRoutingTest(TestCase):
         )
         self.signup_code = self.user.create_otp(code_type=CodeTypes.SIGNUP)
 
-    def test_send_otp_canonical_route(self):
-        data = {'email': 'test@example.com', 'code_type': CodeTypes.SIGNUP}
-        response = self.client.post('/api/otp/send-otp/', data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('message', response.data)
-
-    def test_send_otp_backward_compatible_alias(self):
+    def test_send_otp_route(self):
         data = {'email': 'test@example.com', 'code_type': CodeTypes.SIGNUP}
         response = self.client.post('/api/auth/send-otp/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('message', response.data)
 
-    def test_verify_otp_canonical_route(self):
+    def test_verify_otp_route(self):
         data = {'email': 'test@example.com', 'code': self.signup_code, 'code_type': CodeTypes.SIGNUP}
-        response = self.client.post('/api/otp/verify-otp/', data, format='json')
+        response = self.client.post('/api/auth/verify-otp/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_verified)
         self.assertIn('tokens', response.data)
 
-    def test_forget_password_canonical_route(self):
-        response = self.client.post('/api/otp/forget-password/', {'email': 'test@example.com'}, format='json')
+    def test_forget_password_route(self):
+        response = self.client.post('/api/auth/forget-password/', {'email': 'test@example.com'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
             OTPCode.objects.filter(email='test@example.com', code_type=CodeTypes.RESET_PASSWORD).exists()
         )
 
-    def test_reset_password_canonical_route(self):
+    def test_reset_password_route(self):
         reset_code = self.user.create_otp(code_type=CodeTypes.RESET_PASSWORD)
         data = {
             'email': 'test@example.com',
@@ -237,10 +231,21 @@ class OTPViewSetRoutingTest(TestCase):
             'new_password': 'NewStrongPass123!',
             'new_password_confirm': 'NewStrongPass123!',
         }
-        response = self.client.post('/api/otp/reset-password/', data, format='json')
+        response = self.client.post('/api/auth/reset-password/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('NewStrongPass123!'))
+
+    def test_legacy_otp_routes_are_removed(self):
+        for url in (
+            '/api/otp/send-otp/',
+            '/api/otp/verify-otp/',
+            '/api/otp/forget-password/',
+            '/api/otp/reset-password/',
+        ):
+            with self.subTest(url=url):
+                response = self.client.post(url, {}, format='json')
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 # ==========================================
@@ -282,7 +287,7 @@ class UserViewSetMeTest(TestCase):
         response = self.client.patch('/api/users/me/', {'user_type': 'admin'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.user_type, 'buyer')
+        self.assertEqual(self.user.user_type, 'customer')
 
 
 class UserViewSetAdminPermissionsTest(TestCase):
@@ -291,15 +296,15 @@ class UserViewSetAdminPermissionsTest(TestCase):
         self.admin = CustomUser.objects.create_superuser(
             email='admin@tarcom.com', password='AdminPass123!'
         )
-        self.buyer = CustomUser.objects.create_user(
-            email='buyer@example.com', password='StrongPass123!', is_verified=True
+        self.customer = CustomUser.objects.create_user(
+            email='customer@example.com', password='StrongPass123!', is_verified=True
         )
 
     def test_list_users_requires_admin(self):
         anon = self.client.get('/api/users/')
         self.assertEqual(anon.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        self.client.force_authenticate(user=self.buyer)
+        self.client.force_authenticate(user=self.customer)
         forbidden = self.client.get('/api/users/')
         self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -309,7 +314,7 @@ class UserViewSetAdminPermissionsTest(TestCase):
 
     def test_retrieve_user_as_admin(self):
         self.client.force_authenticate(user=self.admin)
-        response = self.client.get(f'/api/users/{self.buyer.id}/')
+        response = self.client.get(f'/api/users/{self.customer.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['email'], 'buyer@example.com')
+        self.assertEqual(response.data['email'], 'customer@example.com')
 
