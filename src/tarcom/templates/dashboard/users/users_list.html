@@ -62,7 +62,7 @@
                 <td>
                     <div class="row-actions">
                         <a href="{% url 'user-edit' u.pk %}" class="btn-white">تعديل</a>
-                        <a href="{% url 'user-delete' u.pk %}" class="btn-white">حذف</a>
+                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'user-delete' u.pk %}" data-object-name="{{ u.email }}">حذف</button>
                     </div>
                 </td>
             </tr>

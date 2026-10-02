@@ -72,7 +72,7 @@
                 <td>
                     <div class="row-actions">
                         <a href="{% url 'material-edit' material.pk %}" class="btn-white">تعديل</a>
-                        <a href="{% url 'material-delete' material.pk %}" class="btn-white">حذف</a>
+                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'material-delete' material.pk %}" data-object-name="{{ material.name }}">حذف</button>
                     </div>
                 </td>
             </tr>

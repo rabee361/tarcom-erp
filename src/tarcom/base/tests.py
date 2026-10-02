@@ -322,19 +322,15 @@ class DashboardPageRenderTest(TestCase):
             '/dashboard/users/',
             '/dashboard/users/create/',
             f'/dashboard/users/{self.customer.pk}/edit/',
-            f'/dashboard/users/{self.customer.pk}/delete/',
             '/dashboard/materials/',
             '/dashboard/materials/create/',
             f'/dashboard/materials/{self.material.pk}/edit/',
-            f'/dashboard/materials/{self.material.pk}/delete/',
             '/dashboard/categories/',
             '/dashboard/categories/create/',
             f'/dashboard/categories/{self.category.pk}/edit/',
-            f'/dashboard/categories/{self.category.pk}/delete/',
             '/dashboard/units/',
             '/dashboard/units/create/',
             f'/dashboard/units/{self.uom.pk}/edit/',
-            f'/dashboard/units/{self.uom.pk}/delete/',
             '/dashboard/orders/',
             f'/dashboard/orders/{self.order.pk}/',
             '/change-password/',
@@ -342,6 +338,17 @@ class DashboardPageRenderTest(TestCase):
         for url in pages:
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200, url)
+
+    def test_delete_pages_reject_get(self):
+        urls = [
+            f'/dashboard/users/{self.customer.pk}/delete/',
+            f'/dashboard/materials/{self.material.pk}/delete/',
+            f'/dashboard/categories/{self.category.pk}/delete/',
+            f'/dashboard/units/{self.uom.pk}/delete/',
+        ]
+        for url in urls:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 405, url)
 
     def test_login_page_renders_for_anonymous_visitor(self):
         self.client.logout()

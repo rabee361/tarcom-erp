@@ -10,9 +10,11 @@
     <script rel="script" src="{% static 'assets/min/js/main.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/chat.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/copy_btn.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/js/modal.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/theme.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/htmx.min.js' %}"></script>
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/modal.css' %}">
     <script src="https://unpkg.com/htmx-ext-ws@2.0.2" integrity="sha384-vuKxTKv5TX/b3lLzDKP2U363sOAoRo5wSvzzc3LJsbaQRSBSS+3rKKHcOx5J8doU" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <meta charset="UTF-8">
@@ -191,15 +193,30 @@
 
         <main class="main-content">
             {% if messages %}
-            <div class="flash-messages">
+            <script>
                 {% for message in messages %}
-                    <div class="flash-message {% if message.tags == 'success' %}flash-success{% else %}flash-error{% endif %}">{{ message }}</div>
+                alert("{{ message.message|escapejs }}");
                 {% endfor %}
-            </div>
+            </script>
             {% endif %}
             {% block content %}
             {% endblock %}
         </main>
+    </div>
+
+    <!-- Shared delete confirmation modal -->
+    <div class="modal-overlay" id="deleteModalOverlay" hidden>
+        <div class="modal-box">
+            <h3 class="modal-title">تأكيد الحذف</h3>
+            <p class="modal-message" id="deleteModalMessage"></p>
+            <form method="post" id="deleteModalForm">
+                {% csrf_token %}
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-brown">حذف</button>
+                    <button type="button" class="btn btn-white" id="deleteModalCancel">إلغاء</button>
+                </div>
+            </form>
+        </div>
     </div>
         
 </body>

@@ -2076,34 +2076,8 @@ select.dropdown-checklist {
 
 
 /* ==========================================
- * Dashboard utilities: flash messages, table row actions, textarea fields
+ * Dashboard utilities: table row actions, textarea fields
  * ========================================== */
-
-.flash-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.flash-message {
-    padding: 0.6rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    text-align: right;
-}
-
-.flash-message.flash-error {
-    color: var(--color-danger);
-    border-color: var(--color-danger);
-}
-
-.flash-message.flash-success {
-    color: var(--color-success);
-    border-color: var(--color-success);
-}
 
 .row-actions {
     display: flex;

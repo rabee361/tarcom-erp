@@ -148,7 +148,7 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
 
 class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
-    template_name = "dashboard/users/user_confirm_delete.html"
+    http_method_names = ["post"]
     success_url = reverse_lazy('users-list')
     protected_message = "لا يمكن حذف هذا المستخدم لارتباطه بطلبات أو بيانات أخرى في النظام."
     deleted_message = "تم حذف المستخدم بنجاح."

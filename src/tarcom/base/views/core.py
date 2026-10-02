@@ -86,7 +86,7 @@ class MaterialUpdateView(StaffRequiredMixin, UpdateView):
 
 class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = Material
-    template_name = "dashboard/materials/material_confirm_delete.html"
+    http_method_names = ["post"]
     success_url = reverse_lazy('materials-list')
     protected_message = "لا يمكن حذف المادة لارتباطها بطلبات أو حركات أخرى في النظام."
     deleted_message = "تم حذف المادة بنجاح."
@@ -125,7 +125,7 @@ class CategoryUpdateView(StaffRequiredMixin, UpdateView):
 
 class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = MaterialCategory
-    template_name = "dashboard/categories/category_confirm_delete.html"
+    http_method_names = ["post"]
     success_url = reverse_lazy('categories-list')
     protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات في النظام."
     deleted_message = "تم حذف التصنيف بنجاح."
@@ -164,7 +164,7 @@ class UnitUpdateView(StaffRequiredMixin, UpdateView):
 
 class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = UnitOfMeasure
-    template_name = "dashboard/units/unit_confirm_delete.html"
+    http_method_names = ["post"]
     success_url = reverse_lazy('units-list')
     protected_message = "لا يمكن حذف وحدة القياس لارتباطها بمنتجات في النظام."
     deleted_message = "تم حذف وحدة القياس بنجاح."

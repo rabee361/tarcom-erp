@@ -31,7 +31,7 @@
                 <td>
                     <div class="row-actions">
                         <a href="{% url 'unit-edit' unit.pk %}" class="btn-white">تعديل</a>
-                        <a href="{% url 'unit-delete' unit.pk %}" class="btn-white">حذف</a>
+                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'unit-delete' unit.pk %}" data-object-name="{{ unit }}">حذف</button>
                     </div>
                 </td>
             </tr>

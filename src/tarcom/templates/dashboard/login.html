@@ -22,11 +22,11 @@
         </div>
 
         {% if messages %}
-        <div class="input flash-messages">
+        <script>
             {% for message in messages %}
-                <div class="flash-message {% if message.tags == 'success' %}flash-success{% else %}flash-error{% endif %}">{{ message }}</div>
+            alert("{{ message.message|escapejs }}");
             {% endfor %}
-        </div>
+        </script>
         {% endif %}
 
         <form class="login-form" action="" method="post">
@@ -36,11 +36,11 @@
                 {{ form.phonenumber }}
             </div>
             {% if form.phonenumber.errors %}
-                <div class="input flash-messages">
+                <script>
                     {% for error in form.phonenumber.errors %}
-                        <div class="flash-message flash-error">{{ error }}</div>
+                    alert("{{ error|escapejs }}");
                     {% endfor %}
-                </div>
+                </script>
             {% endif %}
 
             <label for="{{ form.password.id_for_label }}">كلمة المرور:</label>
@@ -51,11 +51,11 @@
                 </button>
             </div>
             {% if form.password.errors %}
-                <div class="input flash-messages">
+                <script>
                     {% for error in form.password.errors %}
-                        <div class="flash-message flash-error">{{ error }}</div>
+                    alert("{{ error|escapejs }}");
                     {% endfor %}
-                </div>
+                </script>
             {% endif %}
 
             <div class="remember-me-checkbox">
