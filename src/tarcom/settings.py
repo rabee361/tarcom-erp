@@ -13,15 +13,21 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
+import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent.parent
+
+env = environ.Env()
+environ.Env.read_env(PROJECT_ROOT / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5*!7!j=aq75hk8vtedchs=ftgu29$d##40%=bjr=!^fr$jyiav'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -196,7 +202,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'johnalisan521@gmail.com'
-EMAIL_HOST_PASSWORD = 'jbeplldxmvqzjcjl'
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 # Bounds the request thread when the provider stalls or blackholes the socket.
 EMAIL_TIMEOUT = 10
 
