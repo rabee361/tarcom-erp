@@ -8,6 +8,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from versatileimagefield.fields import VersatileImageField
+
 from tarcom.utils.enums import *
 from tarcom.utils.helper import *
 from tarcom.utils.managers import CustomUserManager
@@ -120,7 +122,7 @@ class UnitConversion(TimeStampModel):
 
 class MaterialCategory(TimeStampModel):
     name = models.CharField(max_length=100, unique=True)
-    icon = models.CharField(max_length=255, blank=True, default='')
+    icon = VersatileImageField(upload_to='images/categories', blank=True, null=True)
 
     class Meta:
         verbose_name = _("Material Category")
@@ -151,11 +153,11 @@ class Material(TimeStampModel):
     spec_val4 = models.CharField(max_length=100, blank=True, null=True)
     spec_val5 = models.CharField(max_length=100, blank=True, null=True)
 
-    image1 = models.ImageField(upload_to='images/materials', null=True, blank=True)
-    image2 = models.ImageField(upload_to='images/materials', null=True, blank=True)
-    image3 = models.ImageField(upload_to='images/materials', null=True, blank=True)
-    image4 = models.ImageField(upload_to='images/materials', null=True, blank=True)
-    image5 = models.ImageField(upload_to='images/materials', null=True, blank=True)
+    image1 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
+    image2 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
+    image3 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
+    image4 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
+    image5 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']

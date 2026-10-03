@@ -16,7 +16,7 @@
     <div class="search-container">
         <form method="get" class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" name="q" placeholder="بحث باسم المادة" value="{{ request.GET.q }}">
+            <input hx-get="{% url 'materials-list' %}" hx-push-url="true" hx-target="#materials-partial" hx-swap="innerHTML" hx-trigger="keyup changed delay:300ms" type="text" name="q" placeholder="بحث باسم المادة" value="{{ request.GET.q }}">
         </form>
     </div>
 
@@ -27,7 +27,7 @@
                 <select name="category" onchange="document.getElementById('material-category-filter').submit()">
                     <option value="">كل التصنيفات</option>
                     {% for category in categories %}
-                        <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name_ar }}</option>
                     {% endfor %}
                 </select>
             </form>
@@ -49,38 +49,8 @@
                 <th>إجراءات</th>
             </tr>
         </thead>
-        <tbody>
-            {% for material in materials %}
-            <tr>
-                <td>
-                    {% if material.image1 %}
-                        <img src="{{ material.image1.url }}" alt="{{ material.name }}" width="40" height="40">
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ material.name }}</td>
-                <td>{{ material.category.name }}</td>
-                <td>{{ material.uom }}</td>
-                <td>{{ material.supplier_price|floatformat:2 }}</td>
-                <td>{{ material.consumer_price|floatformat:2 }}</td>
-                <td>
-                    <span class="status {% if material.is_active %}text-success{% else %}text-danger{% endif %}">
-                        {% if material.is_active %}نشط{% else %}موقوف{% endif %}
-                    </span>
-                </td>
-                <td>
-                    <div class="row-actions">
-                        <a href="{% url 'material-edit' material.pk %}" class="btn-white">تعديل</a>
-                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'material-delete' material.pk %}" data-object-name="{{ material.name }}">حذف</button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8">لا توجد منتجات.</td>
-            </tr>
-            {% endfor %}
+        <tbody id="materials-partial">
+            {% include 'dashboard/partials/materials_partial.html' %}
         </tbody>
     </table>
 </div>

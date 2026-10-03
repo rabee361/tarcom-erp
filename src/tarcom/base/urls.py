@@ -17,6 +17,16 @@ urlpatterns = [
     path("dashboard/users/<int:pk>/edit/", UserUpdateView.as_view(), name="user-edit"),
     path("dashboard/users/<int:pk>/delete/", UserDeleteView.as_view(), name="user-delete"),
 
+    path("dashboard/customers/", CustomerListView.as_view(), name="customers-list"),
+    path("dashboard/customers/create/", CustomerCreateView.as_view(), name="customer-create"),
+    path("dashboard/customers/<int:pk>/edit/", CustomerUpdateView.as_view(), name="customer-edit"),
+    path("dashboard/customers/<int:pk>/delete/", CustomerDeleteView.as_view(), name="customer-delete"),
+
+    path("dashboard/suppliers/", SupplierListView.as_view(), name="suppliers-list"),
+    path("dashboard/suppliers/create/", SupplierCreateView.as_view(), name="supplier-create"),
+    path("dashboard/suppliers/<int:pk>/edit/", SupplierUpdateView.as_view(), name="supplier-edit"),
+    path("dashboard/suppliers/<int:pk>/delete/", SupplierDeleteView.as_view(), name="supplier-delete"),
+
     path("dashboard/materials/", MaterialListView.as_view(), name="materials-list"),
     path("dashboard/materials/create/", MaterialCreateView.as_view(), name="material-create"),
     path("dashboard/materials/<int:pk>/edit/", MaterialUpdateView.as_view(), name="material-edit"),

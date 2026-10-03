@@ -50,6 +50,8 @@ class MaterialListView(StaffRequiredMixin, ListView):
         qs = Material.objects.select_related('category', 'uom').all().order_by('-created_at')
         q = self.request.GET.get('q')
         cat_id = self.request.GET.get('category')
+        if self.request.htmx:
+            self.template_name = 'dashboard/partials/materials_partial.html'
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
         if cat_id:
@@ -98,7 +100,13 @@ class CategoryListView(StaffRequiredMixin, ListView):
     context_object_name = "categories"
 
     def get_queryset(self):
-        return MaterialCategory.objects.all().order_by('name')
+        qs = MaterialCategory.objects.all().order_by('name')
+        if self.request.htmx:
+            self.template_name = 'dashboard/partials/categories_partial.html'
+        if self.request.GET.get('q'):
+            q = self.request.GET.get('q')
+            qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
+        return qs
 
 
 class CategoryCreateView(StaffRequiredMixin, CreateView):
@@ -137,7 +145,13 @@ class UnitListView(StaffRequiredMixin, ListView):
     context_object_name = "units"
 
     def get_queryset(self):
-        return UnitOfMeasure.objects.all().order_by('name')
+        qs = UnitOfMeasure.objects.all().order_by('name')
+        if self.request.htmx:
+            self.template_name = 'dashboard/partials/uom_partial.html'
+        if self.request.GET.get('q'):
+            q = self.request.GET.get('q')
+            qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
+        return qs
 
 
 class UnitCreateView(StaffRequiredMixin, CreateView):

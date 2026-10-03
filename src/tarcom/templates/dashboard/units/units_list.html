@@ -12,6 +12,15 @@
     </nav>
 </div>
 
+<div class="actions">
+    <div class="search-container">
+        <form method="get" class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input hx-get="{% url 'units-list' %}" hx-push-url="true" hx-target="#uom-partial" hx-swap="innerHTML" hx-trigger="keyup changed delay:300ms" type="text" name="q" placeholder="بحث باسم الوحدة" value="{{ request.GET.q }}">
+        </form>
+    </div>
+</div>
+
 <div class="table-container">
     <table class="table table-hover">
         <thead>
@@ -22,24 +31,8 @@
                 <th>إجراءات</th>
             </tr>
         </thead>
-        <tbody>
-            {% for unit in units %}
-            <tr>
-                <td>{{ unit.name }}</td>
-                <td>{{ unit.code }}</td>
-                <td>{{ unit.materials.count }}</td>
-                <td>
-                    <div class="row-actions">
-                        <a href="{% url 'unit-edit' unit.pk %}" class="btn-white">تعديل</a>
-                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'unit-delete' unit.pk %}" data-object-name="{{ unit }}">حذف</button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">لا توجد وحدات قياس.</td>
-            </tr>
-            {% endfor %}
+        <tbody id="uom-partial">
+            {% include 'dashboard/partials/uom_partial.html' %}
         </tbody>
     </table>
 </div>

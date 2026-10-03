@@ -44,8 +44,9 @@ class FavouriteAPITest(TestCase):
         self.authenticate()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        material_ids = {item['material'] for item in response.data}
+        results = response.data['results']
+        self.assertEqual(len(results), 2)
+        material_ids = {item['material'] for item in results}
         self.assertEqual(material_ids, {self.material.id, self.other_material.id})
 
     def test_list_favourites_unauthenticated(self):

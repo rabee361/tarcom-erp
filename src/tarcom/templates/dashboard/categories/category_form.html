@@ -15,19 +15,11 @@
 </div>
 
 <div class="content-body">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-container">
             <div class="form-grid">
                 <div class="form-section">
-                    <div class="form-group">
-                        <label>{{ form.name.label }}</label>
-                        {{ form.name }}
-                        {% if form.name.errors %}
-                            <div class="error">{{ form.name.errors }}</div>
-                        {% endif %}
-                    </div>
-
                     <div class="form-group">
                         <label>{{ form.name_en.label }}</label>
                         {{ form.name_en }}
@@ -46,15 +38,10 @@
                         {% endif %}
                     </div>
 
-                    <div class="form-group">
-                        <label>{{ form.icon.label }}</label>
-                        {{ form.icon }}
-                        {% if object.icon %}
-                            <img src="{% static object.icon %}" alt="{{ object.name }}" style="max-width:64px;margin-top:8px;">
-                        {% endif %}
-                        {% if form.icon.errors %}
-                            <div class="error">{{ form.icon.errors }}</div>
-                        {% endif %}
+                    <div class="form-group img-uploader">
+                        <div class="img-uploader-grid img-uploader-grid--single">
+                            {% include 'dashboard/partials/img_upload_slot.html' with field=form.icon %}
+                        </div>
                     </div>
                 </div>
             </div>

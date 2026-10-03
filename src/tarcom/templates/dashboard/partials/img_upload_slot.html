@@ -1,0 +1,14 @@
+<div class="img-slot{% if field.initial %} has-image{% endif %}">
+    <label class="img-slot-preview" for="{{ field.id_for_label }}">
+        <img class="img-slot-thumb" src="{% if field.initial %}{{ field.initial.url }}{% endif %}" alt="">
+        <span class="img-slot-placeholder">＋</span>
+        <button type="button" class="img-slot-remove" aria-label="إزالة الصورة">✕</button>
+    </label>
+    <div class="img-slot-label">{{ field.label }}</div>
+    <div class="img-slot-inputs">
+        {{ field }}
+    </div>
+    {% if field.errors %}
+        <div class="error">{{ field.errors }}</div>
+    {% endif %}
+</div>

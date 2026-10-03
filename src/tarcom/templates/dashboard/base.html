@@ -11,10 +11,12 @@
     <script rel="script" src="{% static 'assets/min/js/chat.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/copy_btn.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/js/modal.js' %}"></script>
+    <script rel="script" src="{% static 'assets/js/image_uploader.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/theme.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/htmx.min.js' %}"></script>
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/modal.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/img_uploader.css' %}">
     <script src="https://unpkg.com/htmx-ext-ws@2.0.2" integrity="sha384-vuKxTKv5TX/b3lLzDKP2U363sOAoRo5wSvzzc3LJsbaQRSBSS+3rKKHcOx5J8doU" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <meta charset="UTF-8">
@@ -77,20 +79,6 @@
                         </div>
                     </div>
 
-                    <!-- Inventory & Warehouses -->
-                    <div class="nav-item collapsible">
-                        <div class="nav-header">
-                            <i class="fa-solid fa-warehouse"></i>
-                            <span>المخزون والمستودعات</span>
-                            <i class="fas fa-chevron-down arrow"></i>
-                        </div>
-                        <div class="nav-content">
-                            <a href="" class="sub-item">المستودعات</a>
-                            <a href="" class="sub-item">أرصدة المخزون</a>
-                            <a href="" class="sub-item">حركات المخزون</a>
-                        </div>
-                    </div>
-
                     <!-- Sales & Invoices -->
                     <div class="nav-item collapsible">
                         <div class="nav-header">
@@ -111,69 +99,14 @@
                     <div class="nav-item collapsible">
                         <div class="nav-header">
                             <i class="fas fa-users"></i>
-                            <span>المستخدمين والشركاء</span>
+                            <span>المستخدمين </span>
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
                         <div class="nav-content">
                             <a href="{% url 'users-list' %}" class="sub-item">المدراء</a>
-                            <a href="" class="sub-item">العملاء والمشترين</a>
-                            <a href="" class="sub-item">الموردين والبائعين</a>
+                            <a href="{% url 'customers-list' %}" class="sub-item">العملاء </a>
+                            <a href="{% url 'suppliers-list' %}" class="sub-item">الموردين </a>
                         </div>
-                    </div>
-
-                    <!-- Finance & Accounting -->
-                    <div class="nav-item collapsible">
-                        <div class="nav-header">
-                            <i class="fa-solid fa-calculator"></i>
-                            <span>المالية والحسابات</span>
-                            <i class="fas fa-chevron-down arrow"></i>
-                        </div>
-                        <div class="nav-content">
-                            <a href="" class="sub-item">سندات القبض والدفع</a>
-                            <a href="" class="sub-item">دليل الحسابات</a>
-                            <a href="" class="sub-item">قيود اليومية</a>
-                        </div>
-                    </div>
-
-                    <!-- App & Marketing -->
-                    <div class="nav-item collapsible">
-                        <div class="nav-header">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                            <span>إدارة التطبيق والتسويق</span>
-                            <i class="fas fa-chevron-down arrow"></i>
-                        </div>
-                        <div class="nav-content">
-                            <a href="" class="sub-item">العروض والخصومات</a>
-                            <a href="" class="sub-item">الإعلانات والبانرات</a>
-                            <a href="" class="sub-item">الإشعارات</a>
-                            <a href="" class="sub-item">المحادثات والدعم</a>
-                        </div>
-                    </div>
-
-                    <!-- Help Center & Content -->
-                    <div class="nav-item collapsible">
-                        <div class="nav-header">
-                            <i class="fas fa-question-circle"></i>
-                            <span>مركز المساعدة والمحتوى</span>
-                            <i class="fas fa-chevron-down arrow"></i>
-                        </div>
-                        <div class="nav-content">
-                            <a href="" class="sub-item">الأسئلة الشائعة</a>
-                            <a href="" class="sub-item">التواصل معنا</a>
-                            <a href="" class="sub-item">عن المتجر</a>
-                            <a href="" class="sub-item">الشروط والأحكام</a>
-                            <a href="" class="sub-item">سياسة الخصوصية</a>
-                        </div>
-                    </div>
-
-                    <!-- System Settings -->
-                    <div class="nav-item">
-                        <a href="">
-                            <div class="nav-header">
-                                <i class="fa-solid fa-gear"></i>
-                                <span>إعدادات النظام</span>
-                            </div>
-                        </a>
                     </div>
 
                     <!-- Logout -->

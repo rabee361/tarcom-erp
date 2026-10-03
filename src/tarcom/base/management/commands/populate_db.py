@@ -1,8 +1,8 @@
 """Seed the database with deterministic fake data for local development.
 
 Tarcom is an electronics marketplace, so this seeds the 5 real storefront
-categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each wired
-to its static icon under ``base/static/assets/images/categories/`` -- plus the
+categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each
+seeded with its icon uploaded into media storage -- plus the
 units of measure they reference, 10 materials with every spec key/value pair
 filled, 2 active users (one customer, one supplier -- every non-admin type),
 and 3 orders per user with 1-2 line items each. No OTP codes are generated; the
@@ -15,7 +15,10 @@ Run:  python manage.py populate_db            (idempotent, safe to re-run)
 
 import random
 from decimal import Decimal
+from pathlib import Path
 
+from django.conf import settings
+from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -36,7 +39,7 @@ from tarcom.utils.enums import (
 
 PASSWORD = "Passw0rd!123"
 
-ICON_DIR = "assets/images/categories"
+ICON_DIR = Path(settings.BASE_DIR) / "base" / "static" / "assets" / "images" / "categories"
 
 UNITS = [
     ("EA", "Each", "حبة"),
@@ -294,12 +297,13 @@ class Command(BaseCommand):
         for name_en, name_ar, icon_filename in CATEGORIES:
             category, _ = MaterialCategory.objects.update_or_create(
                 name_en=name_en,
-                defaults={
-                    "name": name_en,
-                    "name_ar": name_ar,
-                    "icon": f"{ICON_DIR}/{icon_filename}",
-                },
+                defaults={"name": name_en, "name_ar": name_ar},
             )
+            if not category.icon:
+                icon_path = ICON_DIR / icon_filename
+                if icon_path.exists():
+                    with icon_path.open("rb") as f:
+                        category.icon.save(icon_filename, File(f), save=True)
             categories.append(category)
         return categories
 

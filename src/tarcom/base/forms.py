@@ -127,51 +127,88 @@ class UserForm(forms.ModelForm):
         return user
 
 
+class CustomerUserForm(UserForm):
+    class Meta(UserForm.Meta):
+        widgets = {'user_type': forms.HiddenInput()}
+
+
+class SupplierUserForm(UserForm):
+    class Meta(UserForm.Meta):
+        widgets = {'user_type': forms.HiddenInput()}
+
+
 class MaterialForm(forms.ModelForm):
+    category = forms.ModelChoiceField(
+        queryset=MaterialCategory.objects.all(),
+        label=_("التصنيف"),
+        empty_label=None,
+    )
+
+    uom = forms.ModelChoiceField(
+        queryset=UnitOfMeasure.objects.all(),
+        label=_("وحدة القياس"),
+        empty_label=None,
+    )
+
     class Meta:
         model = Material
         fields = [
-            'name', 'name_en', 'name_ar',
+            'name_en', 'name_ar',
             'category', 'uom',
             'supplier_price', 'consumer_price',
-            'description', 'description_en', 'description_ar',
-            'is_active', 'image1', 'image2'
+            'description_en', 'description_ar',
+            'is_active', 'image1', 'image2', 'image3', 'image4', 'image5'
         ]
         labels = {
-            'name': _("اسم المادة"),
             'name_en': _("الاسم بالإنجليزية"),
             'name_ar': _("الاسم بالعربية"),
             'category': _("التصنيف"),
             'uom': _("وحدة القياس"),
             'supplier_price': _("سعر المورد"),
             'consumer_price': _("سعر المستهلك"),
-            'description': _("الوصف"),
             'description_en': _("الوصف بالإنجليزية"),
             'description_ar': _("الوصف بالعربية"),
             'is_active': _("نشط"),
             'image1': _("الصورة الرئيسية"),
-            'image2': _("صورة إضافية"),
+            'image2': _("صورة إضافية 1"),
+            'image3': _("صورة إضافية 2"),
+            'image4': _("صورة إضافية 3"),
+            'image5': _("صورة إضافية 4"),
         }
+        widgets = {
+            'image1': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'image2': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'image3': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'image4': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+            'image5': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['category'].label_from_instance = lambda obj: obj.name_ar
+        self.fields['uom'].label_from_instance = lambda obj: obj.name_ar
 
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = MaterialCategory
-        fields = ['name', 'name_en', 'name_ar', 'icon']
+        fields = ['name_en', 'name_ar', 'icon']
         labels = {
-            'name': _("اسم التصنيف"),
             'name_en': _("الاسم بالإنجليزية"),
             'name_ar': _("الاسم بالعربية"),
-            'icon': _("أيقونة التصنيف (مسار الصورة)"),
+            'icon': _("أيقونة التصنيف"),
+        }
+        widgets = {
+            'icon': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
 
 
 class UnitOfMeasureForm(forms.ModelForm):
     class Meta:
         model = UnitOfMeasure
-        fields = ['name', 'name_en', 'name_ar', 'code']
+        fields = ['name_en', 'name_ar', 'code']
         labels = {
-            'name': _("اسم الوحدة"),
             'name_en': _("الاسم بالإنجليزية"),
             'name_ar': _("الاسم بالعربية"),
             'code': _("رمز الوحدة (Code)"),

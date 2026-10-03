@@ -96,7 +96,9 @@ class UnitOfMeasureAPITest(TestCase):
     def test_unauthenticated_can_list_units(self):
         response = self.client.get('/api/units/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data['count'], 1)
+        self.assertIsNone(response.data['next'])
+        self.assertEqual(len(response.data['results']), 1)
 
     def test_unauthenticated_cannot_create_unit(self):
         data = {'name_en': 'Box', 'name_ar': 'صندوق', 'code': 'BOX'}
@@ -148,13 +150,12 @@ class MaterialCategoryAPITest(TestCase):
         data = {
             'name_en': 'Smartphones',
             'name_ar': 'هواتف ذكية',
-            'icon': 'assets/images/categories/laptop.jpg',
         }
         response = self.client.post('/api/categories/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name_en'], 'Smartphones')
         self.assertEqual(response.data['name_ar'], 'هواتف ذكية')
-        self.assertEqual(response.data['icon'], 'assets/images/categories/laptop.jpg')
+        self.assertIsNone(response.data['icon'])
 
     def test_category_translation_header(self):
         res_ar = self.client.get(f'/api/categories/{self.category.id}/', HTTP_ACCEPT_LANGUAGE='ar')
@@ -194,9 +195,9 @@ class MaterialAPITest(TestCase):
     def test_list_materials(self):
         res_materials = self.client.get('/api/materials/')
         self.assertEqual(res_materials.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_materials.data), 1)
-        self.assertEqual(res_materials.data[0]['category_name'], 'Devices')
-        self.assertEqual(res_materials.data[0]['uom_name'], 'Piece')
+        self.assertEqual(len(res_materials.data['results']), 1)
+        self.assertEqual(res_materials.data['results'][0]['category_name'], 'Devices')
+        self.assertEqual(res_materials.data['results'][0]['uom_name'], 'Piece')
 
     def test_products_alias_route_is_removed(self):
         for url in (f'/api/products/{self.material.id}/', '/api/products/'):
@@ -239,11 +240,11 @@ class MaterialAPITest(TestCase):
         other_cat = MaterialCategory.objects.create(name='Clothing', name_en='Clothing', name_ar='ملابس')
         res_filtered = self.client.get(f'/api/materials/?category={other_cat.id}')
         self.assertEqual(res_filtered.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_filtered.data), 0)
+        self.assertEqual(len(res_filtered.data['results']), 0)
 
         res_active = self.client.get('/api/materials/?is_active=true')
         self.assertEqual(res_active.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_active.data), 1)
+        self.assertEqual(len(res_active.data['results']), 1)
 
     def test_admin_update_material(self):
         self.client.force_authenticate(user=self.admin_user)

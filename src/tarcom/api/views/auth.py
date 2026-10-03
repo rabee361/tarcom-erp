@@ -12,7 +12,7 @@ from rest_framework.permissions import (
     IsAuthenticated,
 )
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings as jwt_settings
@@ -48,7 +48,11 @@ def _otp_delivery_response(email_sent, success_message=None, failure_message=Non
 
 class AuthViewSet(viewsets.GenericViewSet):
     permission_classes = [AllowAny]
-    throttle_classes = [AnonRateThrottle, UserRateThrottle]
+    # Strict tier: overrides the default browsing budget because every accepted
+    # call here can trigger an outbound email. Keyed by user id when
+    # authenticated, else by IP.
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'otp'
 
     def get_authenticate_header(self, request):
         # Mirrors rest_framework_simplejwt.views.TokenViewBase: a WWW-Authenticate

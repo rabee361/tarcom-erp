@@ -136,8 +136,8 @@ class OrderAPITest(TestCase):
         self.authenticate()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], own['id'])
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], own['id'])
 
         other_order = Order.objects.filter(user=self.other_customer).first()
         detail = self.client.get(f'{self.url}{other_order.id}/')
@@ -150,7 +150,7 @@ class OrderAPITest(TestCase):
         self.authenticate(self.admin)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_unauthenticated_cannot_access_orders(self):
         self.assertEqual(self.client.get(self.url).status_code, status.HTTP_401_UNAUTHORIZED)
@@ -240,7 +240,7 @@ class OrderAPITest(TestCase):
         self.authenticate()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['items_count'], 2)
+        self.assertEqual(response.data['results'][0]['items_count'], 2)
 
     def test_order_detail_includes_item_lines(self):
         order_id = self.place_order().data['id']

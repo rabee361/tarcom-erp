@@ -1,14 +1,14 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}المدراء{% endblock %}
+{% block title %}الموردون{% endblock %}
 
 {% block content %}
 <div class="content-header">
     <nav class="breadcrumb">
         <a href="{% url 'dashboard' %}">لوحة التحكم</a>
         <i class="separator fas fa-chevron-left"></i>
-        <span>المدراء</span>
+        <span>الموردون</span>
     </nav>
 </div>
 
@@ -16,7 +16,7 @@
     <div class="search-container">
         <form method="get" class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" name="q" placeholder="بحث بالاسم أو البريد أو الهاتف" value="{{ request.GET.q }}">
+            <input type="text" name="q" placeholder="بحث باسم المورد أو البريد أو الهاتف" value="{{ request.GET.q }}">
         </form>
     </div>
 </div>
@@ -34,7 +34,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for u in users %}
+            {% for u in suppliers %}
             <tr>
                 <td>{{ u.email }}</td>
                 <td>{{ u.get_full_name|default:"-" }}</td>
@@ -47,14 +47,14 @@
                 </td>
                 <td>
                     <div class="row-actions">
-                        <a href="{% url 'user-edit' u.pk %}" class="btn-white" title="تعديل" aria-label="تعديل {{ u.email }}">✏️</a>
-                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'user-delete' u.pk %}" data-object-name="{{ u.email }}" title="حذف" aria-label="حذف {{ u.email }}">🗑️</button>
+                        <a href="{% url 'supplier-edit' u.pk %}" class="btn-white" title="تعديل" aria-label="تعديل {{ u.email }}">✏️</a>
+                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'supplier-delete' u.pk %}" data-object-name="{{ u.email }}" title="حذف" aria-label="حذف {{ u.email }}">🗑️</button>
                     </div>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">لا يوجد مدراء.</td>
+                <td colspan="6">لا يوجد موردون.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -63,7 +63,7 @@
 
 <div class="table-controls">
     <div class="action-button-container">
-        <a href="{% url 'user-create' %}" class="btn btn-brown">إضافة</a>
+        <a href="{% url 'supplier-create' %}" class="btn btn-brown">إضافة</a>
     </div>
 </div>
 

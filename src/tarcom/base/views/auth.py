@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -12,6 +13,7 @@ from tarcom.base.forms import *
 from tarcom.base.models import CustomUser
 from tarcom.utils.helper import get_client_ip
 from tarcom.utils.mixins import ProtectedDeleteMixin, StaffRequiredMixin
+from tarcom.utils.enums import UserType
 
 
 class DashboardLoginView(View):
@@ -109,10 +111,7 @@ class UsersListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.all().order_by('-date_joined')
-        user_type = self.request.GET.get('user_type')
-        if user_type:
-            qs = qs.filter(user_type=user_type)
+        qs = CustomUser.objects.filter(user_type=UserType.ADMIN).order_by('-date_joined')
         q = self.request.GET.get('q')
         if q:
             qs = qs.filter(
@@ -156,6 +155,157 @@ class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     def form_valid(self, form):
         # DeleteView posts to a plain Form, the object lives on self.object
         if self.object == self.request.user:
-            messages.error(self.request, "لا يمكنك حذف حسابك الحالي أثناء تسجيل الدخول.")
+            message = "لا يمكنك حذف حسابك الحالي أثناء تسجيل الدخول."
+            if self.is_ajax_request():
+                return JsonResponse({"ok": False, "message": message})
+            messages.error(self.request, message)
+            return redirect(self.success_url)
+        return super().form_valid(form)
+
+
+class CustomerListView(StaffRequiredMixin, ListView):
+    model = CustomUser
+    template_name = "dashboard/customers/customers_list.html"
+    context_object_name = "customers"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = CustomUser.objects.filter(user_type=UserType.CUSTOMER).order_by('-date_joined')
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q)
+                | Q(first_name__icontains=q)
+                | Q(last_name__icontains=q)
+                | Q(phone__icontains=q)
+            )
+        return qs
+
+
+class CustomerCreateView(StaffRequiredMixin, CreateView):
+    model = CustomUser
+    form_class = CustomerUserForm
+    template_name = "dashboard/customers/customer_form.html"
+    success_url = reverse_lazy('customers-list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['user_type'] = UserType.CUSTOMER
+        return initial
+
+    def form_valid(self, form):
+        form.instance.user_type = UserType.CUSTOMER
+        messages.success(self.request, "تم إضافة العميل بنجاح.")
+        return super().form_valid(form)
+
+
+class CustomerUpdateView(StaffRequiredMixin, UpdateView):
+    model = CustomUser
+    form_class = CustomerUserForm
+    template_name = "dashboard/customers/customer_form.html"
+    success_url = reverse_lazy('customers-list')
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(user_type=UserType.CUSTOMER)
+
+    def form_valid(self, form):
+        form.instance.user_type = UserType.CUSTOMER
+        messages.success(self.request, "تم تحديث بيانات العميل بنجاح.")
+        return super().form_valid(form)
+
+
+class CustomerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
+    model = CustomUser
+    http_method_names = ["post"]
+    success_url = reverse_lazy('customers-list')
+    protected_message = "لا يمكن حذف هذا العميل لارتباطه بطلبات أو بيانات أخرى في النظام."
+    deleted_message = "تم حذف العميل بنجاح."
+
+    def get_queryset(self):
+        # Scoped so this URL can only ever delete a customer: DeleteView would
+        # otherwise resolve any CustomUser pk, admins and suppliers included.
+        return CustomUser.objects.filter(user_type=UserType.CUSTOMER)
+
+    def form_valid(self, form):
+        # DeleteView posts to a plain Form, the object lives on self.object
+        if self.object == self.request.user:
+            message = "لا يمكنك حذف حسابك الحالي أثناء تسجيل الدخول."
+            if self.is_ajax_request():
+                return JsonResponse({"ok": False, "message": message})
+            messages.error(self.request, message)
+            return redirect(self.success_url)
+        return super().form_valid(form)
+
+
+class SupplierListView(StaffRequiredMixin, ListView):
+    model = CustomUser
+    template_name = "dashboard/suppliers/suppliers_list.html"
+    context_object_name = "suppliers"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = CustomUser.objects.filter(user_type=UserType.SUPPLIER).order_by('-date_joined')
+        q = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q)
+                | Q(first_name__icontains=q)
+                | Q(last_name__icontains=q)
+                | Q(phone__icontains=q)
+            )
+        return qs
+
+
+class SupplierCreateView(StaffRequiredMixin, CreateView):
+    model = CustomUser
+    form_class = SupplierUserForm
+    template_name = "dashboard/suppliers/supplier_form.html"
+    success_url = reverse_lazy('suppliers-list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['user_type'] = UserType.SUPPLIER
+        return initial
+
+    def form_valid(self, form):
+        form.instance.user_type = UserType.SUPPLIER
+        messages.success(self.request, "تم إضافة المورد بنجاح.")
+        return super().form_valid(form)
+
+
+class SupplierUpdateView(StaffRequiredMixin, UpdateView):
+    model = CustomUser
+    form_class = SupplierUserForm
+    template_name = "dashboard/suppliers/supplier_form.html"
+    success_url = reverse_lazy('suppliers-list')
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(user_type=UserType.SUPPLIER)
+
+    def form_valid(self, form):
+        form.instance.user_type = UserType.SUPPLIER
+        messages.success(self.request, "تم تحديث بيانات المورد بنجاح.")
+        return super().form_valid(form)
+
+
+class SupplierDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
+    model = CustomUser
+    http_method_names = ["post"]
+    success_url = reverse_lazy('suppliers-list')
+    protected_message = "لا يمكن حذف هذا المورد لارتباطه بطلبات أو بيانات أخرى في النظام."
+    deleted_message = "تم حذف المورد بنجاح."
+
+    def get_queryset(self):
+        # Scoped so this URL can only ever delete a supplier: DeleteView would
+        # otherwise resolve any CustomUser pk, admins and customers included.
+        return CustomUser.objects.filter(user_type=UserType.SUPPLIER)
+
+    def form_valid(self, form):
+        # DeleteView posts to a plain Form, the object lives on self.object
+        if self.object == self.request.user:
+            message = "لا يمكنك حذف حسابك الحالي أثناء تسجيل الدخول."
+            if self.is_ajax_request():
+                return JsonResponse({"ok": False, "message": message})
+            messages.error(self.request, message)
             return redirect(self.success_url)
         return super().form_valid(form)

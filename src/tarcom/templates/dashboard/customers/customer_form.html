@@ -1,0 +1,143 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}تعديل عميل{% else %}إضافة عميل{% endif %}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'customers-list' %}">العملاء</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>{% if object %}تعديل عميل{% else %}إضافة عميل{% endif %}</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-grid">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="error">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="error">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="error">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="error">{{ form.phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    {{ form.user_type }}
+
+                    <div class="form-group">
+                        <label>{{ form.is_active.label }}</label>
+                        {{ form.is_active }}
+                        {% if form.is_active.errors %}
+                            <div class="error">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.password.label }}</label>
+                        <div class="password-field">
+                            {{ form.password }}
+                            <button type="button" class="password-toggle" data-target="{{ form.password.id_for_label }}">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="error">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.confirm_password.label }}</label>
+                        <div class="password-field">
+                            {{ form.confirm_password }}
+                            <button type="button" class="password-toggle" data-target="{{ form.confirm_password.id_for_label }}">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        {% if form.confirm_password.errors %}
+                            <div class="error">{{ form.confirm_password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group image-picker">
+                        <label>{{ form.avatar.label }}</label>
+                        {{ form.avatar }}
+                        <div class="image-preview">
+                            <img id="image-preview" width="100" height="100"
+                                 src="{% if form.instance.avatar %}{{ form.instance.avatar.url }}{% endif %}"
+                                 class="{% if form.instance.avatar %}is-visible{% endif %}" alt="Preview">
+                            {% if not form.instance.avatar %}
+                                <div class="placeholder-text" id="placeholder-text">لا توجد صورة محددة</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">حفظ</button>
+            <a href="{% url 'customers-list' %}" class="btn btn-white">إلغاء</a>
+        </div>
+    </form>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#{{ form.avatar.id_for_label }}').on('change', function(e) {
+        var file = e.target.files[0];
+        var preview = $('#image-preview');
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                preview.attr('src', ev.target.result).css('display', 'block');
+                $('#placeholder-text').hide();
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.attr('src', '').css('display', 'none');
+            $('#placeholder-text').show();
+        }
+    });
+});
+</script>
+{% endblock %}

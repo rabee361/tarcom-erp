@@ -1,0 +1,134 @@
+/* Image uploader slots used by the material and category dashboard forms.
+   Reuses the CSS variables declared in main.css so the light and dark
+   themes apply automatically. */
+
+.img-uploader {
+    margin-top: 24px;
+}
+
+.img-uploader-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.img-uploader-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 14px;
+}
+
+.img-uploader-grid--single {
+    grid-template-columns: 110px;
+}
+
+.img-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.img-slot-preview {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.img-slot-preview:hover {
+    border-color: var(--accent-color);
+}
+
+.img-slot-thumb {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-slot.has-image .img-slot-thumb {
+    display: block;
+}
+
+.img-slot-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--color-placeholder);
+    user-select: none;
+}
+
+.img-slot.has-image .img-slot-placeholder {
+    display: none;
+}
+
+.img-slot-remove {
+    position: absolute;
+    top: 5px;
+    inset-inline-start: 5px;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.img-slot-remove:hover {
+    background: var(--color-error);
+    color: var(--color-white);
+}
+
+.img-slot.is-removing .img-slot-preview {
+    border-color: var(--color-error);
+}
+
+.img-slot.is-removing .img-slot-thumb {
+    opacity: 0.35;
+}
+
+.img-slot.is-removing .img-slot-preview::after {
+    content: "ستتم الإزالة";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.img-slot-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* The native ClearableFileInput stays in the DOM (it is what the form posts)
+   but is never shown. */
+.img-slot-inputs {
+    display: none;
+}
+
+.img-slot .error {
+    font-size: 11px;
+    color: var(--color-error);
+}

@@ -98,20 +98,20 @@ class OrderListFilterTest(TestCase):
 
         by_phone = self.client.get(f'{self.url}?search=911111')
         self.assertEqual(by_phone.status_code, status.HTTP_200_OK)
-        self.assertEqual([o['id'] for o in by_phone.data], [own['id']])
+        self.assertEqual([o['id'] for o in by_phone.data['results']], [own['id']])
 
         by_email = self.client.get(f'{self.url}?search=other@example.com')
         self.assertEqual(by_email.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(by_email.data), 1)
-        self.assertNotEqual(by_email.data[0]['id'], own['id'])
+        self.assertEqual(len(by_email.data['results']), 1)
+        self.assertNotEqual(by_email.data['results'][0]['id'], own['id'])
 
         by_number = self.client.get(f'{self.url}?search={own["order_number"]}')
         self.assertEqual(by_number.status_code, status.HTTP_200_OK)
-        self.assertEqual([o['id'] for o in by_number.data], [own['id']])
+        self.assertEqual([o['id'] for o in by_number.data['results']], [own['id']])
 
         none = self.client.get(f'{self.url}?search=no-such-term')
         self.assertEqual(none.status_code, status.HTTP_200_OK)
-        self.assertEqual(none.data, [])
+        self.assertEqual(none.data['results'], [])
 
     def test_status_filter_is_case_insensitive(self):
         pending = self.place_order(self.customer, '+963911111111')
@@ -122,11 +122,11 @@ class OrderListFilterTest(TestCase):
         for value in ('pending', 'PENDING', 'Pending'):
             response = self.client.get(f'{self.url}?status={value}')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual([o['id'] for o in response.data], [pending['id']], value)
+            self.assertEqual([o['id'] for o in response.data['results']], [pending['id']], value)
 
         response = self.client.get(f'{self.url}?status=shipped')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual([o['id'] for o in response.data], [shipped['id']])
+        self.assertEqual([o['id'] for o in response.data['results']], [shipped['id']])
 
     def test_payment_status_filter_is_case_insensitive(self):
         order = self.place_order(self.customer, '+963911111111')
@@ -134,12 +134,12 @@ class OrderListFilterTest(TestCase):
 
         response = self.client.get(f'{self.url}?payment_status=unpaid')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual([o['id'] for o in response.data], [order['id']])
+        self.assertEqual([o['id'] for o in response.data['results']], [order['id']])
 
         Order.objects.filter(pk=order['id']).update(payment_status=PaymentStatus.PAID)
         response = self.client.get(f'{self.url}?payment_status=PAID')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual([o['id'] for o in response.data], [order['id']])
+        self.assertEqual([o['id'] for o in response.data['results']], [order['id']])
 
     def test_unknown_enum_values_are_rejected(self):
         self.place_order(self.customer, '+963911111111')
@@ -152,10 +152,10 @@ class OrderListFilterTest(TestCase):
         self.client.force_authenticate(user=self.customer)
 
         ascending = self.client.get(f'{self.url}?ordering=total_amount')
-        self.assertEqual([o['id'] for o in ascending.data], [cheap['id'], pricey['id']])
+        self.assertEqual([o['id'] for o in ascending.data['results']], [cheap['id'], pricey['id']])
 
         descending = self.client.get(f'{self.url}?ordering=-total_amount')
-        self.assertEqual([o['id'] for o in descending.data], [pricey['id'], cheap['id']])
+        self.assertEqual([o['id'] for o in descending.data['results']], [pricey['id'], cheap['id']])
 
     def test_unknown_ordering_field_is_rejected(self):
         self.place_order(self.customer, '+963911111111')
@@ -167,7 +167,7 @@ class OrderListFilterTest(TestCase):
         self.client.force_authenticate(user=self.customer)
         response = self.client.get(f'{self.url}?ordering=-created_at,total_amount')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_default_ordering_is_newest_first(self):
         older = self.place_order(self.customer, '+963911111111')
@@ -178,7 +178,7 @@ class OrderListFilterTest(TestCase):
         self.client.force_authenticate(user=self.customer)
 
         response = self.client.get(self.url)
-        self.assertEqual([o['id'] for o in response.data], [newer['id'], older['id']])
+        self.assertEqual([o['id'] for o in response.data['results']], [newer['id'], older['id']])
 
 
 class CategoryListFilterTest(TestCase):
@@ -191,16 +191,16 @@ class CategoryListFilterTest(TestCase):
 
     def test_search_and_ordering(self):
         by_name = self.client.get(f'{self.url}?search=Phones')
-        self.assertEqual([c['id'] for c in by_name.data], [self.child.id])
+        self.assertEqual([c['id'] for c in by_name.data['results']], [self.child.id])
 
         ascending = self.client.get(f'{self.url}?ordering=name')
         self.assertEqual(
-            [c['name'] for c in ascending.data], ['Clothing', 'Electronics', 'Phones']
+            [c['name'] for c in ascending.data['results']], ['Clothing', 'Electronics', 'Phones']
         )
 
         descending = self.client.get(f'{self.url}?ordering=-name')
         self.assertEqual(
-            [c['name'] for c in descending.data], ['Phones', 'Electronics', 'Clothing']
+            [c['name'] for c in descending.data['results']], ['Phones', 'Electronics', 'Clothing']
         )
 
 
@@ -225,24 +225,26 @@ class MaterialListFilterTest(TestCase):
 
     def test_search_and_is_active(self):
         found = self.client.get(f'{self.url}?search=Fancy')
-        self.assertEqual([m['id'] for m in found.data], [self.pricey.id])
+        self.assertEqual([m['id'] for m in found.data['results']], [self.pricey.id])
 
         inactive = self.client.get(f'{self.url}?is_active=false')
-        self.assertEqual([m['id'] for m in inactive.data], [self.retired.id])
+        self.assertEqual([m['id'] for m in inactive.data['results']], [self.retired.id])
 
         active = self.client.get(f'{self.url}?is_active=true')
-        self.assertEqual({m['id'] for m in active.data}, {self.cheap.id, self.pricey.id})
+        self.assertEqual(
+            {m['id'] for m in active.data['results']}, {self.cheap.id, self.pricey.id}
+        )
 
     def test_ordering_by_consumer_price(self):
         ascending = self.client.get(f'{self.url}?ordering=consumer_price')
         self.assertEqual(
-            [m['id'] for m in ascending.data],
+            [m['id'] for m in ascending.data['results']],
             [self.retired.id, self.cheap.id, self.pricey.id],
         )
 
         descending = self.client.get(f'{self.url}?ordering=-consumer_price')
         self.assertEqual(
-            [m['id'] for m in descending.data],
+            [m['id'] for m in descending.data['results']],
             [self.pricey.id, self.cheap.id, self.retired.id],
         )
 
@@ -259,10 +261,10 @@ class MaterialListFilterTest(TestCase):
         Material.objects.filter(pk=self.retired.pk).update(spec_key2='Storage', spec_val2='512GB')
 
         paired = self.client.get(f'{self.url}?spec_key1=RAM&spec_val1=12')
-        self.assertEqual([m['id'] for m in paired.data], [self.pricey.id])
+        self.assertEqual([m['id'] for m in paired.data['results']], [self.pricey.id])
 
         mismatched = self.client.get(f'{self.url}?spec_key1=RAM&spec_val1=99')
-        self.assertEqual(mismatched.data, [])
+        self.assertEqual(mismatched.data['results'], [])
 
     def test_spec_key_alone_matches_any_slot(self):
         Material.objects.filter(pk=self.cheap.pk).update(spec_key3='RAM', spec_val3='16GB')
@@ -270,13 +272,15 @@ class MaterialListFilterTest(TestCase):
         Material.objects.filter(pk=self.retired.pk).update(spec_key2='Storage', spec_val2='512GB')
 
         by_key = self.client.get(f'{self.url}?spec_key2=RAM')
-        self.assertEqual({m['id'] for m in by_key.data}, {self.cheap.id, self.pricey.id})
+        self.assertEqual(
+            {m['id'] for m in by_key.data['results']}, {self.cheap.id, self.pricey.id}
+        )
 
     def test_spec_val_alone_matches_any_slot(self):
         Material.objects.filter(pk=self.retired.pk).update(spec_key2='Storage', spec_val2='512GB')
 
         by_val = self.client.get(f'{self.url}?spec_val3=512')
-        self.assertEqual([m['id'] for m in by_val.data], [self.retired.id])
+        self.assertEqual([m['id'] for m in by_val.data['results']], [self.retired.id])
 
     def test_spec_filters_combine_with_category(self):
         other = MaterialCategory.objects.create(name='Clothing')
@@ -294,7 +298,7 @@ class MaterialListFilterTest(TestCase):
         response = self.client.get(
             f'{self.url}?category={self.category.id}&spec_key1=RAM&spec_val1=12'
         )
-        self.assertEqual([m['id'] for m in response.data], [laptop.id])
+        self.assertEqual([m['id'] for m in response.data['results']], [laptop.id])
 
 
 class UnitAndSettingFilterTest(TestCase):
@@ -307,28 +311,28 @@ class UnitAndSettingFilterTest(TestCase):
 
     def test_units_search_and_ordering(self):
         found = self.client.get('/api/units/?search=KG')
-        self.assertEqual([u['id'] for u in found.data], [self.kg.id])
+        self.assertEqual([u['id'] for u in found.data['results']], [self.kg.id])
 
         ascending = self.client.get('/api/units/?ordering=code')
-        self.assertEqual([u['code'] for u in ascending.data], ['KG', 'PCS'])
+        self.assertEqual([u['code'] for u in ascending.data['results']], ['KG', 'PCS'])
 
         descending = self.client.get('/api/units/?ordering=-code')
-        self.assertEqual([u['code'] for u in descending.data], ['PCS', 'KG'])
+        self.assertEqual([u['code'] for u in descending.data['results']], ['PCS', 'KG'])
 
     def test_settings_search_and_ordering(self):
         # `SettingsViewSet` declared search_fields/ordering_fields but had no
         # filter backends, so neither parameter ever reached the endpoint.
         found = self.client.get('/api/settings/?search=SITE_NAME')
-        self.assertEqual([s['key'] for s in found.data], ['SITE_NAME'])
+        self.assertEqual([s['key'] for s in found.data['results']], ['SITE_NAME'])
 
         ascending = self.client.get('/api/settings/?ordering=key')
         self.assertEqual(
-            [s['key'] for s in ascending.data], ['SITE_NAME', 'SUPPORT_PHONE']
+            [s['key'] for s in ascending.data['results']], ['SITE_NAME', 'SUPPORT_PHONE']
         )
 
         descending = self.client.get('/api/settings/?ordering=-key')
         self.assertEqual(
-            [s['key'] for s in descending.data], ['SUPPORT_PHONE', 'SITE_NAME']
+            [s['key'] for s in descending.data['results']], ['SUPPORT_PHONE', 'SITE_NAME']
         )
 
 
@@ -355,7 +359,7 @@ class FavouriteListFilterTest(TestCase):
 
         response = self.client.get(f'{self.url}?name=hammer')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
-        self.assertEqual([f['id'] for f in response.data], [first.id])
+        self.assertEqual([f['id'] for f in response.data['results']], [first.id])
 
     def test_default_ordering_is_newest_first(self):
         older = FavouriteItem.objects.create(user=self.user, material=self.hammer)
@@ -365,7 +369,7 @@ class FavouriteListFilterTest(TestCase):
         )
 
         response = self.client.get(self.url)
-        self.assertEqual([f['id'] for f in response.data], [newer.id, older.id])
+        self.assertEqual([f['id'] for f in response.data['results']], [newer.id, older.id])
 
     def test_ordering_ascending_by_created_at(self):
         older = FavouriteItem.objects.create(user=self.user, material=self.hammer)
@@ -375,4 +379,4 @@ class FavouriteListFilterTest(TestCase):
         )
 
         response = self.client.get(f'{self.url}?ordering=created_at')
-        self.assertEqual([f['id'] for f in response.data], [older.id, newer.id])
+        self.assertEqual([f['id'] for f in response.data['results']], [older.id, newer.id])

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'versatileimagefield',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -76,14 +77,23 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'tarcom.utils.pagination.CustomNumberPagination',
     'EXCEPTION_HANDLER': 'tarcom.utils.exceptions.custom_exception_handler',
-    # Applied explicitly on the auth/OTP viewsets; per-IP because those
-    # endpoints are anonymous and each call can trigger an outbound email.
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/min',
-        'user': '120/min',
+        'anon': '120/min',
+        'user': '600/min',
+        'otp': '30/min',
     },
 }
+
+# Throttle counters live in the cache, which is shared for the whole run, so a
+# long suite would otherwise burn the anonymous budget and fail later tests
+# with 429s unrelated to what they assert.
+TEST_RUNNER = 'tarcom.utils.test_runner.ThrottleAwareTestRunner'
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Tarcom E-Commerce API',
@@ -185,6 +195,7 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'ar')
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
