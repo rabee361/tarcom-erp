@@ -140,8 +140,12 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
     template_name = "dashboard/users/user_form.html"
     success_url = reverse_lazy('users-list')
 
+    def get_queryset(self):
+        # Only admins can be edited via this view to prevent privilege abuse.
+        return CustomUser.objects.filter(user_type=UserType.ADMIN)
+
     def form_valid(self, form):
-        messages.success(self.request, "تم تحديث بيانات المستخدم بنجاح.")
+        messages.success(self.request, "تم تحديث المستخدم بنجاح.")
         return super().form_valid(form)
 
 
@@ -149,13 +153,16 @@ class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
     success_url = reverse_lazy('users-list')
-    protected_message = "لا يمكن حذف هذا المستخدم لارتباطه بطلبات أو بيانات أخرى في النظام."
+    protected_message = "لا يمكن حذف هذا المستخدم لأنه مرتبط بسجلات أخرى."
     deleted_message = "تم حذف المستخدم بنجاح."
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(user_type=UserType.ADMIN)
 
     def form_valid(self, form):
         # DeleteView posts to a plain Form, the object lives on self.object
         if self.object == self.request.user:
-            message = "لا يمكنك حذف حسابك الحالي أثناء تسجيل الدخول."
+            message = "لا يمكنك حذف حسابك الخاص."
             if self.is_ajax_request():
                 return JsonResponse({"ok": False, "message": message})
             messages.error(self.request, message)

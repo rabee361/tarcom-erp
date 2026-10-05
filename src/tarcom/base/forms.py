@@ -120,8 +120,7 @@ class UserForm(forms.ModelForm):
         if password:
             user.set_password(password)
         # CustomUser.username is unique; the form does not expose it.
-        if not user.username:
-            user.username = user.email
+        user.username = user.email
         if commit:
             user.save()
         return user

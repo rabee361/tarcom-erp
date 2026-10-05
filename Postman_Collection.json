@@ -1,28 +1,18 @@
 {
   "info": {
     "name": "Tarcom E-Commerce API",
-    "description": "Postman collection for the **Tarcom E-Commerce API** (Django REST Framework + SimpleJWT + drf-spectacular), generated from `schema.yml` and the source under `src/tarcom/api/`.\n\n**Setup**\n1. `POST /api/auth/signup/` then verify with `POST /api/auth/verify-otp/`.\n2. `POST /api/auth/login/` and copy `tokens.access` -> `{{token}}` (and `tokens.refresh` -> `{{refresh_token}}`).\n3. Protected requests send `Authorization: Bearer {{token}}` automatically (collection-level auth). Public requests are set to *noauth*.\n4. Set `{{id}}` / `{{material_id}}` to real record ids before using detail routes.\n\n**Notes**\n- All endpoints are prefixed with `/api/` (see `src/tarcom/api/urls.py`).\n- Translated resources accept `Accept-Language: en|ar` (fields `*_en`, `*_ar`).\n- No pagination is configured - list endpoints return plain JSON arrays.\n- Error envelope: `{status, code, message, errors}`.\n- Enums: `order.status` PENDING|CONFIRMED|PROCESSING|SHIPPED|DELIVERED|CANCELLED; `payment_status` UNPAID|PAID|REFUNDED; `payment_method` CASH|BANK_TRANSFER|CHECK|CARD; `code_type` SIGNUP|RESET_PASSWORD|FORGET_PASSWORD; `user_type` customer|seller|admin.",
+    "description": "Postman collection for the **Tarcom E-Commerce API** (Django REST Framework + SimpleJWT + drf-spectacular), generated from `schema.yml` and the source under `src/tarcom/api/`.\n\n**Setup**\n1. `POST /api/auth/signup/` then verify with `POST /api/auth/verify-otp/`.\n2. `POST /api/auth/login/` and copy `tokens.access` -> `{{access_token}}` (and `tokens.refresh` -> `{{refresh_token}}`).\n3. Protected requests carry the `Authorization: Bearer {{access_token}}` header explicitly; public requests send no Authorization header.\n4. Set `{{id}}` / `{{material_id}}` to real record ids before using detail routes.\n\n**Notes**\n- All endpoints are prefixed with `/api/` (see `src/tarcom/api/urls.py`).\n- Translated resources accept `Accept-Language: en|ar` (fields `*_en`, `*_ar`).\n- No pagination is configured - list endpoints return plain JSON arrays.\n- Error envelope: `{status, code, message, errors}`.\n- Enums: `order.status` PENDING|CONFIRMED|PROCESSING|SHIPPED|DELIVERED|CANCELLED; `payment_status` UNPAID|PAID|REFUNDED; `payment_method` CASH|BANK_TRANSFER|CHECK|CARD; `code_type` SIGNUP|RESET_PASSWORD|FORGET_PASSWORD; `user_type` customer|seller|admin.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
-    ]
   },
   "event": [],
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:8000",
+      "value": "https://rabee371.pythonanywhere.com",
       "type": "default"
     },
     {
-      "key": "token",
+      "key": "access_token",
       "value": "",
       "type": "default"
     },
@@ -50,9 +40,6 @@
           "name": "Sign up",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -64,12 +51,12 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Customer\",\n  \"phone\": \"0791234567\",\n  \"user_type\": \"customer\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"Customer\",\n  \"phone\": \"+963991234567\",\n  \"user_type\": \"customer\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -84,7 +71,8 @@
               "path": [
                 "api",
                 "auth",
-                "signup"
+                "signup",
+                ""
               ]
             },
             "description": "Creates an unverified account and generates a SIGNUP OTP code.\n\n**Auth:** none (public)\n**Responses:** `201` account created `{message, email}`, `400` validation error (duplicate email, weak password). `user_type` one of `customer`, `seller`, `admin`."
@@ -95,9 +83,6 @@
           "name": "Log in",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -106,6 +91,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -125,10 +114,11 @@
               "path": [
                 "api",
                 "auth",
-                "login"
+                "login",
+                ""
               ]
             },
-            "description": "Returns JWT tokens and the user profile for a verified account.\n\n**Auth:** none (public)\n**Responses:** `200` `{tokens: {access, refresh}, user}`, `400` invalid credentials or account not verified. Save `tokens.access` to the `token` collection variable and `tokens.refresh` to `refresh_token`."
+            "description": "Returns JWT tokens and the user profile for a verified account.\n\n**Auth:** none (public)\n**Responses:** `200` `{tokens: {access, refresh}, user}`, `400` invalid credentials or account not verified. Save `tokens.access` to the `access_token` collection variable and `tokens.refresh` to `refresh_token`."
           },
           "response": []
         },
@@ -136,9 +126,6 @@
           "name": "Refresh access token",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -147,6 +134,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -167,7 +158,8 @@
                 "api",
                 "auth",
                 "token",
-                "refresh"
+                "refresh",
+                ""
               ]
             },
             "description": "POST a `refresh` token to obtain a new `access` token.\n\n**Auth:** none (public)\n**Responses:** `200` `{access, refresh?}`, `400`/`401` invalid or expired refresh token."
@@ -183,9 +175,6 @@
           "name": "Send OTP",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -194,6 +183,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -213,7 +206,8 @@
               "path": [
                 "api",
                 "auth",
-                "send-otp"
+                "send-otp",
+                ""
               ]
             },
             "description": "Sends an OTP code by email. Rate limited: max 5 codes per email / 15 min.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` unknown email / limit reached, `429` throttled.\n`code_type`: `SIGNUP` | `RESET_PASSWORD` | `FORGET_PASSWORD`."
@@ -224,9 +218,6 @@
           "name": "Verify OTP",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -235,6 +226,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -254,7 +249,8 @@
               "path": [
                 "api",
                 "auth",
-                "verify-otp"
+                "verify-otp",
+                ""
               ]
             },
             "description": "Verifies an OTP code. `SIGNUP`: marks the account verified and returns JWT tokens. Password flows: return a signed `reset_token` valid for 10 minutes.\n\n**Auth:** none (public)\n**Responses:** `200` `{message, tokens|user|reset_token}`, `400` invalid or already used code."
@@ -265,9 +261,6 @@
           "name": "Forget password",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -276,6 +269,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -295,7 +292,8 @@
               "path": [
                 "api",
                 "auth",
-                "forget-password"
+                "forget-password",
+                ""
               ]
             },
             "description": "Starts password recovery by emailing a `FORGET_PASSWORD` code. Rate limited: max 5 codes per email / 15 min.\n\n**Auth:** none (public)\n**Responses:** `200`, `400`, `429` throttled."
@@ -306,9 +304,6 @@
           "name": "Reset password with OTP code",
           "request": {
             "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Content-Type",
@@ -317,6 +312,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -336,7 +335,8 @@
               "path": [
                 "api",
                 "auth",
-                "reset-password"
+                "reset-password",
+                ""
               ]
             },
             "description": "Resets the password accepting an OTP `code` directly instead of the signed `reset_token`.\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` token mismatch / password mismatch."
@@ -354,12 +354,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -369,7 +373,8 @@
               ],
               "path": [
                 "api",
-                "users"
+                "users",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`).\n\n**Responses:** `200` array of users, `401`/`403`."
@@ -382,6 +387,10 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -391,12 +400,12 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\",\n  \"phone\": \"0790000000\"\n}",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\",\n  \"phone\": \"+963990000000\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -410,7 +419,8 @@
               ],
               "path": [
                 "api",
-                "users"
+                "users",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`). Creates a user via `UserSerializer` (writable fields: `email`, `first_name`, `last_name`, `phone`, `avatar`). `user_type` and `is_verified` are read-only. Note: this serializer does not accept a `password` and does not enforce the 2MB / jpg-jpeg-png-webp-jfif avatar rules (those live on `UserProfileUpdateSerializer` used by `/api/users/me/`).\n\n**Responses:** `201` user object, `400` validation error."
@@ -423,12 +433,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -439,7 +453,8 @@
               "path": [
                 "api",
                 "users",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`).\n\n**Responses:** `200` user, `401`/`403`."
@@ -452,17 +467,25 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\",\n  \"phone\": \"0790000000\"\n}",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\",\n  \"phone\": \"+963990000000\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -477,7 +500,8 @@
               "path": [
                 "api",
                 "users",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`).\n\n**Responses:** `200` user, `400` validation error."
@@ -490,12 +514,20 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -515,7 +547,8 @@
               "path": [
                 "api",
                 "users",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`).\n\n**Responses:** `200` user, `400` validation error."
@@ -528,8 +561,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -540,7 +581,8 @@
               "path": [
                 "api",
                 "users",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`).\n\n**Responses:** `204` no content, `401`/`403`."
@@ -558,12 +600,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -574,7 +620,8 @@
               "path": [
                 "api",
                 "users",
-                "me"
+                "me",
+                ""
               ]
             },
             "description": "Authenticated user's profile.\n\n**Auth:** bearer required\n**Responses:** `200` user, `401` unauthenticated."
@@ -587,17 +634,25 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"New\",\n  \"last_name\": \"Person\",\n  \"phone\": \"0791234567\"\n}",
+              "raw": "{\n  \"first_name\": \"New\",\n  \"last_name\": \"Person\",\n  \"phone\": \"+963991234567\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -612,7 +667,8 @@
               "path": [
                 "api",
                 "users",
-                "me"
+                "me",
+                ""
               ]
             },
             "description": "Allowed fields: `first_name`, `last_name`, `phone`, `avatar`. Avatar: <= 2MB, jpg/jpeg/png/webp/jfif (send as multipart for files).\n\n**Responses:** `200` user, `400` validation error, `401`."
@@ -625,17 +681,25 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"0791234567\"\n}",
+              "raw": "{\n  \"phone\": \"+963991234567\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -650,7 +714,8 @@
               "path": [
                 "api",
                 "users",
-                "me"
+                "me",
+                ""
               ]
             },
             "description": "Partial variant of `PUT /api/users/me/`.\n\n**Responses:** `200` user, `400`, `401`."
@@ -663,12 +728,20 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -688,7 +761,8 @@
               "path": [
                 "api",
                 "users",
-                "me"
+                "me",
+                ""
               ]
             },
             "description": "Requires the current password in the body. Sets `is_active=False`.\n\n**Responses:** `200` `{message}`, `400` wrong password, `401`."
@@ -701,8 +775,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -714,7 +796,8 @@
                 "api",
                 "users",
                 "me",
-                "avatar"
+                "avatar",
+                ""
               ]
             },
             "description": "Deletes the current user's avatar file.\n\n**Responses:** `200` `{message}`, `401`."
@@ -727,12 +810,20 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -752,7 +843,8 @@
               "path": [
                 "api",
                 "users",
-                "change-password"
+                "change-password",
+                ""
               ]
             },
             "description": "Requires `old_password`; `new_password` must pass Django password validation and differ from the old one.\n\n**Responses:** `200` `{message}`, `400` validation error, `401`."
@@ -765,12 +857,20 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -790,7 +890,8 @@
               "path": [
                 "api",
                 "users",
-                "deactivate"
+                "deactivate",
+                ""
               ]
             },
             "description": "Alternative to `DELETE /api/users/me/` - identical behaviour.\n\n**Responses:** `200` `{message}`, `400`, `401`."
@@ -806,9 +907,6 @@
           "name": "List materials",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -816,7 +914,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -826,7 +924,8 @@
               ],
               "path": [
                 "api",
-                "materials"
+                "materials",
+                ""
               ],
               "query": [
                 {
@@ -871,6 +970,10 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -880,7 +983,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -899,7 +1002,8 @@
               ],
               "path": [
                 "api",
-                "materials"
+                "materials",
+                ""
               ]
             },
             "description": "Create a materials - write requires staff (bearer token).\n\n**Responses:** `201` object, `400` validation error, `401`/`403`."
@@ -910,9 +1014,6 @@
           "name": "Retrieve materials",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -920,7 +1021,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -931,7 +1032,8 @@
               "path": [
                 "api",
                 "materials",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Retrieve a single materials by id.\n\n**Responses:** `200` object, `404` not found."
@@ -944,6 +1046,10 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -953,7 +1059,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -973,7 +1079,8 @@
               "path": [
                 "api",
                 "materials",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Full update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -986,6 +1093,10 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -995,7 +1106,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -1015,7 +1126,8 @@
               "path": [
                 "api",
                 "materials",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Partial update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -1028,8 +1140,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1040,7 +1160,8 @@
               "path": [
                 "api",
                 "materials",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
@@ -1056,9 +1177,6 @@
           "name": "List categories",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -1066,7 +1184,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1076,7 +1194,8 @@
               ],
               "path": [
                 "api",
-                "categories"
+                "categories",
+                ""
               ],
               "query": [
                 {
@@ -1101,6 +1220,10 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -1110,7 +1233,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -1129,7 +1252,8 @@
               ],
               "path": [
                 "api",
-                "categories"
+                "categories",
+                ""
               ]
             },
             "description": "Create a categories - write requires staff (bearer token).\n\n**Responses:** `201` object, `400` validation error, `401`/`403`."
@@ -1140,9 +1264,6 @@
           "name": "Retrieve categories",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -1150,7 +1271,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1161,7 +1282,8 @@
               "path": [
                 "api",
                 "categories",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Retrieve a single categories by id.\n\n**Responses:** `200` object, `404` not found."
@@ -1174,6 +1296,10 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -1183,7 +1309,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -1203,7 +1329,8 @@
               "path": [
                 "api",
                 "categories",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Full update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -1216,6 +1343,10 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -1225,7 +1356,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -1245,7 +1376,8 @@
               "path": [
                 "api",
                 "categories",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Partial update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -1258,8 +1390,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1270,7 +1410,8 @@
               "path": [
                 "api",
                 "categories",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
@@ -1289,9 +1430,6 @@
               "name": "List units",
               "request": {
                 "method": "GET",
-                "auth": {
-                  "type": "noauth"
-                },
                 "header": [
                   {
                     "key": "Accept",
@@ -1299,7 +1437,7 @@
                   },
                   {
                     "key": "Accept-Language",
-                    "value": "en"
+                    "value": "ar"
                   }
                 ],
                 "url": {
@@ -1309,7 +1447,8 @@
                   ],
                   "path": [
                     "api",
-                    "units"
+                    "units",
+                    ""
                   ],
                   "query": [
                     {
@@ -1334,6 +1473,10 @@
                 "method": "POST",
                 "header": [
                   {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  },
+                  {
                     "key": "Content-Type",
                     "value": "application/json"
                   },
@@ -1343,7 +1486,7 @@
                   },
                   {
                     "key": "Accept-Language",
-                    "value": "en"
+                    "value": "ar"
                   }
                 ],
                 "body": {
@@ -1362,7 +1505,8 @@
                   ],
                   "path": [
                     "api",
-                    "units"
+                    "units",
+                    ""
                   ]
                 },
                 "description": "Create a units - write requires staff (bearer token).\n\n**Responses:** `201` object, `400` validation error, `401`/`403`."
@@ -1373,9 +1517,6 @@
               "name": "Retrieve units",
               "request": {
                 "method": "GET",
-                "auth": {
-                  "type": "noauth"
-                },
                 "header": [
                   {
                     "key": "Accept",
@@ -1383,7 +1524,7 @@
                   },
                   {
                     "key": "Accept-Language",
-                    "value": "en"
+                    "value": "ar"
                   }
                 ],
                 "url": {
@@ -1394,7 +1535,8 @@
                   "path": [
                     "api",
                     "units",
-                    "{{id}}"
+                    "{{id}}",
+                    ""
                   ]
                 },
                 "description": "Retrieve a single units by id.\n\n**Responses:** `200` object, `404` not found."
@@ -1407,6 +1549,10 @@
                 "method": "PUT",
                 "header": [
                   {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  },
+                  {
                     "key": "Content-Type",
                     "value": "application/json"
                   },
@@ -1416,7 +1562,7 @@
                   },
                   {
                     "key": "Accept-Language",
-                    "value": "en"
+                    "value": "ar"
                   }
                 ],
                 "body": {
@@ -1436,7 +1582,8 @@
                   "path": [
                     "api",
                     "units",
-                    "{{id}}"
+                    "{{id}}",
+                    ""
                   ]
                 },
                 "description": "Full update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -1449,6 +1596,10 @@
                 "method": "PATCH",
                 "header": [
                   {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  },
+                  {
                     "key": "Content-Type",
                     "value": "application/json"
                   },
@@ -1458,7 +1609,7 @@
                   },
                   {
                     "key": "Accept-Language",
-                    "value": "en"
+                    "value": "ar"
                   }
                 ],
                 "body": {
@@ -1478,7 +1629,8 @@
                   "path": [
                     "api",
                     "units",
-                    "{{id}}"
+                    "{{id}}",
+                    ""
                   ]
                 },
                 "description": "Partial update (admin/staff).\n\n**Responses:** `200`, `400`, `401`/`403`."
@@ -1491,8 +1643,16 @@
                 "method": "DELETE",
                 "header": [
                   {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  },
+                  {
                     "key": "Accept",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Accept-Language",
+                    "value": "ar"
                   }
                 ],
                 "url": {
@@ -1503,7 +1663,8 @@
                   "path": [
                     "api",
                     "units",
-                    "{{id}}"
+                    "{{id}}",
+                    ""
                   ]
                 },
                 "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
@@ -1521,9 +1682,6 @@
           "name": "List settings",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -1531,7 +1689,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1541,7 +1699,8 @@
               ],
               "path": [
                 "api",
-                "settings"
+                "settings",
+                ""
               ],
               "query": [
                 {
@@ -1566,6 +1725,10 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
@@ -1575,7 +1738,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "body": {
@@ -1594,7 +1757,8 @@
               ],
               "path": [
                 "api",
-                "settings"
+                "settings",
+                ""
               ]
             },
             "description": "`key` and `value` required. Translated fields: `key_en`, `key_ar`.\n\n**Responses:** `201`, `400`."
@@ -1605,9 +1769,6 @@
           "name": "Retrieve setting",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
@@ -1615,7 +1776,7 @@
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1626,7 +1787,8 @@
               "path": [
                 "api",
                 "settings",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `200`, `404`."
@@ -1639,12 +1801,20 @@
             "method": "PUT",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -1664,7 +1834,8 @@
               "path": [
                 "api",
                 "settings",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `200`, `400`, `404`."
@@ -1677,12 +1848,20 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -1702,7 +1881,8 @@
               "path": [
                 "api",
                 "settings",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `200`, `400`, `404`."
@@ -1715,8 +1895,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1727,7 +1915,8 @@
               "path": [
                 "api",
                 "settings",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `204`, `404`."
@@ -1745,12 +1934,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1760,7 +1953,8 @@
               ],
               "path": [
                 "api",
-                "favourites"
+                "favourites",
+                ""
               ],
               "query": [
                 {
@@ -1785,12 +1979,20 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -1809,7 +2011,8 @@
               ],
               "path": [
                 "api",
-                "favourites"
+                "favourites",
+                ""
               ]
             },
             "description": "`material` must be an active material id and not already favourited.\n\n**Responses:** `201` favourite object, `400` duplicate/invalid, `401`."
@@ -1822,12 +2025,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1838,7 +2045,8 @@
               "path": [
                 "api",
                 "favourites",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `200` favourite object, `401`, `404`."
@@ -1851,8 +2059,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1863,7 +2079,8 @@
               "path": [
                 "api",
                 "favourites",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "**Responses:** `204`, `401`, `404`."
@@ -1876,8 +2093,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1888,7 +2113,8 @@
               "path": [
                 "api",
                 "favourites",
-                "check"
+                "check",
+                ""
               ],
               "query": [
                 {
@@ -1908,12 +2134,20 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -1933,7 +2167,8 @@
               "path": [
                 "api",
                 "favourites",
-                "toggle"
+                "toggle",
+                ""
               ]
             },
             "description": "Adds the material if absent, removes it if present.\n\n**Responses:** `200` `{is_favourite, message}`, `400` missing material, `404` inactive material, `401`."
@@ -1946,8 +2181,16 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -1959,7 +2202,8 @@
                 "api",
                 "favourites",
                 "remove-by-material",
-                "{{material_id}}"
+                "{{material_id}}",
+                ""
               ]
             },
             "description": "Deletes the favourite row for the given material id.\n\n**Responses:** `200` `{message}`, `404` not in favourites, `401`."
@@ -1977,12 +2221,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -1992,7 +2240,8 @@
               ],
               "path": [
                 "api",
-                "orders"
+                "orders",
+                ""
               ],
               "query": [
                 {
@@ -2027,17 +2276,25 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"payment_method\": \"CASH\",\n  \"shipping_address\": \"Amman, Jordan\",\n  \"shipping_phone\": \"0791234567\",\n  \"notes\": \"Leave at the front desk\",\n  \"items\": [\n    {\n      \"material\": 1,\n      \"quantity\": \"2.000\"\n    },\n    {\n      \"material\": 2,\n      \"quantity\": \"3.000\"\n    }\n  ]\n}",
+              "raw": "{\n  \"payment_method\": \"CASH\",\n  \"shipping_address\": \"Amman, Jordan\",\n  \"shipping_phone\": \"+963991234567\",\n  \"notes\": \"Leave at the front desk\",\n  \"items\": [\n    {\n      \"material\": 1,\n      \"quantity\": \"2.000\"\n    },\n    {\n      \"material\": 2,\n      \"quantity\": \"3.000\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2051,7 +2308,8 @@
               ],
               "path": [
                 "api",
-                "orders"
+                "orders",
+                ""
               ]
             },
             "description": "Places an order. `items` required (>= 1, no duplicate materials); quantity must be > 0 (3 decimals). Totals are calculated server-side from each material's `consumer_price`.\n\n**Responses:** `201` full order detail (status `PENDING`, payment `UNPAID`), `400` validation error, `401`."
@@ -2064,12 +2322,16 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
                 "key": "Accept-Language",
-                "value": "en"
+                "value": "ar"
               }
             ],
             "url": {
@@ -2080,7 +2342,8 @@
               "path": [
                 "api",
                 "orders",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Returns the order with nested `items` (material name/image, uom_code, line totals) and user info.\n\n**Responses:** `200`, `401`, `404`."
@@ -2093,12 +2356,20 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -2118,7 +2389,8 @@
               "path": [
                 "api",
                 "orders",
-                "{{id}}"
+                "{{id}}",
+                ""
               ]
             },
             "description": "Routed as `partial_update` on `OrderViewSet`, but the viewset resolves this action to `OrderDetailSerializer`, which declares `read_only_fields = fields`. The endpoint therefore returns `200` with the current order detail and silently ignores any writable payload (e.g. `shipping_address`, `shipping_phone`, `notes`) until a writable order-update serializer is added.\n\n**Responses:** `200` order detail (unchanged), `401`, `404`."
@@ -2131,8 +2403,16 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -2144,7 +2424,8 @@
                 "api",
                 "orders",
                 "{{id}}",
-                "cancel"
+                "cancel",
+                ""
               ]
             },
             "description": "Customers can cancel their own order only while `PENDING`; admins can cancel any time before delivery.\n\n**Responses:** `200` `{message}`, `400` invalid status, `403`, `401`."
@@ -2157,12 +2438,20 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
               },
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "body": {
@@ -2183,7 +2472,8 @@
                 "api",
                 "orders",
                 "{{id}}",
-                "status"
+                "status",
+                ""
               ]
             },
             "description": "Admin only (`IsAdminUser`). Provide at least one of `status` or `payment_status`.\n\n**Responses:** `200` full order detail, `400` none provided, `403`, `401`."
@@ -2199,13 +2489,14 @@
           "name": "OpenAPI schema (YAML)",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -2215,7 +2506,8 @@
               ],
               "path": [
                 "api",
-                "schema"
+                "schema",
+                ""
               ]
             },
             "description": "drf-spectacular OpenAPI 3 schema.\n\n**Responses:** `200` YAML/JSON."
@@ -2226,13 +2518,14 @@
           "name": "Swagger UI",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -2242,7 +2535,8 @@
               ],
               "path": [
                 "api",
-                "docs"
+                "docs",
+                ""
               ]
             },
             "description": "Interactive Swagger UI for the schema.\n\n**Responses:** `200` HTML."
@@ -2253,13 +2547,14 @@
           "name": "ReDoc UI",
           "request": {
             "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
               }
             ],
             "url": {
@@ -2269,7 +2564,8 @@
               ],
               "path": [
                 "api",
-                "redoc"
+                "redoc",
+                ""
               ]
             },
             "description": "ReDoc documentation UI.\n\n**Responses:** `200` HTML."

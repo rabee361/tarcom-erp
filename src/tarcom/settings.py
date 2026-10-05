@@ -55,8 +55,8 @@ INSTALLED_APPS = [
     'django_htmx',
     'django_filters',
     'silk',
-    'tarcom.base',
-    'tarcom.api'
+    'base',
+    'api'
 ]
 
 MIDDLEWARE = [

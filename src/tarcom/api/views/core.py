@@ -69,11 +69,16 @@ class MaterialViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    retrieve=extend_schema(tags=['Settings']),
-    create=extend_schema(tags=['Settings'])
+    list=extend_schema(tags=['Settings'], summary='List settings'),
+    retrieve=extend_schema(tags=['Settings'], summary='Retrieve a setting'),
+    create=extend_schema(tags=['Settings'], summary='Create a setting (admin only)'),
+    update=extend_schema(tags=['Settings'], summary='Replace a setting (admin only)'),
+    partial_update=extend_schema(tags=['Settings'], summary='Partially update a setting (admin only)'),
+    destroy=extend_schema(tags=['Settings'], summary='Delete a setting (admin only)'),
 )
 class SettingsViewSet(viewsets.ModelViewSet):
     queryset = Setting.objects.all()
     serializer_class = SettingSerializer
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = SettingFilter
