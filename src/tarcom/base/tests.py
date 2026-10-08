@@ -1,10 +1,12 @@
 from decimal import Decimal
+from pathlib import Path
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 
+from tarcom.base.forms import CategoryForm
 from tarcom.base.models import (
     CustomUser,
     Material,
@@ -176,6 +178,30 @@ class DashboardMaterialsCrudTest(TestCase):
         response = self.client.post(f"/dashboard/materials/{material.pk}/delete/")
         self.assertRedirects(response, "/dashboard/materials/")
         self.assertFalse(Material.objects.filter(pk=material.pk).exists())
+
+
+class DashboardCategoryTest(TestCase):
+    def setUp(self):
+        self.staff = CustomUser.objects.create_user(
+            email="staff@tarcom.com",
+            password="StaffPass123!",
+            is_staff=True,
+        )
+        self.client.force_login(self.staff)
+
+    def test_category_form_exposes_image_only(self):
+        form = CategoryForm()
+        self.assertIn("image", form.fields)
+        self.assertNotIn("icon", form.fields)
+
+    def test_create_category_via_dashboard_sets_placeholder_icon(self):
+        response = self.client.post(
+            "/dashboard/categories/create/",
+            {"name_en": "Accessories", "name_ar": "إكسسوارات"},
+        )
+        self.assertRedirects(response, "/dashboard/categories/")
+        category = MaterialCategory.objects.get(name_en="Accessories")
+        self.assertEqual(Path(category.icon.name).name, "placeholder.jpg")
 
 
 class DashboardOrdersTest(TestCase):

@@ -377,7 +377,7 @@ class MaterialCategoryChildSerializer(TranslateModelSerializer):
 
     class Meta:
         model = MaterialCategory
-        fields = ["id", "name", "name_en", "name_ar", "icon"]
+        fields = ["id", "name", "name_en", "name_ar", "icon", "image"]
 
 
 class MaterialCategorySerializer(TranslateModelSerializer):
@@ -391,10 +391,13 @@ class MaterialCategorySerializer(TranslateModelSerializer):
             "name_en",
             "name_ar",
             "icon",
+            "image",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        # Icons are backend-managed (placeholder default on the model); the
+        # API only accepts the image.
+        read_only_fields = ["id", "created_at", "updated_at", "icon"]
 
 
 class MaterialSerializer(TranslateModelSerializer):

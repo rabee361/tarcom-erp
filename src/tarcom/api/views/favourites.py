@@ -3,9 +3,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from tarcom.base.models import FavouriteItem, Material
 
 from ..filters import FavouriteItemFilter
@@ -14,6 +16,7 @@ from ..serializers import *
 # Re-bound after the star imports above, which re-export
 # django.core.exceptions.ValidationError and would otherwise
 # turn these raises into 500s instead of DRF 400s.
+ValidationError = DRFValidationError
 
 
 @extend_schema_view(

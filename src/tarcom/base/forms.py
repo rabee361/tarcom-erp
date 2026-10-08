@@ -219,16 +219,18 @@ class MaterialForm(forms.ModelForm):
 
 
 class CategoryForm(forms.ModelForm):
+    # Icons are backend-managed (model default + populate_db); the dashboard
+    # only exposes the image.
     class Meta:
         model = MaterialCategory
-        fields = ["name_en", "name_ar", "icon"]
+        fields = ["name_en", "name_ar", "image"]
         labels = {
             "name_en": _("الاسم بالإنجليزية"),
             "name_ar": _("الاسم بالعربية"),
-            "icon": _("أيقونة التصنيف"),
+            "image": _("صورة التصنيف"),
         }
         widgets = {
-            "icon": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+            "image": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
 
 

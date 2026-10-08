@@ -1,4 +1,11 @@
-from django.test import TestCase
+import io
+import shutil
+import tempfile
+from pathlib import Path
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -9,6 +16,18 @@ from tarcom.base.models import (
     UnitOfMeasure,
 )
 from tarcom.utils.enums import CodeTypes
+
+TEST_MEDIA_ROOT = tempfile.mkdtemp(prefix="tarcom_test_media_")
+
+
+def tearDownModule():
+    shutil.rmtree(TEST_MEDIA_ROOT, ignore_errors=True)
+
+
+def jpeg_bytes(size=(8, 8)):
+    buffer = io.BytesIO()
+    Image.new("RGB", size, color=(30, 60, 200)).save(buffer, format="JPEG")
+    return buffer.getvalue()
 
 
 class ResetPasswordViewTest(TestCase):
@@ -140,6 +159,7 @@ class UnitOfMeasureAPITest(TestCase):
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class MaterialCategoryAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -162,7 +182,36 @@ class MaterialCategoryAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name_en"], "Smartphones")
         self.assertEqual(response.data["name_ar"], "هواتف ذكية")
-        self.assertIsNone(response.data["icon"])
+        # The icon is backend-managed: new rows fall back to the media
+        # placeholder instead of staying empty.
+        self.assertTrue(
+            response.data["icon"].endswith("images/categories/placeholder.jpg")
+        )
+        self.assertIsNone(response.data["image"])
+
+    def test_admin_category_creation_ignores_icon_and_accepts_image(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.post(
+            "/api/categories/",
+            {
+                "name_en": "Accessories",
+                "name_ar": "إكسسوارات",
+                "icon": SimpleUploadedFile(
+                    "custom_icon.jpg", jpeg_bytes(), content_type="image/jpeg"
+                ),
+                "image": SimpleUploadedFile(
+                    "cover.jpg", jpeg_bytes(), content_type="image/jpeg"
+                ),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        category = MaterialCategory.objects.get(name_en="Accessories")
+        # `icon` is read-only in the API, so the upload is dropped.
+        self.assertEqual(Path(category.icon.name).name, "placeholder.jpg")
+        self.assertTrue(
+            str(category.image.name).startswith("images/categories/covers/")
+        )
 
     def test_category_translation_header(self):
         res_ar = self.client.get(

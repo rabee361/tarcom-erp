@@ -68,7 +68,7 @@ class UnitConversionAdmin(admin.ModelAdmin):
 
 @admin.register(MaterialCategory)
 class MaterialCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "icon")
+    list_display = ("name", "icon", "image")
     search_fields = ("name",)
 
 

@@ -1,10 +1,8 @@
-{% load static %}
-
 {% for category in categories %}
 <tr onclick="clickHandler(event)" data-link="{% url 'category-edit' category.pk %}">
     <td>
-        {% if category.icon %}
-            <img src="{% static category.icon %}" alt="{{ category.name_ar }}" style="max-width:40px;max-height:40px;object-fit:cover;border-radius:6px;">
+        {% if category.image %}
+            <img src="{{ category.image.crop.40x40 }}" alt="{{ category.name_ar }}" width="40" height="40">
         {% else %}
             -
         {% endif %}

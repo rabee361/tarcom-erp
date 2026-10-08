@@ -2,7 +2,7 @@
 
 Tarcom is an electronics marketplace, so this seeds the 5 real storefront
 categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each
-seeded with its icon uploaded into media storage -- plus the
+seeded with its icon and cover image uploaded into media storage -- plus the
 units of measure they reference, 10 materials with every spec key/value pair
 filled, 2 active users (one customer, one supplier -- every non-admin type),
 and 3 orders per user with 1-2 line items each. No OTP codes are generated; the
@@ -42,18 +42,20 @@ PASSWORD = "Passw0rd!123"
 ICON_DIR = (
     Path(settings.BASE_DIR) / "base" / "static" / "assets" / "images" / "categories"
 )
+COVER_DIR = ICON_DIR / "covers"
 
 UNITS = [
     ("EA", "Each", "حبة"),
     ("BX", "Box", "صندوق"),
 ]
 
+# (name_en, name_ar, icon filename, cover image filename)
 CATEGORIES = [
-    ("Laptops", "لابتوبات", "laptop.jpg"),
-    ("Batteries", "بطاريات", "batteries.jpg"),
-    ("Solar Boards", "ألواح الطاقة الشمسية", "solar_panels.jpg"),
-    ("Cables", "كابلات", "usb_cable.jpg"),
-    ("Home Tech", "الأجهزة المنزلية الذكية", "home_tech.jpg"),
+    ("Laptops", "لابتوبات", "laptop.jpg", "laptop.jpg"),
+    ("Batteries", "بطاريات", "batteries.jpg", "batteries.jpg"),
+    ("Solar Boards", "ألواح الطاقة الشمسية", "solar_panels.jpg", "solar_panels.jpg"),
+    ("Cables", "كابلات", "usb_cable.jpg", "usb_cable.jpg"),
+    ("Home Tech", "الأجهزة المنزلية الذكية", "home_tech.jpg", "home_tech.jpg"),
 ]
 
 MATERIALS = [
@@ -298,16 +300,24 @@ class Command(BaseCommand):
 
     def _seed_categories(self):
         categories = []
-        for name_en, name_ar, icon_filename in CATEGORIES:
+        for name_en, name_ar, icon_filename, image_filename in CATEGORIES:
             category, _ = MaterialCategory.objects.update_or_create(
                 name_en=name_en,
                 defaults={"name": name_en, "name_ar": name_ar},
             )
-            if not category.icon:
+            # Fresh rows start with the model-level placeholder icon; swap in
+            # the real icon unless one has already been seeded.
+            current_icon = Path(category.icon.name or "").name
+            if not category.icon or current_icon.startswith("placeholder"):
                 icon_path = ICON_DIR / icon_filename
                 if icon_path.exists():
                     with icon_path.open("rb") as f:
                         category.icon.save(icon_filename, File(f), save=True)
+            if not category.image:
+                image_path = COVER_DIR / image_filename
+                if image_path.exists():
+                    with image_path.open("rb") as f:
+                        category.image.save(image_filename, File(f), save=True)
             categories.append(category)
         return categories
 
