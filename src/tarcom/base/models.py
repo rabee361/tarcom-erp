@@ -23,10 +23,15 @@ class TimeStampModel(models.Model):
     class Meta:
         abstract = True
 
+
 class CustomUser(AbstractUser):
-    user_type = models.CharField(max_length=10, choices=UserType.choices, default=UserType.SUPPLIER)
-    avatar = models.ImageField(upload_to='users/avatars/', blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, null=True, validators=[PhoneNumberValidator])
+    user_type = models.CharField(
+        max_length=10, choices=UserType.choices, default=UserType.SUPPLIER
+    )
+    avatar = models.ImageField(upload_to="users/avatars/", blank=True, null=True)
+    phone = models.CharField(
+        max_length=20, blank=True, null=True, validators=[PhoneNumberValidator]
+    )
     email = models.EmailField(max_length=140, unique=True)
     is_verified = models.BooleanField(default=False)
 
@@ -40,40 +45,53 @@ class CustomUser(AbstractUser):
 
     def clean(self):
         if self.avatar and self.avatar.size > 2 * 1024 * 1024:  # 2MB in bytes
-            raise ValidationError(_('Image size must not exceed 2MB.'))
+            raise ValidationError(_("Image size must not exceed 2MB."))
 
-        if self.avatar and not self.avatar.name.endswith(('.jpg', '.jpeg', '.png','webp', 'jfif')):
-            raise ValidationError(_('Image must be in JPG, JPEG, PNG or WEBP format.'))
+        if self.avatar and not self.avatar.name.endswith(
+            (".jpg", ".jpeg", ".png", "webp", "jfif")
+        ):
+            raise ValidationError(_("Image must be in JPG, JPEG, PNG or WEBP format."))
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     def create_otp(self, code_type=CodeTypes.SIGNUP):
         # Delete old unused codes of the same type for this email
-        OTPCode.objects.filter(email=self.email, code_type=code_type, is_used=False).delete()
-        
+        OTPCode.objects.filter(
+            email=self.email, code_type=code_type, is_used=False
+        ).delete()
+
         otp = OTPCode.objects.create(
             code_type=code_type,
             email=self.email,
         )
         return otp.code
-    
+
+
 class OTPCode(models.Model):
     email = models.EmailField(max_length=255)
-    code = models.IntegerField(validators=[MinValueValidator(100000), MaxValueValidator(999999)], default=generate_code)
+    code = models.IntegerField(
+        validators=[MinValueValidator(100000), MaxValueValidator(999999)],
+        default=generate_code,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(default=get_expiration_time)
-    code_type = models.CharField(max_length=20, choices=CodeTypes.choices, default=CodeTypes.SIGNUP)
+    code_type = models.CharField(
+        max_length=20, choices=CodeTypes.choices, default=CodeTypes.SIGNUP
+    )
     is_used = models.BooleanField(default=False)
 
     @staticmethod
     def check_limit(email):
-        return OTPCode.objects.filter(
-            email=email,
-            created_at__gt=timezone.now() - timezone.timedelta(minutes=15)
-        ).count() >= 5
+        return (
+            OTPCode.objects.filter(
+                email=email,
+                created_at__gt=timezone.now() - timezone.timedelta(minutes=15),
+            ).count()
+            >= 5
+        )
 
     @property
     def is_expired(self):
@@ -82,34 +100,42 @@ class OTPCode(models.Model):
     def __str__(self) -> str:
         return f"{self.email} - {self.code} ({self.code_type})"
 
+
 class FavouriteItem(TimeStampModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    material = models.ForeignKey('Material', on_delete=models.CASCADE)
+    material = models.ForeignKey("Material", on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('user', 'material')
+        unique_together = ("user", "material")
+
 
 # ==========================================
 # 1. Master Data: Products & Warehouses
 # ==========================================
+
 
 class UnitOfMeasure(TimeStampModel):
     name = models.CharField(max_length=50)
     code = models.CharField(max_length=20, unique=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return f"{self.name} ({self.code})"
 
+
 class UnitConversion(TimeStampModel):
-    from_uom = models.ForeignKey(UnitOfMeasure, on_delete=models.CASCADE, related_name='conversions_from')
-    to_uom = models.ForeignKey(UnitOfMeasure, on_delete=models.CASCADE, related_name='conversions_to')
+    from_uom = models.ForeignKey(
+        UnitOfMeasure, on_delete=models.CASCADE, related_name="conversions_from"
+    )
+    to_uom = models.ForeignKey(
+        UnitOfMeasure, on_delete=models.CASCADE, related_name="conversions_to"
+    )
     factor = models.DecimalField(max_digits=12, decimal_places=6)
 
     class Meta:
-        unique_together = ('from_uom', 'to_uom')
+        unique_together = ("from_uom", "to_uom")
         verbose_name = _("Unit Conversion")
         verbose_name_plural = _("Unit Conversions")
 
@@ -120,14 +146,15 @@ class UnitConversion(TimeStampModel):
     def __str__(self):
         return f"1 {self.from_uom.code} = {self.factor} {self.to_uom.code}"
 
+
 class MaterialCategory(TimeStampModel):
     name = models.CharField(max_length=100, unique=True)
-    icon = VersatileImageField(upload_to='images/categories', blank=True, null=True)
+    icon = VersatileImageField(upload_to="images/categories", blank=True, null=True)
 
     class Meta:
         verbose_name = _("Material Category")
         verbose_name_plural = _("Material Categories")
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -135,8 +162,12 @@ class MaterialCategory(TimeStampModel):
 
 class Material(TimeStampModel):
     name = models.CharField(max_length=150)
-    category = models.ForeignKey(MaterialCategory, on_delete=models.PROTECT, related_name='materials')
-    uom = models.ForeignKey(UnitOfMeasure, on_delete=models.PROTECT, related_name='materials')
+    category = models.ForeignKey(
+        MaterialCategory, on_delete=models.PROTECT, related_name="materials"
+    )
+    uom = models.ForeignKey(
+        UnitOfMeasure, on_delete=models.PROTECT, related_name="materials"
+    )
     description = models.TextField(blank=True)
     supplier_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     consumer_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
@@ -153,17 +184,18 @@ class Material(TimeStampModel):
     spec_val4 = models.CharField(max_length=100, blank=True, null=True)
     spec_val5 = models.CharField(max_length=100, blank=True, null=True)
 
-    image1 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
-    image2 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
-    image3 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
-    image4 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
-    image5 = VersatileImageField(upload_to='images/materials', null=True, blank=True)
+    image1 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
+    image2 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
+    image3 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
+    image4 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
+    image5 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.name
+
 
 #     name = models.CharField(max_length=100)
 #     code = models.CharField(max_length=50, unique=True)
@@ -207,7 +239,7 @@ class Material(TimeStampModel):
 #     entry_date = models.DateField()
 #     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
 #     description = models.TextField(blank=True)
-    
+
 #     # Origin document tracking
 #     origin_type = models.CharField(max_length=50, blank=True, null=True)
 #     origin_id = models.PositiveIntegerField(blank=True, null=True)
@@ -251,7 +283,7 @@ class Material(TimeStampModel):
 # class Client(TimeStampModel):
 #     name = models.CharField(max_length=150)
 #     client_type = models.CharField(max_length=20, choices=[('customer', 'Customer'), ('supplier', 'Supplier')], default='customer')
-#     tax_number = models.CharField(max_length=50, blank=True) ## may need its own table 
+#     tax_number = models.CharField(max_length=50, blank=True) ## may need its own table
 #     email = models.EmailField(blank=True)
 #     phone = models.CharField(max_length=30, blank=True)
 #     address = models.TextField(blank=True)
@@ -289,7 +321,7 @@ class Material(TimeStampModel):
 #     partner = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='invoices')
 #     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='invoices', null=True, blank=True)
 #     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
-    
+
 #     # Financial summaries
 #     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 #     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
@@ -389,13 +421,14 @@ class Material(TimeStampModel):
 # 5. System Configuration
 # ==========================================
 
+
 class Setting(TimeStampModel):
     key = models.CharField(max_length=100, unique=True)
     value = models.TextField()
     description = models.TextField(null=True, blank=True)
 
     class Meta:
-        ordering = ['key']
+        ordering = ["key"]
 
     def __str__(self):
         return self.key
@@ -405,21 +438,55 @@ class Setting(TimeStampModel):
 # 6. Orders & Order Items
 # ==========================================
 
+
 class Order(TimeStampModel):
-    order_number = models.CharField(max_length=64,unique=True,db_index=True,editable=False,)
-    user = models.ForeignKey(CustomUser,on_delete=models.PROTECT,related_name='orders',)
-    status = models.CharField(max_length=20,choices=OrderStatus.choices,default=OrderStatus.PENDING,db_index=True,)
-    payment_method = models.CharField(max_length=20,choices=PaymentMethod.choices,default=PaymentMethod.CASH,)
-    payment_status = models.CharField(max_length=20,choices=PaymentStatus.choices,default=PaymentStatus.UNPAID,)
+    order_number = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        editable=False,
+    )
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.PROTECT,
+        related_name="orders",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=OrderStatus.choices,
+        default=OrderStatus.PENDING,
+        db_index=True,
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.UNPAID,
+    )
     shipping_address = models.TextField(blank=True)
-    shipping_phone = models.CharField(max_length=20,blank=True,null=True,validators=[PhoneNumberValidator],)
+    shipping_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        validators=[PhoneNumberValidator],
+    )
     notes = models.TextField(blank=True)
-    subtotal = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
-    discount_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
-    total_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'))
+    subtotal = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    total_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Order #{self.order_number} ({self.user.email})"
@@ -438,44 +505,74 @@ class Order(TimeStampModel):
         Recalculates subtotal and total_amount based on associated OrderItems.
         """
         items = self.items.all()
-        self.subtotal = sum(item.line_total for item in items) if items.exists() else Decimal('0.00')
-        self.total_amount = max(Decimal('0.00'), self.subtotal - (self.discount_amount or Decimal('0.00')))
+        self.subtotal = (
+            sum(item.line_total for item in items)
+            if items.exists()
+            else Decimal("0.00")
+        )
+        self.total_amount = max(
+            Decimal("0.00"), self.subtotal - (self.discount_amount or Decimal("0.00"))
+        )
         if save_instance and self.pk:
-            self.save(update_fields=['subtotal', 'total_amount'])
+            self.save(update_fields=["subtotal", "total_amount"])
         return self.total_amount
 
 
 class OrderItem(TimeStampModel):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    material = models.ForeignKey(Material, on_delete=models.PROTECT, related_name='order_items',)
-    quantity = models.DecimalField(max_digits=12,decimal_places=3,validators=[MinValueValidator(Decimal('0.001'))],)
-    unit_price = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
-    discount_amount = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
-    line_total = models.DecimalField(max_digits=12,decimal_places=2,default=Decimal('0.00'),)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.PROTECT,
+        related_name="order_items",
+    )
+    quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0.001"))],
+    )
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    line_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
 
     class Meta:
-        unique_together = ('order', 'material')
-        ordering = ['id']
+        unique_together = ("order", "material")
+        ordering = ["id"]
 
     def __str__(self):
         return f"{self.material.name} x {self.quantity} ({self.order.order_number})"
 
     def clean(self):
         if self.quantity is not None and self.quantity <= 0:
-            raise ValidationError({'quantity': _("Quantity must be greater than zero.")})
+            raise ValidationError(
+                {"quantity": _("Quantity must be greater than zero.")}
+            )
         if self.unit_price is not None and self.unit_price < 0:
-            raise ValidationError({'unit_price': _("Unit price cannot be negative.")})
+            raise ValidationError({"unit_price": _("Unit price cannot be negative.")})
         if self.discount_amount is not None and self.discount_amount < 0:
-            raise ValidationError({'discount_amount': _("Discount amount cannot be negative.")})
+            raise ValidationError(
+                {"discount_amount": _("Discount amount cannot be negative.")}
+            )
 
     def save(self, *args, **kwargs):
         if not self.unit_price and self.material:
-            self.unit_price = self.material.consumer_price or Decimal('0.00')
+            self.unit_price = self.material.consumer_price or Decimal("0.00")
 
-        qty = self.quantity or Decimal('0.000')
-        price = self.unit_price or Decimal('0.00')
-        disc = self.discount_amount or Decimal('0.00')
-        self.line_total = max(Decimal('0.00'), (qty * price) - disc)
+        qty = self.quantity or Decimal("0.000")
+        price = self.unit_price or Decimal("0.00")
+        disc = self.discount_amount or Decimal("0.00")
+        self.line_total = max(Decimal("0.00"), (qty * price) - disc)
 
         super().save(*args, **kwargs)
         if self.order_id:
@@ -486,4 +583,3 @@ class OrderItem(TimeStampModel):
         super().delete(*args, **kwargs)
         if order:
             order.calculate_totals()
-

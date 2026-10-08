@@ -5,16 +5,19 @@ from .models import *
 
 @register(MaterialCategory)
 class MaterialCategoryTranslationOptions(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
+
 
 @register(Material)
 class MaterialTranslationOptions(TranslationOptions):
-    fields = ('name', 'description')
+    fields = ("name", "description")
+
 
 @register(UnitOfMeasure)
 class UnitOfMeasureTranslationOptions(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
+
 
 @register(Setting)
 class SettingTranslationOptions(TranslationOptions):
-    fields = ('key',)
+    fields = ("key",)

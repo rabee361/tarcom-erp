@@ -22,28 +22,32 @@ class DashboardLoginView(View):
     lockout_duration = 900  # 15 minutes
 
     def get(self, request):
-        if request.user.is_authenticated and (request.user.is_staff or getattr(request.user, 'is_admin', False)):
-            return redirect('dashboard')
+        if request.user.is_authenticated and (
+            request.user.is_staff or getattr(request.user, "is_admin", False)
+        ):
+            return redirect("dashboard")
         form = DashboardLoginForm()
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {"form": form})
 
     def post(self, request):
         form = DashboardLoginForm(request.POST)
         if not form.is_valid():
-            return render(request, self.template_name, {'form': form})
+            return render(request, self.template_name, {"form": form})
 
-        identifier = form.cleaned_data['phonenumber'].strip()
-        password = form.cleaned_data['password']
-        remember_me = form.cleaned_data.get('remember_me')
-        cache_key = f"dashboard_login_attempts_{get_client_ip(request)}_{identifier.lower()}"
+        identifier = form.cleaned_data["phonenumber"].strip()
+        password = form.cleaned_data["password"]
+        remember_me = form.cleaned_data.get("remember_me")
+        cache_key = (
+            f"dashboard_login_attempts_{get_client_ip(request)}_{identifier.lower()}"
+        )
 
         attempts = cache.get(cache_key, 0)
         if attempts >= self.max_attempts:
             messages.error(
                 request,
-                "لقد تم حظر المحاولات مؤقتاً بسبب تجاوز 3 محاولات خاطئة. يرجى المحاولة بعد 15 دقيقة."
+                "لقد تم حظر المحاولات مؤقتاً بسبب تجاوز 3 محاولات خاطئة. يرجى المحاولة بعد 15 دقيقة.",
             )
-            return render(request, self.template_name, {'form': form, 'locked': True})
+            return render(request, self.template_name, {"form": form, "locked": True})
 
         user_obj = CustomUser.objects.filter(
             Q(email__iexact=identifier) | Q(phone=identifier)
@@ -58,14 +62,21 @@ class DashboardLoginView(View):
             cache.set(cache_key, new_attempts, self.lockout_duration)
             remaining = self.max_attempts - new_attempts
             if remaining > 0:
-                messages.error(request, f"بيانات الدخول غير صحيحة. متبقي لديك {remaining} محاولة.")
+                messages.error(
+                    request, f"بيانات الدخول غير صحيحة. متبقي لديك {remaining} محاولة."
+                )
             else:
-                messages.error(request, "تم استنفاد جميع المحاولات (3). تم قفل الحساب مؤقتاً لمدة 15 دقيقة.")
-            return render(request, self.template_name, {'form': form})
+                messages.error(
+                    request,
+                    "تم استنفاد جميع المحاولات (3). تم قفل الحساب مؤقتاً لمدة 15 دقيقة.",
+                )
+            return render(request, self.template_name, {"form": form})
 
-        if not (user.is_staff or getattr(user, 'is_admin', False)):
-            messages.error(request, "عذراً، هذا الحساب ليس لديه صلاحية الدخول إلى لوحة التحكم.")
-            return render(request, self.template_name, {'form': form})
+        if not (user.is_staff or getattr(user, "is_admin", False)):
+            messages.error(
+                request, "عذراً، هذا الحساب ليس لديه صلاحية الدخول إلى لوحة التحكم."
+            )
+            return render(request, self.template_name, {"form": form})
 
         cache.delete(cache_key)
         login(request, user)
@@ -74,18 +85,20 @@ class DashboardLoginView(View):
         else:
             request.session.set_expiry(0)  # Expires on browser close
 
-        next_url = request.GET.get('next')
+        next_url = request.GET.get("next")
         if next_url and url_has_allowed_host_and_scheme(
-            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
         ):
             return redirect(next_url)
-        return redirect('dashboard')
+        return redirect("dashboard")
 
 
 class DashboardLogoutView(View):
     def post(self, request):
         logout(request)
-        return redirect('login')
+        return redirect("login")
 
 
 class DashboardChangePasswordView(StaffRequiredMixin, View):
@@ -93,15 +106,17 @@ class DashboardChangePasswordView(StaffRequiredMixin, View):
 
     def get(self, request):
         form = DashboardChangePasswordForm(user=request.user)
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {"form": form})
 
     def post(self, request):
         form = DashboardChangePasswordForm(user=request.user, data=request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً.")
-            return redirect('login')
-        return render(request, self.template_name, {'form': form})
+            messages.success(
+                request, "تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً."
+            )
+            return redirect("login")
+        return render(request, self.template_name, {"form": form})
 
 
 class UsersListView(StaffRequiredMixin, ListView):
@@ -111,8 +126,10 @@ class UsersListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.ADMIN).order_by('-date_joined')
-        q = self.request.GET.get('q')
+        qs = CustomUser.objects.filter(user_type=UserType.ADMIN).order_by(
+            "-date_joined"
+        )
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(email__icontains=q)
@@ -127,7 +144,7 @@ class UserCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = UserForm
     template_name = "dashboard/users/user_form.html"
-    success_url = reverse_lazy('users-list')
+    success_url = reverse_lazy("users-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم إنشاء المستخدم بنجاح.")
@@ -138,7 +155,7 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = UserForm
     template_name = "dashboard/users/user_form.html"
-    success_url = reverse_lazy('users-list')
+    success_url = reverse_lazy("users-list")
 
     def get_queryset(self):
         # Only admins can be edited via this view to prevent privilege abuse.
@@ -152,7 +169,7 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
 class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy('users-list')
+    success_url = reverse_lazy("users-list")
     protected_message = "لا يمكن حذف هذا المستخدم لأنه مرتبط بسجلات أخرى."
     deleted_message = "تم حذف المستخدم بنجاح."
 
@@ -177,8 +194,10 @@ class CustomerListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.CUSTOMER).order_by('-date_joined')
-        q = self.request.GET.get('q')
+        qs = CustomUser.objects.filter(user_type=UserType.CUSTOMER).order_by(
+            "-date_joined"
+        )
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(email__icontains=q)
@@ -193,11 +212,11 @@ class CustomerCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = CustomerUserForm
     template_name = "dashboard/customers/customer_form.html"
-    success_url = reverse_lazy('customers-list')
+    success_url = reverse_lazy("customers-list")
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['user_type'] = UserType.CUSTOMER
+        initial["user_type"] = UserType.CUSTOMER
         return initial
 
     def form_valid(self, form):
@@ -210,7 +229,7 @@ class CustomerUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = CustomerUserForm
     template_name = "dashboard/customers/customer_form.html"
-    success_url = reverse_lazy('customers-list')
+    success_url = reverse_lazy("customers-list")
 
     def get_queryset(self):
         return CustomUser.objects.filter(user_type=UserType.CUSTOMER)
@@ -224,8 +243,10 @@ class CustomerUpdateView(StaffRequiredMixin, UpdateView):
 class CustomerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy('customers-list')
-    protected_message = "لا يمكن حذف هذا العميل لارتباطه بطلبات أو بيانات أخرى في النظام."
+    success_url = reverse_lazy("customers-list")
+    protected_message = (
+        "لا يمكن حذف هذا العميل لارتباطه بطلبات أو بيانات أخرى في النظام."
+    )
     deleted_message = "تم حذف العميل بنجاح."
 
     def get_queryset(self):
@@ -251,8 +272,10 @@ class SupplierListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.SUPPLIER).order_by('-date_joined')
-        q = self.request.GET.get('q')
+        qs = CustomUser.objects.filter(user_type=UserType.SUPPLIER).order_by(
+            "-date_joined"
+        )
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(email__icontains=q)
@@ -267,11 +290,11 @@ class SupplierCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = SupplierUserForm
     template_name = "dashboard/suppliers/supplier_form.html"
-    success_url = reverse_lazy('suppliers-list')
+    success_url = reverse_lazy("suppliers-list")
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['user_type'] = UserType.SUPPLIER
+        initial["user_type"] = UserType.SUPPLIER
         return initial
 
     def form_valid(self, form):
@@ -284,7 +307,7 @@ class SupplierUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = SupplierUserForm
     template_name = "dashboard/suppliers/supplier_form.html"
-    success_url = reverse_lazy('suppliers-list')
+    success_url = reverse_lazy("suppliers-list")
 
     def get_queryset(self):
         return CustomUser.objects.filter(user_type=UserType.SUPPLIER)
@@ -298,8 +321,10 @@ class SupplierUpdateView(StaffRequiredMixin, UpdateView):
 class SupplierDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy('suppliers-list')
-    protected_message = "لا يمكن حذف هذا المورد لارتباطه بطلبات أو بيانات أخرى في النظام."
+    success_url = reverse_lazy("suppliers-list")
+    protected_message = (
+        "لا يمكن حذف هذا المورد لارتباطه بطلبات أو بيانات أخرى في النظام."
+    )
     deleted_message = "تم حذف المورد بنجاح."
 
     def get_queryset(self):

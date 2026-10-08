@@ -4,26 +4,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('base', '0001_initial'),
+        ("base", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Setting',
+            name="Setting",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('key', models.CharField(max_length=100, unique=True)),
-                ('key_en', models.CharField(max_length=100, null=True, unique=True)),
-                ('key_ar', models.CharField(max_length=100, null=True, unique=True)),
-                ('value', models.TextField()),
-                ('description', models.TextField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("key", models.CharField(max_length=100, unique=True)),
+                ("key_en", models.CharField(max_length=100, null=True, unique=True)),
+                ("key_ar", models.CharField(max_length=100, null=True, unique=True)),
+                ("value", models.TextField()),
+                ("description", models.TextField(blank=True, null=True)),
             ],
             options={
-                'ordering': ['key'],
+                "ordering": ["key"],
             },
         ),
     ]

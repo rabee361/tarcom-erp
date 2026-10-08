@@ -39,7 +39,9 @@ from tarcom.utils.enums import (
 
 PASSWORD = "Passw0rd!123"
 
-ICON_DIR = Path(settings.BASE_DIR) / "base" / "static" / "assets" / "images" / "categories"
+ICON_DIR = (
+    Path(settings.BASE_DIR) / "base" / "static" / "assets" / "images" / "categories"
+)
 
 UNITS = [
     ("EA", "Each", "حبة"),
@@ -268,10 +270,12 @@ class Command(BaseCommand):
         users = self._seed_users()
         order_count = self._seed_orders(users, materials, rng)
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Populated: {len(uoms)} units, {len(categories)} categories, "
-            f"{len(materials)} materials, {len(users)} users, {order_count} orders."
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Populated: {len(uoms)} units, {len(categories)} categories, "
+                f"{len(materials)} materials, {len(users)} users, {order_count} orders."
+            )
+        )
 
     def _flush(self):
         OrderItem.objects.all().delete()

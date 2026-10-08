@@ -61,21 +61,21 @@ so no multi-page traversal is needed. Exact changes:
 `src/tarcom/api/tests/core_tests.py` — `test_unauthenticated_can_list_units` (line ~96):
 
 ```python
-    def test_unauthenticated_can_list_units(self):
-        response = self.client.get('/api/units/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertIsNone(response.data['next'])
-        self.assertEqual(len(response.data['results']), 1)
+def test_unauthenticated_can_list_units(self):
+    response = self.client.get("/api/units/")
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    self.assertEqual(response.data["count"], 1)
+    self.assertIsNone(response.data["next"])
+    self.assertEqual(len(response.data["results"]), 1)
 ```
 
 `src/tarcom/api/tests/favourite_tests.py` — `test_list_favourites_authenticated` (lines ~47-48):
 
 ```python
-        results = response.data['results']
-        self.assertEqual(len(results), 2)
-        material_ids = {item['material'] for item in results}
-        self.assertEqual(material_ids, {self.material.id, self.other_material.id})
+results = response.data["results"]
+self.assertEqual(len(results), 2)
+material_ids = {item["material"] for item in results}
+self.assertEqual(material_ids, {self.material.id, self.other_material.id})
 ```
 
 `src/tarcom/api/tests/order_tests.py` — three tests:
@@ -122,12 +122,12 @@ Append after `UserForm` (line ~127):
 ```python
 class CustomerUserForm(UserForm):
     class Meta(UserForm.Meta):
-        widgets = {'user_type': forms.HiddenInput()}
+        widgets = {"user_type": forms.HiddenInput()}
 
 
 class SupplierUserForm(UserForm):
     class Meta(UserForm.Meta):
-        widgets = {'user_type': forms.HiddenInput()}
+        widgets = {"user_type": forms.HiddenInput()}
 ```
 
 (`UserForm.Meta` currently has no `widgets` key, so this adds it only for the subclasses.
@@ -147,8 +147,10 @@ class CustomerListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.CUSTOMER).order_by('-date_joined')
-        q = self.request.GET.get('q')
+        qs = CustomUser.objects.filter(user_type=UserType.CUSTOMER).order_by(
+            "-date_joined"
+        )
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(email__icontains=q)
@@ -163,11 +165,11 @@ class CustomerCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = CustomerUserForm
     template_name = "dashboard/customers/customer_form.html"
-    success_url = reverse_lazy('customers-list')
+    success_url = reverse_lazy("customers-list")
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['user_type'] = UserType.CUSTOMER
+        initial["user_type"] = UserType.CUSTOMER
         return initial
 
     def form_valid(self, form):
@@ -180,7 +182,7 @@ class CustomerUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = CustomerUserForm
     template_name = "dashboard/customers/customer_form.html"
-    success_url = reverse_lazy('customers-list')
+    success_url = reverse_lazy("customers-list")
 
     def get_queryset(self):
         return CustomUser.objects.filter(user_type=UserType.CUSTOMER)
@@ -194,8 +196,10 @@ class CustomerUpdateView(StaffRequiredMixin, UpdateView):
 class CustomerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy('customers-list')
-    protected_message = "لا يمكن حذف هذا العميل لارتباطه بطلبات أو بيانات أخرى في النظام."
+    success_url = reverse_lazy("customers-list")
+    protected_message = (
+        "لا يمكن حذف هذا العميل لارتباطه بطلبات أو بيانات أخرى في النظام."
+    )
     deleted_message = "تم حذف العميل بنجاح."
 
     def form_valid(self, form):
@@ -215,8 +219,10 @@ class SupplierListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.SUPPLIER).order_by('-date_joined')
-        q = self.request.GET.get('q')
+        qs = CustomUser.objects.filter(user_type=UserType.SUPPLIER).order_by(
+            "-date_joined"
+        )
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(email__icontains=q)
@@ -231,11 +237,11 @@ class SupplierCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
     form_class = SupplierUserForm
     template_name = "dashboard/suppliers/supplier_form.html"
-    success_url = reverse_lazy('suppliers-list')
+    success_url = reverse_lazy("suppliers-list")
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['user_type'] = UserType.SUPPLIER
+        initial["user_type"] = UserType.SUPPLIER
         return initial
 
     def form_valid(self, form):
@@ -248,7 +254,7 @@ class SupplierUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
     form_class = SupplierUserForm
     template_name = "dashboard/suppliers/supplier_form.html"
-    success_url = reverse_lazy('suppliers-list')
+    success_url = reverse_lazy("suppliers-list")
 
     def get_queryset(self):
         return CustomUser.objects.filter(user_type=UserType.SUPPLIER)
@@ -262,8 +268,10 @@ class SupplierUpdateView(StaffRequiredMixin, UpdateView):
 class SupplierDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy('suppliers-list')
-    protected_message = "لا يمكن حذف هذا المورد لارتباطه بطلبات أو بيانات أخرى في النظام."
+    success_url = reverse_lazy("suppliers-list")
+    protected_message = (
+        "لا يمكن حذف هذا المورد لارتباطه بطلبات أو بيانات أخرى في النظام."
+    )
     deleted_message = "تم حذف المورد بنجاح."
 
     def form_valid(self, form):
@@ -280,17 +288,17 @@ Then change `UsersListView.get_queryset` (line ~112) to admins-only. Remove the 
 GET-parameter branch and hardcode the filter:
 
 ```python
-    def get_queryset(self):
-        qs = CustomUser.objects.filter(user_type=UserType.ADMIN).order_by('-date_joined')
-        q = self.request.GET.get('q')
-        if q:
-            qs = qs.filter(
-                Q(email__icontains=q)
-                | Q(first_name__icontains=q)
-                | Q(last_name__icontains=q)
-                | Q(phone__icontains=q)
-            )
-        return qs
+def get_queryset(self):
+    qs = CustomUser.objects.filter(user_type=UserType.ADMIN).order_by("-date_joined")
+    q = self.request.GET.get("q")
+    if q:
+        qs = qs.filter(
+            Q(email__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(phone__icontains=q)
+        )
+    return qs
 ```
 
 ### Step 6 — `src/tarcom/base/urls.py`: routes
@@ -299,15 +307,51 @@ GET-parameter branch and hardcode the filter:
 Insert after the users routes (line ~18):
 
 ```python
-    path("dashboard/customers/", CustomerListView.as_view(), name="customers-list"),
-    path("dashboard/customers/create/", CustomerCreateView.as_view(), name="customer-create"),
-    path("dashboard/customers/<int:pk>/edit/", CustomerUpdateView.as_view(), name="customer-edit"),
-    path("dashboard/customers/<int:pk>/delete/", CustomerDeleteView.as_view(), name="customer-delete"),
+(path("dashboard/customers/", CustomerListView.as_view(), name="customers-list"),)
+(
+    path(
+        "dashboard/customers/create/",
+        CustomerCreateView.as_view(),
+        name="customer-create",
+    ),
+)
+(
+    path(
+        "dashboard/customers/<int:pk>/edit/",
+        CustomerUpdateView.as_view(),
+        name="customer-edit",
+    ),
+)
+(
+    path(
+        "dashboard/customers/<int:pk>/delete/",
+        CustomerDeleteView.as_view(),
+        name="customer-delete",
+    ),
+)
 
-    path("dashboard/suppliers/", SupplierListView.as_view(), name="suppliers-list"),
-    path("dashboard/suppliers/create/", SupplierCreateView.as_view(), name="supplier-create"),
-    path("dashboard/suppliers/<int:pk>/edit/", SupplierUpdateView.as_view(), name="supplier-edit"),
-    path("dashboard/suppliers/<int:pk>/delete/", SupplierDeleteView.as_view(), name="supplier-delete"),
+(path("dashboard/suppliers/", SupplierListView.as_view(), name="suppliers-list"),)
+(
+    path(
+        "dashboard/suppliers/create/",
+        SupplierCreateView.as_view(),
+        name="supplier-create",
+    ),
+)
+(
+    path(
+        "dashboard/suppliers/<int:pk>/edit/",
+        SupplierUpdateView.as_view(),
+        name="supplier-edit",
+    ),
+)
+(
+    path(
+        "dashboard/suppliers/<int:pk>/delete/",
+        SupplierDeleteView.as_view(),
+        name="supplier-delete",
+    ),
+)
 ```
 
 ### Step 7 — Templates (4 new files + 1 edit)
@@ -451,30 +495,40 @@ class DashboardUserPagesTest(TestCase):
     def setUp(self):
         self.client = APIClient()  # or Django client as used elsewhere in the file
         self.staff = CustomUser.objects.create_user(
-            email='staff@tarcom.com', password='StaffPass123!', is_staff=True,
+            email="staff@tarcom.com",
+            password="StaffPass123!",
+            is_staff=True,
             user_type=UserType.ADMIN,
         )
         self.client.force_login(self.staff)
         self.customer = CustomUser.objects.create_user(
-            email='cust@tarcom.com', password='CustPass123!', user_type=UserType.CUSTOMER,
+            email="cust@tarcom.com",
+            password="CustPass123!",
+            user_type=UserType.CUSTOMER,
         )
         self.supplier = CustomUser.objects.create_user(
-            email='sup@tarcom.com', password='SupPass123!', user_type=UserType.SUPPLIER,
+            email="sup@tarcom.com",
+            password="SupPass123!",
+            user_type=UserType.SUPPLIER,
         )
 
-    def test_customers_list_shows_only_customers(self): ...
+    def test_customers_list_shows_only_customers(self):
+        ...
         # GET /dashboard/customers/ -> 200, contains cust@tarcom.com, not sup@tarcom.com
 
     def test_suppliers_list_shows_only_suppliers(self): ...
 
-    def test_users_list_shows_only_admins(self): ...
+    def test_users_list_shows_only_admins(self):
+        ...
         # GET /dashboard/users/ -> does not contain cust@/sup@
 
-    def test_customer_create_presets_user_type(self): ...
+    def test_customer_create_presets_user_type(self):
+        ...
         # POST /dashboard/customers/create/ with email/password -> 302;
         # CustomUser.objects.get(email=...).user_type == UserType.CUSTOMER
 
-    def test_customer_delete_ajax(self): ...
+    def test_customer_delete_ajax(self):
+        ...
         # POST /dashboard/customers/<pk>/delete/ with HTTP_X_REQUESTED_WITH
         # -> JSON ok:true, user gone (mirror the existing DashboardProtectedDeleteTest style)
 ```

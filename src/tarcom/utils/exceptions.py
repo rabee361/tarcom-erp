@@ -17,8 +17,8 @@ from tarcom.utils.translation import (
 logger = logging.getLogger(__name__)
 
 # Constants for error keys
-NON_FIELD_ERRORS_KEY = 'non_field_errors'
-ALL_ERRORS_KEY = '__all__'
+NON_FIELD_ERRORS_KEY = "non_field_errors"
+ALL_ERRORS_KEY = "__all__"
 
 
 def _bilingual_json(message, language_codes):
@@ -38,7 +38,7 @@ def _bilingual_json(message, language_codes):
 def get_error_summary(status_code, language_codes):
     # `_()` here is the eager gettext: build the lookup table with English
     # forced, otherwise the active request language leaks into the msgid.
-    with override('en'):
+    with override("en"):
         summaries = {
             400: _("Please correct the errors in the form."),
             401: _("Authentication required, please login to continue."),
@@ -64,15 +64,12 @@ def translate_errors_recursively(errors, language_codes):
 
     if isinstance(errors, list):
         # Check if this is a list of ErrorDetail objects
-        if errors and hasattr(errors[0], 'code'):
+        if errors and hasattr(errors[0], "code"):
             # Process ALL errors in the list (not just the first one)
             return [_bilingual_json(error, language_codes) for error in errors]
 
         # Handle nested structures
-        return [
-            translate_errors_recursively(error, language_codes)
-            for error in errors
-        ]
+        return [translate_errors_recursively(error, language_codes) for error in errors]
 
     # Single error message (edge case) - wrap in array for consistency
     return [_bilingual_json(errors, language_codes)]
@@ -80,11 +77,8 @@ def translate_errors_recursively(errors, language_codes):
 
 def _normalize_validation_errors(data):
     if isinstance(data, dict):
-        return {
-            key: _normalize_validation_errors(value)
-            for key, value in data.items()
-        }
-    
+        return {key: _normalize_validation_errors(value) for key, value in data.items()}
+
     if isinstance(data, list):
         # Check if list contains stringified dict (model validation errors)
         if data and isinstance(data[0], str):
@@ -96,24 +90,23 @@ def _normalize_validation_errors(data):
             except (SyntaxError, ValueError, TypeError):
                 # Not a dict string, return as-is
                 pass
-        
+
         # Normal list processing
         return [_normalize_validation_errors(item) for item in data]
-    
+
     return data
 
 
 def _extract_error_message(translated_errors, status_code, language_codes):
     if status_code == 400 and isinstance(translated_errors, dict):
         # Check for non-field errors (DRF serializer or Django model validation)
-        error_list = (
-            translated_errors.get(NON_FIELD_ERRORS_KEY) or 
-            translated_errors.get(ALL_ERRORS_KEY)
-        )
-        
+        error_list = translated_errors.get(
+            NON_FIELD_ERRORS_KEY
+        ) or translated_errors.get(ALL_ERRORS_KEY)
+
         if error_list and isinstance(error_list, list) and error_list:
             return error_list[0]
-    
+
     return get_error_summary(status_code, language_codes)
 
 
@@ -122,20 +115,20 @@ def custom_exception_handler(exc, context):
 
     if response is not None:
         language_codes = get_language_codes()
-        
+
         # Normalize model-level ValidationError strings into proper dict structure
         normalized_data = _normalize_validation_errors(response.data)
-        
+
         # Translate all errors recursively
-        translated_errors = translate_errors_recursively(normalized_data, language_codes)
-        
+        translated_errors = translate_errors_recursively(
+            normalized_data, language_codes
+        )
+
         # Extract the most appropriate message for the response
         message = _extract_error_message(
-            translated_errors, 
-            response.status_code, 
-            language_codes
+            translated_errors, response.status_code, language_codes
         )
-        
+
         response.data = {
             "status": "error",
             "code": response.status_code,

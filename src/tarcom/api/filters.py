@@ -116,16 +116,36 @@ class MaterialFilter(SearchableFilterSet):
         help_text=ORDERING_HELP,
     )
 
-    spec_key1 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
-    spec_key2 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
-    spec_key3 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
-    spec_key4 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
-    spec_key5 = django_filters.CharFilter(method="filter_spec_key", help_text=SPEC_KEY_HELP)
-    spec_val1 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
-    spec_val2 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
-    spec_val3 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
-    spec_val4 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
-    spec_val5 = django_filters.CharFilter(method="filter_spec_val", help_text=SPEC_VAL_HELP)
+    spec_key1 = django_filters.CharFilter(
+        method="filter_spec_key", help_text=SPEC_KEY_HELP
+    )
+    spec_key2 = django_filters.CharFilter(
+        method="filter_spec_key", help_text=SPEC_KEY_HELP
+    )
+    spec_key3 = django_filters.CharFilter(
+        method="filter_spec_key", help_text=SPEC_KEY_HELP
+    )
+    spec_key4 = django_filters.CharFilter(
+        method="filter_spec_key", help_text=SPEC_KEY_HELP
+    )
+    spec_key5 = django_filters.CharFilter(
+        method="filter_spec_key", help_text=SPEC_KEY_HELP
+    )
+    spec_val1 = django_filters.CharFilter(
+        method="filter_spec_val", help_text=SPEC_VAL_HELP
+    )
+    spec_val2 = django_filters.CharFilter(
+        method="filter_spec_val", help_text=SPEC_VAL_HELP
+    )
+    spec_val3 = django_filters.CharFilter(
+        method="filter_spec_val", help_text=SPEC_VAL_HELP
+    )
+    spec_val4 = django_filters.CharFilter(
+        method="filter_spec_val", help_text=SPEC_VAL_HELP
+    )
+    spec_val5 = django_filters.CharFilter(
+        method="filter_spec_val", help_text=SPEC_VAL_HELP
+    )
 
     class Meta:
         model = Material

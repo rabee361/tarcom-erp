@@ -9,54 +9,218 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('base', '0002_setting'),
+        ("base", "0002_setting"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('order_number', models.CharField(db_index=True, editable=False, max_length=64, unique=True, verbose_name='Order Number')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('CONFIRMED', 'Confirmed'), ('PROCESSING', 'Processing'), ('SHIPPED', 'Shipped'), ('DELIVERED', 'Delivered'), ('CANCELLED', 'Cancelled')], db_index=True, default='PENDING', max_length=20, verbose_name='Order Status')),
-                ('payment_method', models.CharField(choices=[('CASH', 'Cash'), ('BANK_TRANSFER', 'Bank Transfer'), ('CHECK', 'Check'), ('CARD', 'Credit/Debit Card')], default='CASH', max_length=20, verbose_name='Payment Method')),
-                ('payment_status', models.CharField(choices=[('UNPAID', 'Unpaid'), ('PAID', 'Paid'), ('REFUNDED', 'Refunded')], default='UNPAID', max_length=20, verbose_name='Payment Status')),
-                ('shipping_address', models.TextField(blank=True, verbose_name='Shipping Address')),
-                ('shipping_phone', models.CharField(blank=True, max_length=20, null=True, validators=[django.core.validators.RegexValidator(message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.', regex='^\\+?[0-9]{7,15}$')], verbose_name='Shipping Phone Number')),
-                ('notes', models.TextField(blank=True, verbose_name='Order Notes')),
-                ('subtotal', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Subtotal')),
-                ('discount_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Discount Amount')),
-                ('total_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Total Amount')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to=settings.AUTH_USER_MODEL, verbose_name='Customer / Customer')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "order_number",
+                    models.CharField(
+                        db_index=True,
+                        editable=False,
+                        max_length=64,
+                        unique=True,
+                        verbose_name="Order Number",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("CONFIRMED", "Confirmed"),
+                            ("PROCESSING", "Processing"),
+                            ("SHIPPED", "Shipped"),
+                            ("DELIVERED", "Delivered"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        db_index=True,
+                        default="PENDING",
+                        max_length=20,
+                        verbose_name="Order Status",
+                    ),
+                ),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("CASH", "Cash"),
+                            ("BANK_TRANSFER", "Bank Transfer"),
+                            ("CHECK", "Check"),
+                            ("CARD", "Credit/Debit Card"),
+                        ],
+                        default="CASH",
+                        max_length=20,
+                        verbose_name="Payment Method",
+                    ),
+                ),
+                (
+                    "payment_status",
+                    models.CharField(
+                        choices=[
+                            ("UNPAID", "Unpaid"),
+                            ("PAID", "Paid"),
+                            ("REFUNDED", "Refunded"),
+                        ],
+                        default="UNPAID",
+                        max_length=20,
+                        verbose_name="Payment Status",
+                    ),
+                ),
+                (
+                    "shipping_address",
+                    models.TextField(blank=True, verbose_name="Shipping Address"),
+                ),
+                (
+                    "shipping_phone",
+                    models.CharField(
+                        blank=True,
+                        max_length=20,
+                        null=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.',
+                                regex="^\\+?[0-9]{7,15}$",
+                            )
+                        ],
+                        verbose_name="Shipping Phone Number",
+                    ),
+                ),
+                ("notes", models.TextField(blank=True, verbose_name="Order Notes")),
+                (
+                    "subtotal",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Subtotal",
+                    ),
+                ),
+                (
+                    "discount_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Discount Amount",
+                    ),
+                ),
+                (
+                    "total_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Total Amount",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="orders",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Customer / Customer",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Order',
-                'verbose_name_plural': 'Orders',
-                'ordering': ['-created_at'],
+                "verbose_name": "Order",
+                "verbose_name_plural": "Orders",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('quantity', models.DecimalField(decimal_places=3, max_digits=12, validators=[django.core.validators.MinValueValidator(Decimal('0.001'))], verbose_name='Quantity')),
-                ('unit_price', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Unit Price')),
-                ('discount_amount', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Discount Amount')),
-                ('line_total', models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12, verbose_name='Line Total')),
-                ('material', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='order_items', to='base.material', verbose_name='Material')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='base.order', verbose_name='Order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "quantity",
+                    models.DecimalField(
+                        decimal_places=3,
+                        max_digits=12,
+                        validators=[
+                            django.core.validators.MinValueValidator(Decimal("0.001"))
+                        ],
+                        verbose_name="Quantity",
+                    ),
+                ),
+                (
+                    "unit_price",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Unit Price",
+                    ),
+                ),
+                (
+                    "discount_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Discount Amount",
+                    ),
+                ),
+                (
+                    "line_total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=Decimal("0.00"),
+                        max_digits=12,
+                        verbose_name="Line Total",
+                    ),
+                ),
+                (
+                    "material",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="order_items",
+                        to="base.material",
+                        verbose_name="Material",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="base.order",
+                        verbose_name="Order",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Order Item',
-                'verbose_name_plural': 'Order Items',
-                'ordering': ['id'],
-                'unique_together': {('order', 'material')},
+                "verbose_name": "Order Item",
+                "verbose_name_plural": "Order Items",
+                "ordering": ["id"],
+                "unique_together": {("order", "material")},
             },
         ),
     ]

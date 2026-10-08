@@ -9,118 +9,203 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('base', '0003_order_orderitem'),
+        ("base", "0003_order_orderitem"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='order',
-            options={'ordering': ['-created_at']},
+            name="order",
+            options={"ordering": ["-created_at"]},
         ),
         migrations.AlterModelOptions(
-            name='orderitem',
-            options={'ordering': ['id']},
+            name="orderitem",
+            options={"ordering": ["id"]},
         ),
         migrations.AddField(
-            model_name='materialcategory',
-            name='icon',
-            field=models.CharField(blank=True, default='', max_length=255),
+            model_name="materialcategory",
+            name="icon",
+            field=models.CharField(blank=True, default="", max_length=255),
         ),
         migrations.AlterField(
-            model_name='customuser',
-            name='phone',
-            field=models.CharField(blank=True, max_length=20, null=True, validators=[django.core.validators.RegexValidator(message='Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX.', regex='^\\+963[0-9]{9}$')]),
+            model_name="customuser",
+            name="phone",
+            field=models.CharField(
+                blank=True,
+                max_length=20,
+                null=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX.",
+                        regex="^\\+963[0-9]{9}$",
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='customuser',
-            name='user_type',
-            field=models.CharField(choices=[('supplier', 'Supplier'), ('customer', 'Customer'), ('admin', 'Admin')], default='supplier', max_length=10),
+            model_name="customuser",
+            name="user_type",
+            field=models.CharField(
+                choices=[
+                    ("supplier", "Supplier"),
+                    ("customer", "Customer"),
+                    ("admin", "Admin"),
+                ],
+                default="supplier",
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='discount_amount',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="order",
+            name="discount_amount",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='notes',
+            model_name="order",
+            name="notes",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='order_number',
-            field=models.CharField(db_index=True, editable=False, max_length=64, unique=True),
+            model_name="order",
+            name="order_number",
+            field=models.CharField(
+                db_index=True, editable=False, max_length=64, unique=True
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='payment_method',
-            field=models.CharField(choices=[('CASH', 'Cash'), ('BANK_TRANSFER', 'Bank Transfer'), ('CHECK', 'Check'), ('CARD', 'Credit/Debit Card')], default='CASH', max_length=20),
+            model_name="order",
+            name="payment_method",
+            field=models.CharField(
+                choices=[
+                    ("CASH", "Cash"),
+                    ("BANK_TRANSFER", "Bank Transfer"),
+                    ("CHECK", "Check"),
+                    ("CARD", "Credit/Debit Card"),
+                ],
+                default="CASH",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='payment_status',
-            field=models.CharField(choices=[('UNPAID', 'Unpaid'), ('PAID', 'Paid'), ('REFUNDED', 'Refunded')], default='UNPAID', max_length=20),
+            model_name="order",
+            name="payment_status",
+            field=models.CharField(
+                choices=[
+                    ("UNPAID", "Unpaid"),
+                    ("PAID", "Paid"),
+                    ("REFUNDED", "Refunded"),
+                ],
+                default="UNPAID",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='shipping_address',
+            model_name="order",
+            name="shipping_address",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='shipping_phone',
-            field=models.CharField(blank=True, max_length=20, null=True, validators=[django.core.validators.RegexValidator(message='Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX.', regex='^\\+963[0-9]{9}$')]),
+            model_name="order",
+            name="shipping_phone",
+            field=models.CharField(
+                blank=True,
+                max_length=20,
+                null=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX.",
+                        regex="^\\+963[0-9]{9}$",
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('PENDING', 'Pending'), ('CONFIRMED', 'Confirmed'), ('SHIPPED', 'Shipped'), ('DELIVERED', 'Delivered'), ('CANCELLED', 'Cancelled')], db_index=True, default='PENDING', max_length=20),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("PENDING", "Pending"),
+                    ("CONFIRMED", "Confirmed"),
+                    ("SHIPPED", "Shipped"),
+                    ("DELIVERED", "Delivered"),
+                    ("CANCELLED", "Cancelled"),
+                ],
+                db_index=True,
+                default="PENDING",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='subtotal',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="order",
+            name="subtotal",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='total_amount',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="order",
+            name="total_amount",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to=settings.AUTH_USER_MODEL),
+            model_name="order",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="orders",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='discount_amount',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="orderitem",
+            name="discount_amount",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='line_total',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="orderitem",
+            name="line_total",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='material',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='order_items', to='base.material'),
+            model_name="orderitem",
+            name="material",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="order_items",
+                to="base.material",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='order',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='base.order'),
+            model_name="orderitem",
+            name="order",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="items",
+                to="base.order",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='quantity',
-            field=models.DecimalField(decimal_places=3, max_digits=12, validators=[django.core.validators.MinValueValidator(Decimal('0.001'))]),
+            model_name="orderitem",
+            name="quantity",
+            field=models.DecimalField(
+                decimal_places=3,
+                max_digits=12,
+                validators=[django.core.validators.MinValueValidator(Decimal("0.001"))],
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitem',
-            name='unit_price',
-            field=models.DecimalField(decimal_places=2, default=Decimal('0.00'), max_digits=12),
+            model_name="orderitem",
+            name="unit_price",
+            field=models.DecimalField(
+                decimal_places=2, default=Decimal("0.00"), max_digits=12
+            ),
         ),
     ]

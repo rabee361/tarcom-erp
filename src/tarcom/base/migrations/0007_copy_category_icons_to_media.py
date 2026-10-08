@@ -17,12 +17,11 @@ def copy_icons_to_media(apps, schema_editor):
             continue
         with open(source_path, "rb") as f:
             category.icon.save(
-                icon[len(STATIC_ICON_PREFIX):], ContentFile(f.read()), save=True
+                icon[len(STATIC_ICON_PREFIX) :], ContentFile(f.read()), save=True
             )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("base", "0006_image_fields_to_versatileimagefield"),
     ]

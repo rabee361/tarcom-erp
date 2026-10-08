@@ -32,12 +32,18 @@ class DashboardPartialView(StaffRequiredMixin, View):
             "products_count": Material.objects.count(),
             "categories_count": MaterialCategory.objects.count(),
             "orders_count": Order.objects.filter(status=OrderStatus.PENDING).count(),
-            "clients_count": CustomUser.objects.filter(user_type=UserType.CUSTOMER).count(),
+            "clients_count": CustomUser.objects.filter(
+                user_type=UserType.CUSTOMER
+            ).count(),
             "admins_count": CustomUser.objects.filter(is_staff=True).count(),
-            "total_sales": Order.objects.exclude(status=OrderStatus.CANCELLED)
-            .aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
+            "total_sales": Order.objects.exclude(
+                status=OrderStatus.CANCELLED
+            ).aggregate(total=Sum("total_amount"))["total"]
+            or Decimal("0.00"),
         }
-        return render(request, "dashboard/partials/dashboard_partial.html", context=context)
+        return render(
+            request, "dashboard/partials/dashboard_partial.html", context=context
+        )
 
 
 class MaterialListView(StaffRequiredMixin, ListView):
@@ -47,20 +53,26 @@ class MaterialListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Material.objects.select_related('category', 'uom').all().order_by('-created_at')
-        q = self.request.GET.get('q')
-        cat_id = self.request.GET.get('category')
+        qs = (
+            Material.objects.select_related("category", "uom")
+            .all()
+            .order_by("-created_at")
+        )
+        q = self.request.GET.get("q")
+        cat_id = self.request.GET.get("category")
         if self.request.htmx:
-            self.template_name = 'dashboard/partials/materials_partial.html'
+            self.template_name = "dashboard/partials/materials_partial.html"
         if q:
-            qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
+            qs = qs.filter(
+                Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q)
+            )
         if cat_id:
             qs = qs.filter(category_id=cat_id)
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['categories'] = MaterialCategory.objects.all()
+        ctx["categories"] = MaterialCategory.objects.all()
         return ctx
 
 
@@ -68,7 +80,7 @@ class MaterialCreateView(StaffRequiredMixin, CreateView):
     model = Material
     form_class = MaterialForm
     template_name = "dashboard/materials/material_form.html"
-    success_url = reverse_lazy('materials-list')
+    success_url = reverse_lazy("materials-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم إضافة المادة بنجاح.")
@@ -79,7 +91,7 @@ class MaterialUpdateView(StaffRequiredMixin, UpdateView):
     model = Material
     form_class = MaterialForm
     template_name = "dashboard/materials/material_form.html"
-    success_url = reverse_lazy('materials-list')
+    success_url = reverse_lazy("materials-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم تعديل المادة بنجاح.")
@@ -89,7 +101,7 @@ class MaterialUpdateView(StaffRequiredMixin, UpdateView):
 class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = Material
     http_method_names = ["post"]
-    success_url = reverse_lazy('materials-list')
+    success_url = reverse_lazy("materials-list")
     protected_message = "لا يمكن حذف المادة لارتباطها بطلبات أو حركات أخرى في النظام."
     deleted_message = "تم حذف المادة بنجاح."
 
@@ -100,12 +112,14 @@ class CategoryListView(StaffRequiredMixin, ListView):
     context_object_name = "categories"
 
     def get_queryset(self):
-        qs = MaterialCategory.objects.all().order_by('name')
+        qs = MaterialCategory.objects.all().order_by("name")
         if self.request.htmx:
-            self.template_name = 'dashboard/partials/categories_partial.html'
-        if self.request.GET.get('q'):
-            q = self.request.GET.get('q')
-            qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
+            self.template_name = "dashboard/partials/categories_partial.html"
+        if self.request.GET.get("q"):
+            q = self.request.GET.get("q")
+            qs = qs.filter(
+                Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q)
+            )
         return qs
 
 
@@ -113,7 +127,7 @@ class CategoryCreateView(StaffRequiredMixin, CreateView):
     model = MaterialCategory
     form_class = CategoryForm
     template_name = "dashboard/categories/category_form.html"
-    success_url = reverse_lazy('categories-list')
+    success_url = reverse_lazy("categories-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم إضافة التصنيف بنجاح.")
@@ -124,7 +138,7 @@ class CategoryUpdateView(StaffRequiredMixin, UpdateView):
     model = MaterialCategory
     form_class = CategoryForm
     template_name = "dashboard/categories/category_form.html"
-    success_url = reverse_lazy('categories-list')
+    success_url = reverse_lazy("categories-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم تعديل التصنيف بنجاح.")
@@ -134,7 +148,7 @@ class CategoryUpdateView(StaffRequiredMixin, UpdateView):
 class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = MaterialCategory
     http_method_names = ["post"]
-    success_url = reverse_lazy('categories-list')
+    success_url = reverse_lazy("categories-list")
     protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات في النظام."
     deleted_message = "تم حذف التصنيف بنجاح."
 
@@ -145,12 +159,14 @@ class UnitListView(StaffRequiredMixin, ListView):
     context_object_name = "units"
 
     def get_queryset(self):
-        qs = UnitOfMeasure.objects.all().order_by('name')
+        qs = UnitOfMeasure.objects.all().order_by("name")
         if self.request.htmx:
-            self.template_name = 'dashboard/partials/uom_partial.html'
-        if self.request.GET.get('q'):
-            q = self.request.GET.get('q')
-            qs = qs.filter(Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q))
+            self.template_name = "dashboard/partials/uom_partial.html"
+        if self.request.GET.get("q"):
+            q = self.request.GET.get("q")
+            qs = qs.filter(
+                Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q)
+            )
         return qs
 
 
@@ -158,7 +174,7 @@ class UnitCreateView(StaffRequiredMixin, CreateView):
     model = UnitOfMeasure
     form_class = UnitOfMeasureForm
     template_name = "dashboard/units/unit_form.html"
-    success_url = reverse_lazy('units-list')
+    success_url = reverse_lazy("units-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم إضافة وحدة القياس بنجاح.")
@@ -169,7 +185,7 @@ class UnitUpdateView(StaffRequiredMixin, UpdateView):
     model = UnitOfMeasure
     form_class = UnitOfMeasureForm
     template_name = "dashboard/units/unit_form.html"
-    success_url = reverse_lazy('units-list')
+    success_url = reverse_lazy("units-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم تعديل وحدة القياس بنجاح.")
@@ -179,7 +195,7 @@ class UnitUpdateView(StaffRequiredMixin, UpdateView):
 class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = UnitOfMeasure
     http_method_names = ["post"]
-    success_url = reverse_lazy('units-list')
+    success_url = reverse_lazy("units-list")
     protected_message = "لا يمكن حذف وحدة القياس لارتباطها بمنتجات في النظام."
     deleted_message = "تم حذف وحدة القياس بنجاح."
 
@@ -191,11 +207,11 @@ class OrderListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Order.objects.select_related('user').all().order_by('-created_at')
-        status_param = self.request.GET.get('status')
+        qs = Order.objects.select_related("user").all().order_by("-created_at")
+        status_param = self.request.GET.get("status")
         if status_param:
             qs = qs.filter(status=status_param)
-        q = self.request.GET.get('q')
+        q = self.request.GET.get("q")
         if q:
             qs = qs.filter(
                 Q(order_number__icontains=q)
@@ -206,7 +222,7 @@ class OrderListView(StaffRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['status_choices'] = OrderStatus.choices
+        ctx["status_choices"] = OrderStatus.choices
         return ctx
 
 
@@ -217,10 +233,12 @@ class OrderDetailView(StaffRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['status_form'] = OrderDashboardStatusForm(initial={
-            'status': self.object.status,
-            'payment_status': self.object.payment_status,
-        })
+        ctx["status_form"] = OrderDashboardStatusForm(
+            initial={
+                "status": self.object.status,
+                "payment_status": self.object.payment_status,
+            }
+        )
         return ctx
 
 
@@ -229,10 +247,12 @@ class OrderStatusUpdateView(StaffRequiredMixin, View):
         order = get_object_or_404(Order, pk=pk)
         form = OrderDashboardStatusForm(request.POST)
         if form.is_valid():
-            order.status = form.cleaned_data['status']
-            order.payment_status = form.cleaned_data['payment_status']
-            order.save(update_fields=['status', 'payment_status'])
-            messages.success(request, f"تم تحديث حالة الطلب #{order.order_number} بنجاح.")
+            order.status = form.cleaned_data["status"]
+            order.payment_status = form.cleaned_data["payment_status"]
+            order.save(update_fields=["status", "payment_status"])
+            messages.success(
+                request, f"تم تحديث حالة الطلب #{order.order_number} بنجاح."
+            )
         else:
             messages.error(request, "تعذر تحديث حالة الطلب. الرجاء اختيار قيم صحيحة.")
-        return redirect('order-detail', pk=order.pk)
+        return redirect("order-detail", pk=order.pk)

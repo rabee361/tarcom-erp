@@ -17,6 +17,7 @@ class ProtectedDeleteMixin:
     JSON response `{ok, message}` so the page can stay put; everything else
     gets the classic flash message + redirect.
     """
+
     protected_message = "لا يمكن حذف هذا العنصر لارتباطه ببيانات أخرى في النظام."
     deleted_message = None
 
@@ -33,7 +34,10 @@ class ProtectedDeleteMixin:
             messages.error(self.request, self.protected_message)
             return redirect(self.success_url)
 
-        if self.deleted_message and not self.model.objects.filter(pk=target_pk).exists():
+        if (
+            self.deleted_message
+            and not self.model.objects.filter(pk=target_pk).exists()
+        ):
             if self.is_ajax_request():
                 return JsonResponse({"ok": True, "message": self.deleted_message})
             messages.success(self.request, self.deleted_message)
@@ -41,11 +45,13 @@ class ProtectedDeleteMixin:
 
 
 class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    login_url = reverse_lazy('login')
+    login_url = reverse_lazy("login")
 
     def test_func(self):
         user = self.request.user
-        return user.is_authenticated and (user.is_staff or getattr(user, 'is_admin', False))
+        return user.is_authenticated and (
+            user.is_staff or getattr(user, "is_admin", False)
+        )
 
     def handle_no_permission(self):
         # Authenticated non-staff users are sent to the login page instead of a 403.

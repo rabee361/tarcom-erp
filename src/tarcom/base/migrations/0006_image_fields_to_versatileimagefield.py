@@ -5,40 +5,51 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('base', '0005_remove_materialcategory_parent'),
+        ("base", "0005_remove_materialcategory_parent"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='material',
-            name='image1',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/materials'),
+            model_name="material",
+            name="image1",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/materials"
+            ),
         ),
         migrations.AlterField(
-            model_name='material',
-            name='image2',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/materials'),
+            model_name="material",
+            name="image2",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/materials"
+            ),
         ),
         migrations.AlterField(
-            model_name='material',
-            name='image3',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/materials'),
+            model_name="material",
+            name="image3",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/materials"
+            ),
         ),
         migrations.AlterField(
-            model_name='material',
-            name='image4',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/materials'),
+            model_name="material",
+            name="image4",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/materials"
+            ),
         ),
         migrations.AlterField(
-            model_name='material',
-            name='image5',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/materials'),
+            model_name="material",
+            name="image5",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/materials"
+            ),
         ),
         migrations.AlterField(
-            model_name='materialcategory',
-            name='icon',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='images/categories'),
+            model_name="materialcategory",
+            name="icon",
+            field=versatileimagefield.fields.VersatileImageField(
+                blank=True, null=True, upload_to="images/categories"
+            ),
         ),
     ]

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 PASSWORD_RESET_TYPES = {CodeTypes.RESET_PASSWORD, CodeTypes.FORGET_PASSWORD}
 
 
-def send_otp_email(email, code, code_type, recipient_name=''):
+def send_otp_email(email, code, code_type, recipient_name=""):
     """
     Deliver an OTP code by email.
 
@@ -28,31 +28,38 @@ def send_otp_email(email, code, code_type, recipient_name=''):
     if is_password_reset:
         subject = _("Your Password Reset Code")
         message = (
-            f'Your password reset code is: {code}\n'
-            f'This code will expire in {OTP_EXPIRY_MINUTES} minutes.'
+            f"Your password reset code is: {code}\n"
+            f"This code will expire in {OTP_EXPIRY_MINUTES} minutes."
         )
     else:
         subject = _("Your Verification Code")
         message = (
-            f'Your verification code is: {code}\n'
-            f'This code will expire in {OTP_EXPIRY_MINUTES} minutes.'
+            f"Your verification code is: {code}\n"
+            f"This code will expire in {OTP_EXPIRY_MINUTES} minutes."
         )
 
     try:
-        return bool(send_mail(
-            subject,
-            message,
-            getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@tarcom.com'),
-            [email],
-            fail_silently=False,
-            html_message=render_to_string('email/email_code.html', {
-                'code': code,
-                'code_type': code_type,
-                'is_password_reset': is_password_reset,
-                'expiry_minutes': OTP_EXPIRY_MINUTES,
-                'recipient_name': recipient_name,
-            })
-        ))
+        return bool(
+            send_mail(
+                subject,
+                message,
+                getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@tarcom.com"),
+                [email],
+                fail_silently=False,
+                html_message=render_to_string(
+                    "email/email_code.html",
+                    {
+                        "code": code,
+                        "code_type": code_type,
+                        "is_password_reset": is_password_reset,
+                        "expiry_minutes": OTP_EXPIRY_MINUTES,
+                        "recipient_name": recipient_name,
+                    },
+                ),
+            )
+        )
     except Exception:
-        logger.exception('OTP email delivery failed for %s (code_type=%s)', email, code_type)
+        logger.exception(
+            "OTP email delivery failed for %s (code_type=%s)", email, code_type
+        )
         return False

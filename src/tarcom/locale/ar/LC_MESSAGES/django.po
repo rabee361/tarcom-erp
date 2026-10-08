@@ -23,7 +23,7 @@ msgid "A user with this email already exists."
 msgstr "يوجد مستخدم بهذا البريد الإلكتروني بالفعل."
 
 #: api/views/auth.py:49
-msgid "Account created. Please verify your email."
+msgid "Account created. Please verify your email." 
 msgstr "تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني."
 
 #: api/views/auth.py:297, api/views/auth.py:344
