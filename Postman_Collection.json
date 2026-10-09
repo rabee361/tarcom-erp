@@ -934,6 +934,11 @@
                   "description": "Filter by category id"
                 },
                 {
+                  "key": "company",
+                  "value": "Apple",
+                  "description": "Filter by exact company name (case-insensitive)"
+                },
+                {
                   "key": "is_active",
                   "value": "true",
                   "description": "Filter by active flag (true/false)"
@@ -960,7 +965,49 @@
                 }
               ]
             },
-            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `category`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. A `spec_keyN`/`spec_valN` pair matches materials carrying that key and value on the same slot; either may be used alone to match across all five slots."
+            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `category`, `company`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. A `spec_keyN`/`spec_valN` pair matches materials carrying that key and value on the same slot; either may be used alone to match across all five slots.\n\nEvery material carries a required `company` string; use `/api/materials/companies/` to get the picklist."
+          },
+          "response": []
+        },
+        {
+          "name": "List material companies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/materials/companies/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "materials",
+                "companies",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "1",
+                  "description": "Only companies used by materials in this category"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "description": "Only companies used by active materials"
+                }
+              ]
+            },
+            "description": "Distinct company names used by materials, sorted, as a plain JSON array of strings (not paginated).\n\n**Auth:** public read.\n**Responses:** `200` e.g. `[\"Apple\", \"Dell\", \"Samsung\"]`.\n\nAccepts the same filters as `/api/materials/`, so `?category=<id>` returns the companies of that category's materials only."
           },
           "response": []
         },
@@ -988,7 +1035,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
+              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": \"Apple\",\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1064,7 +1111,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
+              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": \"Apple\",\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1204,6 +1251,11 @@
                   "description": "Filter by category id"
                 },
                 {
+                  "key": "company",
+                  "value": "Apple",
+                  "description": "Filter by exact company name (case-insensitive)"
+                },
+                {
                   "key": "is_active",
                   "value": "true",
                   "description": "Filter by active flag (true/false)"
@@ -1220,7 +1272,7 @@
                 }
               ]
             },
-            "description": "Featured materials list endpoint (read-only). Returns only materials flagged as featured from the dashboard page.\n\n**Auth:** public read (anonymous allowed); writes are not supported (use the dashboard).\n**Responses:** `200` paginated envelope `{count, next, previous, results}` (page size 10; `page` / `page_size` params, max 50).\n\nQuery params match `/api/materials/`: `category`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. Each result adds `feature_reason` on top of the material fields; `is_feature` itself is not returned."
+            "description": "Featured materials list endpoint (read-only). Returns only materials flagged as featured from the dashboard page.\n\n**Auth:** public read (anonymous allowed); writes are not supported (use the dashboard).\n**Responses:** `200` paginated envelope `{count, next, previous, results}` (page size 10; `page` / `page_size` params, max 50).\n\nQuery params match `/api/materials/`: `category`, `company`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. Each result adds `feature_reason` on top of the material fields; `is_feature` itself is not returned."
           },
           "response": []
         },
@@ -1324,7 +1376,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"icon\": \"assets/images/categories/laptop.jpg\"\n}",
+              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1400,7 +1452,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\",\n  \"icon\": \"assets/images/categories/laptop.jpg\"\n}",
+              "raw": "{\n  \"name_en\": \"Electronics\",\n  \"name_ar\": \"إلكترونيات\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
