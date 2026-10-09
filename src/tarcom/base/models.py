@@ -184,6 +184,10 @@ class Material(TimeStampModel):
     supplier_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     consumer_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     is_active = models.BooleanField(default=True)
+    is_feature = models.BooleanField(default=False)
+    feature_reason = models.CharField(
+        max_length=20, choices=FeatureReason.choices, blank=True, default=""
+    )
     expire_date = models.TextField(blank=True, null=True)
     spec_key1 = models.CharField(max_length=100, blank=True, null=True)
     spec_key2 = models.CharField(max_length=100, blank=True, null=True)

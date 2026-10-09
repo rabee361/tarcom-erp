@@ -61,6 +61,11 @@ urlpatterns = [
         name="material-create",
     ),
     path(
+        "dashboard/materials/features/",
+        MaterialFeaturesView.as_view(),
+        name="materials-features",
+    ),
+    path(
         "dashboard/materials/<int:pk>/edit/",
         MaterialUpdateView.as_view(),
         name="material-edit",

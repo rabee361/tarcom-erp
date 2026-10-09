@@ -63,3 +63,9 @@ class PaymentStatus(models.TextChoices):
     UNPAID = "UNPAID", _("Unpaid")
     PAID = "PAID", _("Paid")
     REFUNDED = "REFUNDED", _("Refunded")
+
+
+class FeatureReason(models.TextChoices):
+    OFFER = "OFFER", _("Offer")
+    LIMITED_TIME = "LIMITED_TIME", _("Limited Time")
+    SPECIAL = "SPECIAL", _("Special")

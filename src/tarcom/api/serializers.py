@@ -448,6 +448,51 @@ class MaterialSerializer(TranslateModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
+class FeatureMaterialSerializer(MaterialSerializer):
+    """Material payload for /api/features/ — adds the backend-managed reason."""
+
+    class Meta(MaterialSerializer.Meta):
+        model = Material
+        fields = [
+            "id",
+            "name",
+            "name_en",
+            "name_ar",
+            "description",
+            "description_en",
+            "description_ar",
+            "category",
+            "category_name",
+            "category_detail",
+            "uom",
+            "uom_name",
+            "uom_detail",
+            "supplier_price",
+            "consumer_price",
+            "is_active",
+            "expire_date",
+            "spec_key1",
+            "spec_key2",
+            "spec_key3",
+            "spec_key4",
+            "spec_key5",
+            "spec_val1",
+            "spec_val2",
+            "spec_val3",
+            "spec_val4",
+            "spec_val5",
+            "image1",
+            "image2",
+            "image3",
+            "image4",
+            "image5",
+            "created_at",
+            "updated_at",
+            "feature_reason",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at","feature_reason"]
+
+
 class SettingSerializer(TranslateModelSerializer):
     translation_options = SettingTranslationOptions
 

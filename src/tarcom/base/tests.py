@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from pathlib import Path
 
@@ -15,7 +16,13 @@ from tarcom.base.models import (
     OrderItem,
     UnitOfMeasure,
 )
-from tarcom.utils.enums import OrderStatus, PaymentMethod, PaymentStatus, UserType
+from tarcom.utils.enums import (
+    FeatureReason,
+    OrderStatus,
+    PaymentMethod,
+    PaymentStatus,
+    UserType,
+)
 
 LOCKOUT_MESSAGE = "لقد تم حظر المحاولات"
 
@@ -202,6 +209,149 @@ class DashboardCategoryTest(TestCase):
         self.assertRedirects(response, "/dashboard/categories/")
         category = MaterialCategory.objects.get(name_en="Accessories")
         self.assertEqual(Path(category.icon.name).name, "placeholder.jpg")
+
+
+class DashboardMaterialFeaturesTest(TestCase):
+    def setUp(self):
+        self.staff = CustomUser.objects.create_user(
+            email="staff@tarcom.com",
+            password="StaffPass123!",
+            is_staff=True,
+        )
+        self.client.force_login(self.staff)
+        self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
+        self.category = MaterialCategory.objects.create(
+            name="Steel", name_en="Steel", name_ar="حديد"
+        )
+        self.materials = [
+            Material.objects.create(
+                name=f"Material {index}",
+                name_en=f"Material {index}",
+                name_ar=f"مادة {index}",
+                category=self.category,
+                uom=self.uom,
+                consumer_price=Decimal("10.00"),
+            )
+            for index in range(12)
+        ]
+
+    def test_page_renders_for_staff_and_redirects_anonymous(self):
+        response = self.client.get("/dashboard/materials/features/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "مادة 0")
+        self.client.logout()
+        response = self.client.get("/dashboard/materials/features/")
+        self.assertEqual(response.status_code, 302)
+
+    def test_bulk_marks_features_and_unchecking_clears_reason(self):
+        first, second = self.materials[0], self.materials[1]
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {
+                f"feature_{first.pk}": "1",
+                f"reason_{first.pk}": FeatureReason.OFFER,
+                f"feature_{second.pk}": "1",
+                f"reason_{second.pk}": FeatureReason.LIMITED_TIME,
+            },
+        )
+        self.assertRedirects(response, "/dashboard/materials/features/")
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertTrue(first.is_feature)
+        self.assertEqual(first.feature_reason, FeatureReason.OFFER)
+        self.assertTrue(second.is_feature)
+        self.assertEqual(second.feature_reason, FeatureReason.LIMITED_TIME)
+
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {f"feature_{second.pk}": "1", f"reason_{second.pk}": FeatureReason.SPECIAL},
+        )
+        self.assertRedirects(response, "/dashboard/materials/features/")
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertFalse(first.is_feature)
+        self.assertEqual(first.feature_reason, "")
+        self.assertEqual(second.feature_reason, FeatureReason.SPECIAL)
+
+    def test_checked_without_reason_is_rejected(self):
+        material = self.materials[0]
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {f"feature_{material.pk}": "1", f"reason_{material.pk}": ""},
+        )
+        self.assertEqual(response.status_code, 200)
+        material.refresh_from_db()
+        self.assertFalse(material.is_feature)
+        self.assertEqual(material.feature_reason, "")
+
+    def test_ten_features_are_allowed(self):
+        payload = {}
+        for material in self.materials[:10]:
+            payload[f"feature_{material.pk}"] = "1"
+            payload[f"reason_{material.pk}"] = FeatureReason.OFFER
+        response = self.client.post("/dashboard/materials/features/", payload)
+        self.assertRedirects(response, "/dashboard/materials/features/")
+        self.assertEqual(Material.objects.filter(is_feature=True).count(), 10)
+
+    def test_cannot_feature_more_than_ten_materials(self):
+        payload = {}
+        for material in self.materials[:11]:
+            payload[f"feature_{material.pk}"] = "1"
+            payload[f"reason_{material.pk}"] = FeatureReason.OFFER
+        response = self.client.post("/dashboard/materials/features/", payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Material.objects.filter(is_feature=True).exists())
+
+    def test_cap_counts_featured_materials_hidden_by_filter(self):
+        for material in self.materials[:10]:
+            material.is_feature = True
+            material.feature_reason = FeatureReason.OFFER
+            material.save()
+        visible = self.materials[10]
+        # The search filter hides the 10 already-featured materials, but the
+        # server-side cap must still count them.
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {f"feature_{visible.pk}": "1", f"reason_{visible.pk}": FeatureReason.SPECIAL},
+            QUERY_STRING=f"q={visible.name}",
+        )
+        self.assertEqual(response.status_code, 200)
+        visible.refresh_from_db()
+        self.assertFalse(visible.is_feature)
+
+    def test_htmx_post_error_returns_rows_and_alert_trigger(self):
+        material = self.materials[0]
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {f"feature_{material.pk}": "1", f"reason_{material.pk}": ""},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"<html", response.content)
+        self.assertContains(response, "feature-checkbox")
+        trigger = json.loads(response["HX-Trigger"])
+        self.assertIn("يرجى تحديد سبب التمييز", trigger["featuresMessage"][0])
+        # Htmx errors must not leak into the session messages: a later full
+        # page load should have nothing to alert.
+        page = self.client.get("/dashboard/materials/features/")
+        self.assertEqual(list(page.context["messages"]), [])
+
+    def test_htmx_post_success_swaps_rows_without_redirect(self):
+        first = self.materials[0]
+        response = self.client.post(
+            "/dashboard/materials/features/",
+            {f"feature_{first.pk}": "1", f"reason_{first.pk}": FeatureReason.OFFER},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"<html", response.content)
+        first.refresh_from_db()
+        self.assertTrue(first.is_feature)
+        self.assertEqual(first.feature_reason, FeatureReason.OFFER)
+        trigger = json.loads(response["HX-Trigger"])
+        self.assertEqual(trigger["featuresMessage"], ["تم تحديث المواد المميزة بنجاح."])
+        page = self.client.get("/dashboard/materials/features/")
+        self.assertEqual(list(page.context["messages"]), [])
 
 
 class DashboardOrdersTest(TestCase):

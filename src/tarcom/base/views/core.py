@@ -1,9 +1,12 @@
+import json
 from decimal import Decimal
 
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import (
     CreateView,
@@ -15,7 +18,7 @@ from django.views.generic import (
 
 from tarcom.base.forms import *
 from tarcom.base.models import *
-from tarcom.utils.enums import OrderStatus, UserType
+from tarcom.utils.enums import FeatureReason, OrderStatus, UserType
 
 from .auth import ProtectedDeleteMixin, StaffRequiredMixin
 
@@ -104,6 +107,111 @@ class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("materials-list")
     protected_message = "لا يمكن حذف المادة لارتباطها بطلبات أو حركات أخرى في النظام."
     deleted_message = "تم حذف المادة بنجاح."
+
+
+MAX_FEATURED_MATERIALS = 10
+
+
+class MaterialFeaturesView(StaffRequiredMixin, View):
+    template_name = "dashboard/materials/material_features.html"
+    rows_template = "dashboard/partials/features_partial.html"
+
+    def get_materials(self, request):
+        qs = (
+            Material.objects.select_related("category", "uom")
+            .all()
+            .order_by("-created_at")
+        )
+        q = request.GET.get("q")
+        cat_id = request.GET.get("category")
+        if q:
+            qs = qs.filter(
+                Q(name__icontains=q) | Q(name_en__icontains=q) | Q(name_ar__icontains=q)
+            )
+        if cat_id:
+            qs = qs.filter(category_id=cat_id)
+        return qs
+
+    def build_context(self, materials, state=None):
+        rows = []
+        for material in materials:
+            if state is not None and material.pk in state:
+                checked, reason = state[material.pk]
+            else:
+                checked, reason = material.is_feature, material.feature_reason
+            rows.append({"material": material, "checked": checked, "reason": reason})
+        return {
+            "rows": rows,
+            "categories": MaterialCategory.objects.all(),
+            "reasons": FeatureReason.choices,
+            "max_features": MAX_FEATURED_MATERIALS,
+            "featured_count": sum(row["checked"] for row in rows),
+        }
+
+    def get(self, request):
+        materials = self.get_materials(request)
+        return render(request, self.template_name, self.build_context(materials))
+
+    def htmx_response(self, request, materials, state, alerts):
+        context = self.build_context(materials, state=state)
+        response = render(request, self.rows_template, context)
+        response["HX-Trigger"] = json.dumps({"featuresMessage": alerts})
+        return response
+
+    def post(self, request):
+        materials = list(self.get_materials(request))
+        state = {
+            material.pk: (
+                request.POST.get(f"feature_{material.pk}") is not None,
+                request.POST.get(f"reason_{material.pk}", ""),
+            )
+            for material in materials
+        }
+
+        errors = []
+        checked_ids = {pk for pk, (checked, _) in state.items() if checked}
+        untouched_featured = (
+            Material.objects.filter(is_feature=True).exclude(pk__in=state).count()
+        )
+        if len(checked_ids) + untouched_featured > MAX_FEATURED_MATERIALS:
+            errors.append(f"لا يمكن تمييز أكثر من {MAX_FEATURED_MATERIALS} مواد.")
+        missing_reasons = [
+            str(material.name)
+            for material in materials
+            if state[material.pk][0]
+            and state[material.pk][1] not in FeatureReason.values
+        ]
+        if missing_reasons:
+            errors.append("يرجى تحديد سبب التمييز للمواد: " + "، ".join(missing_reasons))
+
+        if errors:
+            if request.htmx:
+                return self.htmx_response(request, materials, state, errors)
+            for error in errors:
+                messages.error(request, error)
+            context = self.build_context(materials, state=state)
+            return render(request, self.template_name, context)
+
+        now = timezone.now()
+        for material in materials:
+            checked, reason = state[material.pk]
+            material.is_feature = checked
+            material.feature_reason = reason if checked else ""
+            material.updated_at = now
+        if materials:
+            with transaction.atomic():
+                Material.objects.bulk_update(
+                    materials, ["is_feature", "feature_reason", "updated_at"]
+                )
+        if request.htmx:
+            return self.htmx_response(
+                request,
+                self.get_materials(request),
+                None,
+                ["تم تحديث المواد المميزة بنجاح."],
+            )
+        messages.success(request, "تم تحديث المواد المميزة بنجاح.")
+        return redirect("materials-features")
 
 
 class CategoryListView(StaffRequiredMixin, ListView):

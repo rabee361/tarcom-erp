@@ -89,6 +89,18 @@ class MaterialViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
+    list=extend_schema(tags=["Features"], summary="List featured materials"),
+    retrieve=extend_schema(tags=["Features"], summary="Retrieve a featured material"),
+)
+class MaterialFeatureViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Material.objects.filter(is_feature=True).select_related("category", "uom")
+    serializer_class = FeatureMaterialSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MaterialFilter
+
+
+@extend_schema_view(
     list=extend_schema(tags=["Settings"], summary="List settings"),
     retrieve=extend_schema(tags=["Settings"], summary="Retrieve a setting"),
     create=extend_schema(tags=["Settings"], summary="Create a setting (admin only)"),

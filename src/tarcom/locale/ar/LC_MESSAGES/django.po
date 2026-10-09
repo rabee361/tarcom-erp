@@ -530,3 +530,15 @@ msgstr "نوع المستخدم"
 msgid "وحدة القياس"
 msgstr "وحدة القياس"
 
+#: utils/enums.py:68
+msgid "Offer"
+msgstr "عرض"
+
+#: utils/enums.py:69
+msgid "Limited Time"
+msgstr "وقت محدود"
+
+#: utils/enums.py:70
+msgid "Special"
+msgstr "خاص"
+

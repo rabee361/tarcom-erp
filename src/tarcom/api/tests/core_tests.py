@@ -15,7 +15,7 @@ from tarcom.base.models import (
     MaterialCategory,
     UnitOfMeasure,
 )
-from tarcom.utils.enums import CodeTypes
+from tarcom.utils.enums import CodeTypes, FeatureReason
 
 TEST_MEDIA_ROOT = tempfile.mkdtemp(prefix="tarcom_test_media_")
 
@@ -326,6 +326,72 @@ class MaterialAPITest(TestCase):
     def test_unauthenticated_cannot_delete_material(self):
         response = self.client.delete(f"/api/materials/{self.material.id}/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class MaterialFeatureAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.admin_user = CustomUser.objects.create_superuser(
+            email="admin@tarcom.com", password="AdminPass123!"
+        )
+        self.uom = UnitOfMeasure.objects.create(
+            name="Piece", name_en="Piece", name_ar="قطعة", code="PCS"
+        )
+        self.category = MaterialCategory.objects.create(
+            name="Devices", name_en="Devices", name_ar="أجهزة"
+        )
+        self.featured = Material.objects.create(
+            name="Phone",
+            name_en="Phone",
+            name_ar="هاتف",
+            category=self.category,
+            uom=self.uom,
+            consumer_price=700.00,
+            is_active=True,
+            is_feature=True,
+            feature_reason=FeatureReason.OFFER,
+        )
+        self.normal = Material.objects.create(
+            name="Cable",
+            name_en="Cable",
+            name_ar="كابل",
+            category=self.category,
+            uom=self.uom,
+            consumer_price=25.00,
+            is_active=True,
+        )
+
+    def test_features_endpoint_returns_only_flagged_materials(self):
+        response = self.client.get("/api/features/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["results"]
+        self.assertEqual([item["id"] for item in results], [self.featured.id])
+        self.assertEqual(results[0]["feature_reason"], FeatureReason.OFFER)
+        self.assertEqual(results[0]["category_name"], "Devices")
+
+    def test_features_detail_returns_flagged_material(self):
+        response = self.client.get(f"/api/features/{self.featured.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["feature_reason"], FeatureReason.OFFER)
+
+    def test_features_endpoint_rejects_writes(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.post("/api/features/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        response = self.client.delete(f"/api/features/{self.featured.id}/")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_materials_api_hides_feature_fields(self):
+        response = self.client.get("/api/materials/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for item in response.data["results"]:
+            self.assertNotIn("is_feature", item)
+            self.assertNotIn("feature_reason", item)
+
+        response = self.client.get(f"/api/materials/{self.normal.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("is_feature", response.data)
+        self.assertNotIn("feature_reason", response.data)
 
 
 # ==========================================

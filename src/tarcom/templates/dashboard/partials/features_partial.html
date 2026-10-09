@@ -1,0 +1,25 @@
+{% for row in rows %}
+<tr>
+    <td>{{ row.material.name_ar }}</td>
+    <td>{{ row.material.category.name_ar }}</td>
+    <td>
+        <input type="checkbox" name="feature_{{ row.material.pk }}" value="1"
+               class="feature-checkbox" data-select="reason-{{ row.material.pk }}"
+               {% if row.checked %}checked{% endif %}
+               {% if not row.checked and featured_count >= max_features %}disabled{% endif %}>
+    </td>
+    <td>
+        <select name="reason_{{ row.material.pk }}" id="reason-{{ row.material.pk }}" class="feature-reason"
+                {% if not row.checked %}disabled{% endif %}>
+            <option value="">— السبب —</option>
+            {% for value, label in reasons %}
+                <option value="{{ value }}" {% if row.reason == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4">لا توجد منتجات.</td>
+</tr>
+{% endfor %}
