@@ -2,11 +2,12 @@
 
 Tarcom is an electronics marketplace, so this seeds the 5 real storefront
 categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each
-seeded with its icon and cover image uploaded into media storage -- plus the
-units of measure they reference, 10 materials with every spec key/value pair
-filled, 2 active users (one customer, one supplier -- every non-admin type),
-and 3 orders per user with 1-2 line items each. No OTP codes are generated; the
-users are marked verified and active so they can log in immediately.
+seeded with its cover image uploaded into media storage -- plus the units of
+measure they reference, 10 materials with a company and every spec key/value
+pair filled, 2 active users (one customer, one supplier -- every non-admin
+type), and 3 orders per user with 1-2 line items each. No OTP codes are
+generated; the users are marked verified and active so they can log in
+immediately.
 
 Run:  python manage.py populate_db            (idempotent, safe to re-run)
       python manage.py populate_db --flush    (wipe seeded rows first)
@@ -39,29 +40,35 @@ from tarcom.utils.enums import (
 
 PASSWORD = "Passw0rd!123"
 
-ICON_DIR = (
-    Path(settings.BASE_DIR) / "base" / "static" / "assets" / "images" / "categories"
+COVER_DIR = (
+    Path(settings.BASE_DIR)
+    / "base"
+    / "static"
+    / "assets"
+    / "images"
+    / "categories"
+    / "covers"
 )
-COVER_DIR = ICON_DIR / "covers"
 
 UNITS = [
     ("EA", "Each", "حبة"),
     ("BX", "Box", "صندوق"),
 ]
 
-# (name_en, name_ar, icon filename, cover image filename)
+# (name_en, name_ar, cover image filename)
 CATEGORIES = [
-    ("Laptops", "لابتوبات", "laptop.jpg", "laptop.jpg"),
-    ("Batteries", "بطاريات", "batteries.jpg", "batteries.jpg"),
-    ("Solar Boards", "ألواح الطاقة الشمسية", "solar_panels.jpg", "solar_panels.jpg"),
-    ("Cables", "كابلات", "usb_cable.jpg", "usb_cable.jpg"),
-    ("Home Tech", "الأجهزة المنزلية الذكية", "home_tech.jpg", "home_tech.jpg"),
+    ("Laptops", "لابتوبات", "laptop.jpg"),
+    ("Batteries", "بطاريات", "batteries.jpg"),
+    ("Solar Boards", "ألواح الطاقة الشمسية", "solar_panels.jpg"),
+    ("Cables", "كابلات", "usb_cable.jpg"),
+    ("Home Tech", "الأجهزة المنزلية الذكية", "home_tech.jpg"),
 ]
 
 MATERIALS = [
     {
         "name_en": "Dell XPS 15",
         "name_ar": "لابتوب ديل XPS 15",
+        "company": "Dell",
         "desc_en": "15.6-inch OLED creator laptop with 13th-gen Intel Core i7.",
         "desc_ar": "لابتوب بشاشة OLED مقاس 15.6 بوصة للمبدعين بمعالج إنتل كور i7 من الجيل الثالث عشر.",
         "category": 0,
@@ -79,6 +86,7 @@ MATERIALS = [
     {
         "name_en": "MacBook Air M3",
         "name_ar": "ماك بوك إير M3",
+        "company": "Apple",
         "desc_en": "Thin and light 13.6-inch laptop powered by the Apple M3 chip.",
         "desc_ar": "لابتوب نحيف وخفيف بشاشة 13.6 بوصة يعمل بشريحة أبل M3.",
         "category": 0,
@@ -96,6 +104,7 @@ MATERIALS = [
     {
         "name_en": "Li-ion 18650 Cell",
         "name_ar": "خلية ليثيوم أيون 18650",
+        "company": "LG Chem",
         "desc_en": "High-drain rechargeable 18650 lithium-ion cell, sold in boxes.",
         "desc_ar": "خلية ليثيوم أيون قابلة لإعادة الشحن عالية التصريف 18650، تُباع بالصندوق.",
         "category": 1,
@@ -113,6 +122,7 @@ MATERIALS = [
     {
         "name_en": "12V Deep Cycle Battery",
         "name_ar": "بطارية 12 فولت عميقة التفريغ",
+        "company": "Exide",
         "desc_en": "AGM lead-acid deep-cycle battery for solar and backup systems.",
         "desc_ar": "بطارية حمضية AGM عميقة التفريغ لأنظمة الطاقة الشمسية والأنظمة الاحتياطية.",
         "category": 1,
@@ -130,6 +140,7 @@ MATERIALS = [
     {
         "name_en": "Mono Solar Panel 200W",
         "name_ar": "لوح شمسي مونو 200 واط",
+        "company": "Canadian Solar",
         "desc_en": "200-watt monocrystalline solar panel with high cell efficiency.",
         "desc_ar": "لوح طاقة شمسية أحادي التبلور بقدرة 200 واط بكفاءة خلايا عالية.",
         "category": 2,
@@ -147,6 +158,7 @@ MATERIALS = [
     {
         "name_en": "MPPT Charge Controller 30A",
         "name_ar": "منظم شحن MPPT 30 أمبير",
+        "company": "Victron Energy",
         "desc_en": "30-amp MPPT solar charge controller with auto system voltage.",
         "desc_ar": "منظم شحن شمسي بتقنية MPPT بتيار 30 أمبير مع جهد نظام تلقائي.",
         "category": 2,
@@ -164,6 +176,7 @@ MATERIALS = [
     {
         "name_en": "USB-C to USB-C Cable 1m",
         "name_ar": "كابل USB-C إلى USB-C بطول 1 متر",
+        "company": "Anker",
         "desc_en": "Braided 100W power-delivery USB-C cable with USB 3.2 data.",
         "desc_ar": "كابل USB-C مضفر باستطاعة 100 واط للشحن السريع مع نقل بيانات USB 3.2.",
         "category": 3,
@@ -181,6 +194,7 @@ MATERIALS = [
     {
         "name_en": "HDMI 2.1 Cable 2m",
         "name_ar": "كابل HDMI 2.1 بطول 2 متر",
+        "company": "Ugreen",
         "desc_en": "Ultra-high-speed HDMI 2.1 cable supporting 8K at 60Hz.",
         "desc_ar": "كابل HDMI 2.1 فائق السرعة يدعم دقة 8K بمعدل 60 هرتز.",
         "category": 3,
@@ -198,6 +212,7 @@ MATERIALS = [
     {
         "name_en": "Smart Inverter AC 1.5 Ton",
         "name_ar": "مكيف سمارت انفرتر 1.5 طن",
+        "company": "LG",
         "desc_en": "Wi-Fi enabled split inverter air conditioner, 18000 BTU.",
         "desc_ar": "مكيف هواء سبليت انفرتر يدعم الواي فاي، 18000 وحدة حرارية.",
         "category": 4,
@@ -215,6 +230,7 @@ MATERIALS = [
     {
         "name_en": "Smart French-Door Fridge 500L",
         "name_ar": "ثلاجة سمارت فرنش دور 500 لتر",
+        "company": "Samsung",
         "desc_en": "500-litre frost-free smart refrigerator with touch display.",
         "desc_ar": "ثلاجة ذكية بسعة 500 لتر بدون ثلج مع شاشة تعمل باللمس.",
         "category": 4,
@@ -300,19 +316,11 @@ class Command(BaseCommand):
 
     def _seed_categories(self):
         categories = []
-        for name_en, name_ar, icon_filename, image_filename in CATEGORIES:
+        for name_en, name_ar, image_filename in CATEGORIES:
             category, _ = MaterialCategory.objects.update_or_create(
                 name_en=name_en,
                 defaults={"name": name_en, "name_ar": name_ar},
             )
-            # Fresh rows start with the model-level placeholder icon; swap in
-            # the real icon unless one has already been seeded.
-            current_icon = Path(category.icon.name or "").name
-            if not category.icon or current_icon.startswith("placeholder"):
-                icon_path = ICON_DIR / icon_filename
-                if icon_path.exists():
-                    with icon_path.open("rb") as f:
-                        category.icon.save(icon_filename, File(f), save=True)
             if not category.image:
                 image_path = COVER_DIR / image_filename
                 if image_path.exists():
@@ -332,6 +340,7 @@ class Command(BaseCommand):
                 "description_ar": spec["desc_ar"],
                 "category": categories[spec["category"]],
                 "uom": uoms[spec["uom"]],
+                "company": spec["company"],
                 "supplier_price": Decimal(spec["supplier_price"]),
                 "consumer_price": Decimal(spec["consumer_price"]),
                 "is_active": True,

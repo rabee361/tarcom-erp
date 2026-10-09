@@ -68,7 +68,7 @@ class UnitConversionAdmin(admin.ModelAdmin):
 
 @admin.register(MaterialCategory)
 class MaterialCategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "icon", "image")
+    list_display = ("name", "image")
     search_fields = ("name",)
 
 
@@ -78,12 +78,13 @@ class MaterialAdmin(admin.ModelAdmin):
         "name",
         "category",
         "uom",
+        "company",
         "supplier_price",
         "consumer_price",
         "is_active",
     )
-    list_filter = ("category", "uom", "is_active")
-    search_fields = ("name",)
+    list_filter = ("category", "uom", "company", "is_active")
+    search_fields = ("name", "company")
 
 
 @admin.register(FavouriteItem)

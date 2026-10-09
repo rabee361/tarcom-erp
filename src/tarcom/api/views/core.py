@@ -2,7 +2,9 @@ from django.core.signing import TimestampSigner
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.response import Response
 from tarcom.base.models import *
 
 # from tarcom.utils.emails import send_otp_email
@@ -86,6 +88,27 @@ class MaterialViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaterialFilter
+
+    @extend_schema(
+        tags=["Materials"],
+        summary="List the companies used by materials",
+        description=(
+            "Plain array of distinct company names, sorted. Accepts the same "
+            "filters as the list endpoint, so `?category=<id>` narrows it to the "
+            "companies of that category's materials."
+        ),
+        responses={200: {"type": "array", "items": {"type": "string"}}},
+    )
+    @action(detail=False, methods=["get"])
+    def companies(self, request):
+        companies = (
+            self.filter_queryset(self.get_queryset())
+            .exclude(company="")
+            .order_by("company")
+            .values_list("company", flat=True)
+            .distinct()
+        )
+        return Response(list(companies))
 
 
 @extend_schema_view(

@@ -176,10 +176,21 @@ class MaterialForm(forms.ModelForm):
             "name_ar",
             "category",
             "uom",
+            "company",
             "supplier_price",
             "consumer_price",
             "description_en",
             "description_ar",
+            "spec_key1",
+            "spec_val1",
+            "spec_key2",
+            "spec_val2",
+            "spec_key3",
+            "spec_val3",
+            "spec_key4",
+            "spec_val4",
+            "spec_key5",
+            "spec_val5",
             "is_active",
             "image1",
             "image2",
@@ -192,10 +203,21 @@ class MaterialForm(forms.ModelForm):
             "name_ar": _("الاسم بالعربية"),
             "category": _("التصنيف"),
             "uom": _("وحدة القياس"),
+            "company": _("الشركة"),
             "supplier_price": _("سعر المورد"),
             "consumer_price": _("سعر المستهلك"),
             "description_en": _("الوصف بالإنجليزية"),
             "description_ar": _("الوصف بالعربية"),
+            "spec_key1": _("اسم المواصفة 1"),
+            "spec_val1": _("قيمة المواصفة 1"),
+            "spec_key2": _("اسم المواصفة 2"),
+            "spec_val2": _("قيمة المواصفة 2"),
+            "spec_key3": _("اسم المواصفة 3"),
+            "spec_val3": _("قيمة المواصفة 3"),
+            "spec_key4": _("اسم المواصفة 4"),
+            "spec_val4": _("قيمة المواصفة 4"),
+            "spec_key5": _("اسم المواصفة 5"),
+            "spec_val5": _("قيمة المواصفة 5"),
             "is_active": _("نشط"),
             "image1": _("الصورة الرئيسية"),
             "image2": _("صورة إضافية 1"),
@@ -219,8 +241,6 @@ class MaterialForm(forms.ModelForm):
 
 
 class CategoryForm(forms.ModelForm):
-    # Icons are backend-managed (model default + populate_db); the dashboard
-    # only exposes the image.
     class Meta:
         model = MaterialCategory
         fields = ["name_en", "name_ar", "image"]

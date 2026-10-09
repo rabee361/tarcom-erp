@@ -377,7 +377,7 @@ class MaterialCategoryChildSerializer(TranslateModelSerializer):
 
     class Meta:
         model = MaterialCategory
-        fields = ["id", "name", "name_en", "name_ar", "icon", "image"]
+        fields = ["id", "name", "name_en", "name_ar", "image"]
 
 
 class MaterialCategorySerializer(TranslateModelSerializer):
@@ -390,14 +390,11 @@ class MaterialCategorySerializer(TranslateModelSerializer):
             "name",
             "name_en",
             "name_ar",
-            "icon",
             "image",
             "created_at",
             "updated_at",
         ]
-        # Icons are backend-managed (placeholder default on the model); the
-        # API only accepts the image.
-        read_only_fields = ["id", "created_at", "updated_at", "icon"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class MaterialSerializer(TranslateModelSerializer):
@@ -423,6 +420,7 @@ class MaterialSerializer(TranslateModelSerializer):
             "uom",
             "uom_name",
             "uom_detail",
+            "company",
             "supplier_price",
             "consumer_price",
             "is_active",
@@ -467,6 +465,7 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "uom",
             "uom_name",
             "uom_detail",
+            "company",
             "supplier_price",
             "consumer_price",
             "is_active",

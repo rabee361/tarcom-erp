@@ -65,6 +65,14 @@
                     </div>
 
                     <div class="form-group">
+                        <label>{{ form.company.label }}</label>
+                        {{ form.company }}
+                        {% if form.company.errors %}
+                            <div class="error">{{ form.company.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
                         <label>{{ form.supplier_price.label }}</label>
                         {{ form.supplier_price }}
                         {% if form.supplier_price.errors %}
@@ -108,6 +116,111 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <div class="form-group">
+                    <label>المواصفات</label>
+
+                    <div class="spec-pair" data-slot="1">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ form.spec_key1.label }}</label>
+                                {{ form.spec_key1 }}
+                                {% if form.spec_key1.errors %}
+                                    <div class="error">{{ form.spec_key1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.spec_val1.label }}</label>
+                                {{ form.spec_val1 }}
+                                {% if form.spec_val1.errors %}
+                                    <div class="error">{{ form.spec_val1.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-pair" data-slot="2" style="display: none">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ form.spec_key2.label }}</label>
+                                {{ form.spec_key2 }}
+                                {% if form.spec_key2.errors %}
+                                    <div class="error">{{ form.spec_key2.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.spec_val2.label }}</label>
+                                {{ form.spec_val2 }}
+                                {% if form.spec_val2.errors %}
+                                    <div class="error">{{ form.spec_val2.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-pair" data-slot="3" style="display: none">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ form.spec_key3.label }}</label>
+                                {{ form.spec_key3 }}
+                                {% if form.spec_key3.errors %}
+                                    <div class="error">{{ form.spec_key3.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.spec_val3.label }}</label>
+                                {{ form.spec_val3 }}
+                                {% if form.spec_val3.errors %}
+                                    <div class="error">{{ form.spec_val3.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-pair" data-slot="4" style="display: none">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ form.spec_key4.label }}</label>
+                                {{ form.spec_key4 }}
+                                {% if form.spec_key4.errors %}
+                                    <div class="error">{{ form.spec_key4.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.spec_val4.label }}</label>
+                                {{ form.spec_val4 }}
+                                {% if form.spec_val4.errors %}
+                                    <div class="error">{{ form.spec_val4.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spec-pair" data-slot="5" style="display: none">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>{{ form.spec_key5.label }}</label>
+                                {{ form.spec_key5 }}
+                                {% if form.spec_key5.errors %}
+                                    <div class="error">{{ form.spec_key5.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>{{ form.spec_val5.label }}</label>
+                                {{ form.spec_val5 }}
+                                {% if form.spec_val5.errors %}
+                                    <div class="error">{{ form.spec_val5.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-spec-pair" class="btn btn-white">
+                        <i class="fas fa-plus"></i> إضافة مواصفة
+                    </button>
+                </div>
+            </div>
+
 
             {% if form.non_field_errors %}
                 <div class="error-message">
@@ -124,4 +237,44 @@
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    const pairs = Array.from(document.querySelectorAll('.spec-pair'));
+    const addButton = document.getElementById('add-spec-pair');
+
+    function isHidden(pair) {
+        return pair.style.display === 'none';
+    }
+
+    function hasValue(pair) {
+        return Array.from(pair.querySelectorAll('input')).some(function (input) {
+            return input.value.trim() !== '';
+        });
+    }
+
+    // Pairs that already hold a spec (edit page) stay visible.
+    pairs.forEach(function (pair) {
+        if (isHidden(pair) && hasValue(pair)) {
+            pair.style.display = '';
+        }
+    });
+
+    function refreshAddButton() {
+        addButton.style.display = pairs.some(isHidden) ? '' : 'none';
+    }
+
+    addButton.addEventListener('click', function () {
+        const next = pairs.find(function (pair) { return isHidden(pair); });
+        if (!next) {
+            return;
+        }
+        next.style.display = '';
+        next.querySelector('input').focus();
+        refreshAddButton();
+    });
+
+    refreshAddButton();
+})();
+</script>
 {% endblock %}

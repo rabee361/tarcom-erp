@@ -1,6 +1,5 @@
 import json
 from decimal import Decimal
-from pathlib import Path
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -152,6 +151,7 @@ class DashboardMaterialsCrudTest(TestCase):
             "name": "Steel Rod",
             "category": str(self.category.pk),
             "uom": str(self.uom.pk),
+            "company": "Haddad Steel",
             "supplier_price": "80.00",
             "consumer_price": "100.00",
             "is_active": "on",
@@ -196,19 +196,18 @@ class DashboardCategoryTest(TestCase):
         )
         self.client.force_login(self.staff)
 
-    def test_category_form_exposes_image_only(self):
+    def test_category_form_exposes_image(self):
         form = CategoryForm()
         self.assertIn("image", form.fields)
-        self.assertNotIn("icon", form.fields)
 
-    def test_create_category_via_dashboard_sets_placeholder_icon(self):
+    def test_create_category_via_dashboard(self):
         response = self.client.post(
             "/dashboard/categories/create/",
             {"name_en": "Accessories", "name_ar": "إكسسوارات"},
         )
         self.assertRedirects(response, "/dashboard/categories/")
         category = MaterialCategory.objects.get(name_en="Accessories")
-        self.assertEqual(Path(category.icon.name).name, "placeholder.jpg")
+        self.assertFalse(category.image)
 
 
 class DashboardMaterialFeaturesTest(TestCase):

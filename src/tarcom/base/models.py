@@ -149,16 +149,6 @@ class UnitConversion(TimeStampModel):
 
 class MaterialCategory(TimeStampModel):
     name = models.CharField(max_length=100, unique=True)
-    # Icons are backend-managed: the API and the dashboard never expose this
-    # field. New categories fall back to the shared placeholder copied into
-    # media by migration 0008, and populate_db swaps it for the real icon on
-    # the seeded categories.
-    icon = VersatileImageField(
-        upload_to="images/categories",
-        blank=True,
-        null=True,
-        default="images/categories/placeholder.jpg",
-    )
     image = VersatileImageField(
         upload_to="images/categories/covers", blank=True, null=True
     )
@@ -180,6 +170,7 @@ class Material(TimeStampModel):
     uom = models.ForeignKey(
         UnitOfMeasure, on_delete=models.PROTECT, related_name="materials"
     )
+    company = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     supplier_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     consumer_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
