@@ -23,9 +23,11 @@ class DashboardMaterialsCrudTest(TestCase):
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
         self.form_data = {
-            "name": "Steel Rod",
+            "name_en": "Steel Rod",
+            "name_ar": "قضيب فولاذي",
             "category": str(self.category.pk),
             "uom": str(self.uom.pk),
+            "company": "Steel Co",
             "supplier_price": "80.00",
             "consumer_price": "100.00",
             "is_active": "on",
@@ -43,10 +45,12 @@ class DashboardMaterialsCrudTest(TestCase):
         # List
         response = self.client.get("/dashboard/materials/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Steel Rod")
+        self.assertContains(response, "قضيب فولاذي")
 
         # Edit
-        edit_data = dict(self.form_data, name="Steel Rod XL", consumer_price="120.00")
+        edit_data = dict(
+            self.form_data, name_en="Steel Rod XL", consumer_price="120.00"
+        )
         response = self.client.post(
             f"/dashboard/materials/{material.pk}/edit/", edit_data
         )

@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -6,7 +9,7 @@ from tarcom.base.models import (
     CustomUser,
     OTPCode,
 )
-from tarcom.utils.enums import CodeTypes
+from tarcom.utils.enums import CodeTypes, UserType
 
 
 class SignupViewTest(TestCase):
@@ -104,6 +107,24 @@ class VerifyOtpViewTest(TestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_verify_otp_expired_code(self):
+        OTPCode.objects.filter(email="test@example.com").update(
+            expires_at=timezone.now() - timedelta(minutes=1)
+        )
+        data = {
+            "email": "test@example.com",
+            "code": self.code,
+            "code_type": CodeTypes.SIGNUP,
+        }
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            "OTP code has expired",
+            response.data["errors"]["non_field_errors"][0],
+        )
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_verified)
+
 
 class LoginAfterVerificationTest(TestCase):
     def setUp(self):
@@ -160,6 +181,18 @@ class ForgetPasswordViewTest(TestCase):
         data = {"email": "nobody@example.com"}
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_forget_password_rate_limit_returns_429(self):
+        for _ in range(5):
+            OTPCode.objects.create(
+                email="test@example.com", code_type=CodeTypes.RESET_PASSWORD
+            )
+        response = self.client.post(
+            self.url, {"email": "test@example.com"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertEqual(response.data["code"], status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertEqual(response.data["status"], "error")
 
 
 # ==========================================
@@ -346,3 +379,60 @@ class UserViewSetAdminPermissionsTest(TestCase):
         response = self.client.get(f"/api/users/{self.customer.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["email"], "customer@example.com")
+
+    def test_create_user_as_admin(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(
+            "/api/users/",
+            {
+                "email": "new@example.com",
+                "first_name": "New",
+                "last_name": "User",
+                "phone": "+963900000000",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["email"], "new@example.com")
+        self.assertTrue(CustomUser.objects.filter(email="new@example.com").exists())
+
+    def test_update_user_as_admin(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.patch(
+            f"/api/users/{self.customer.id}/",
+            {"first_name": "Updated", "phone": "+963900000001"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.first_name, "Updated")
+        self.assertEqual(self.customer.phone, "+963900000001")
+
+    def test_user_type_is_read_only_even_for_admin(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.patch(
+            f"/api/users/{self.customer.id}/", {"user_type": "admin"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.customer.refresh_from_db()
+        self.assertNotEqual(self.customer.user_type, UserType.ADMIN)
+
+    def test_delete_user_as_admin(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.delete(f"/api/users/{self.customer.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(CustomUser.objects.filter(pk=self.customer.pk).exists())
+
+    def test_non_admin_cannot_write_users(self):
+        self.client.force_authenticate(user=self.customer)
+        for method, payload in [
+            ("post", {"email": "hijack@example.com"}),
+            ("patch", {"first_name": "Hijacked"}),
+            ("delete", None),
+        ]:
+            with self.subTest(method=method):
+                kwargs = {"format": "json"} if payload is not None else {}
+                response = getattr(self.client, method)(
+                    f"/api/users/{self.customer.id}/", payload, **kwargs
+                )
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

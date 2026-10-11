@@ -8,6 +8,7 @@ from tarcom.base.models import (
     MaterialCategory,
     UnitOfMeasure,
 )
+from tarcom.utils.enums import UserType
 
 
 class DashboardProtectedDeleteTest(TestCase):
@@ -16,6 +17,7 @@ class DashboardProtectedDeleteTest(TestCase):
             email="staff@tarcom.com",
             password="StaffPass123!",
             is_staff=True,
+            user_type=UserType.ADMIN,
         )
         self.client.force_login(self.staff)
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")

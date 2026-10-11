@@ -9,6 +9,7 @@ from tarcom.base.models import (
     Order,
     UnitOfMeasure,
 )
+from tarcom.utils.enums import UserType
 
 
 class DashboardViewTest(TestCase):
@@ -55,6 +56,7 @@ class DashboardPageRenderTest(TestCase):
         self.customer = CustomUser.objects.create_user(
             email="customer@tarcom.com",
             password="CustomerPass123!",
+            user_type=UserType.ADMIN,
         )
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")

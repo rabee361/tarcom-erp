@@ -10,6 +10,7 @@ class DashboardUsersCrudTest(TestCase):
             email="staff@tarcom.com",
             password="StaffPass123!",
             is_staff=True,
+            user_type=UserType.ADMIN,
         )
         self.client.force_login(self.staff)
 

@@ -323,7 +323,8 @@ class AuthViewSet(viewsets.GenericViewSet):
     destroy=extend_schema(tags=["Users"], summary="Delete a user (admin only)"),
 )
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
+    # Stable ordering keeps pagination deterministic (CustomUser.Meta declares none).
+    queryset = CustomUser.objects.all().order_by("id")
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
 

@@ -12,6 +12,7 @@ from tarcom.base.models import (
     CustomUser,
     Material,
     MaterialCategory,
+    OTPCode,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import CodeTypes, FeatureReason
@@ -102,6 +103,22 @@ class ResetPasswordViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self._assert_non_field_error(response, "Invalid or already used OTP code.")
 
+    def test_reset_password_expired_otp_returns_400(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        OTPCode.objects.filter(email="test@example.com").update(
+            expires_at=timezone.now() - timedelta(minutes=1)
+        )
+        response = self.client.post(
+            self.url, self._reset_payload(code=self.code), format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self._assert_non_field_error(response, "OTP code has expired.")
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("OldPass123!"))
+
 
 class UnitOfMeasureAPITest(TestCase):
     def setUp(self):
@@ -133,6 +150,45 @@ class UnitOfMeasureAPITest(TestCase):
         self.assertEqual(response.data["code"], "KG")
         self.assertEqual(response.data["name_en"], "Kilogram")
         self.assertEqual(response.data["name_ar"], "كيلوجرام")
+
+    def test_admin_can_update_unit(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.patch(
+            f"/api/units/{self.uom.id}/", {"name_en": "Pieces", "code": "PCS"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.uom.refresh_from_db()
+        self.assertEqual(self.uom.name_en, "Pieces")
+
+    def test_admin_can_delete_unreferenced_unit(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/units/{self.uom.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(UnitOfMeasure.objects.filter(pk=self.uom.pk).exists())
+
+    def test_non_admin_cannot_write_units(self):
+        customer = CustomUser.objects.create_user(
+            email="customer@example.com", password="StrongPass123!"
+        )
+        self.client.force_authenticate(user=customer)
+        response = self.client.post(
+            "/api/units/", {"name_en": "Box", "code": "BOX"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.patch(
+            f"/api/units/{self.uom.id}/", {"code": "PCS"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_protected_unit_delete_returns_400(self):
+        category = MaterialCategory.objects.create(name="Devices")
+        Material.objects.create(name="Phone", category=category, uom=self.uom)
+
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/units/{self.uom.id}/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("cannot be deleted", response.data["message"])
+        self.assertTrue(UnitOfMeasure.objects.filter(pk=self.uom.pk).exists())
 
     def test_unit_translation_header(self):
         # With Arabic header
@@ -201,6 +257,47 @@ class MaterialCategoryAPITest(TestCase):
         self.assertTrue(
             str(category.image.name).startswith("images/categories/covers/")
         )
+
+    def test_admin_can_update_category(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.patch(
+            f"/api/categories/{self.category.id}/",
+            {"name_en": "Home Electronics"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.category.refresh_from_db()
+        self.assertEqual(self.category.name_en, "Home Electronics")
+
+    def test_admin_can_delete_unreferenced_category(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/categories/{self.category.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(MaterialCategory.objects.filter(pk=self.category.pk).exists())
+
+    def test_non_admin_cannot_write_categories(self):
+        customer = CustomUser.objects.create_user(
+            email="customer@example.com", password="StrongPass123!"
+        )
+        self.client.force_authenticate(user=customer)
+        response = self.client.post(
+            "/api/categories/", {"name_en": "Nope"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.patch(
+            f"/api/categories/{self.category.id}/", {"name_en": "Nope"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_protected_category_delete_returns_400(self):
+        uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
+        Material.objects.create(name="Phone", category=self.category, uom=uom)
+
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/categories/{self.category.id}/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("cannot be deleted", response.data["message"])
+        self.assertTrue(MaterialCategory.objects.filter(pk=self.category.pk).exists())
 
     def test_category_translation_header(self):
         res_ar = self.client.get(
@@ -313,6 +410,46 @@ class MaterialAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["consumer_price"], "750.00")
         self.assertEqual(response.data["name_en"], "Phone Pro")
+
+    def test_admin_replace_material_with_put(self):
+        self.client.force_authenticate(user=self.admin_user)
+        data = {
+            "name_en": "Laptop",
+            "name_ar": "حاسوب",
+            "description_en": "Full replace",
+            "category": self.category.id,
+            "uom": self.uom.id,
+            "company": "Laptop Co",
+            "supplier_price": "400.00",
+            "consumer_price": "600.00",
+            "is_active": True,
+        }
+        response = self.client.put(
+            f"/api/materials/{self.material.id}/", data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.material.refresh_from_db()
+        self.assertEqual(self.material.name_en, "Laptop")
+        self.assertEqual(self.material.company, "Laptop Co")
+        self.assertEqual(str(self.material.consumer_price), "600.00")
+
+    def test_admin_can_delete_material(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Material.objects.filter(pk=self.material.pk).exists())
+
+    def test_non_admin_cannot_write_materials(self):
+        customer = CustomUser.objects.create_user(
+            email="customer@example.com", password="StrongPass123!"
+        )
+        self.client.force_authenticate(user=customer)
+        response = self.client.patch(
+            f"/api/materials/{self.material.id}/", {"consumer_price": "1.00"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.delete(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_unauthenticated_cannot_delete_material(self):
         response = self.client.delete(f"/api/materials/{self.material.id}/")

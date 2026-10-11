@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -230,6 +231,15 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 # Bounds the request thread when the provider stalls or blackholes the socket.
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
+
+# Test-only overrides. .env points EMAIL_BACKEND at a real SMTP provider with
+# live credentials, which tests must never reach; pinning locmem here closes
+# every path to it (Django's runner does the same swap, but only after settings
+# import). MD5 replaces PBKDF2 (~1.5s per hashed password), which dominates
+# run time in a suite that creates users in most tests.
+if "test" in sys.argv:
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 
 SIMPLE_JWT = {

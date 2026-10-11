@@ -203,6 +203,37 @@ class OrderAPITest(TestCase):
         order = Order.objects.get(id=order_id)
         self.assertEqual(order.status, OrderStatus.SHIPPED)
 
+    def test_admin_can_cancel_shipped_order(self):
+        # Admins skip the PENDING-only check that blocks customers.
+        order_id = self.place_order().data["id"]
+        Order.objects.filter(id=order_id).update(status=OrderStatus.SHIPPED)
+
+        self.authenticate(self.admin)
+        response = self.client.post(f"{self.url}{order_id}/cancel/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order = Order.objects.get(id=order_id)
+        self.assertEqual(order.status, OrderStatus.CANCELLED)
+
+    def test_delivered_order_cannot_be_cancelled(self):
+        order_id = self.place_order().data["id"]
+        Order.objects.filter(id=order_id).update(status=OrderStatus.DELIVERED)
+
+        self.authenticate(self.admin)
+        response = self.client.post(f"{self.url}{order_id}/cancel/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        order = Order.objects.get(id=order_id)
+        self.assertEqual(order.status, OrderStatus.DELIVERED)
+
+    def test_cancelled_order_cannot_be_cancelled_again(self):
+        order_id = self.place_order().data["id"]
+        Order.objects.filter(id=order_id).update(status=OrderStatus.CANCELLED)
+
+        self.authenticate(self.admin)
+        response = self.client.post(f"{self.url}{order_id}/cancel/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        order = Order.objects.get(id=order_id)
+        self.assertEqual(order.status, OrderStatus.CANCELLED)
+
     # ---------------------------------------------
     # Admin status transitions
     # ---------------------------------------------

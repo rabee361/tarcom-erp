@@ -1,8 +1,11 @@
 from django.core.signing import TimestampSigner
+from django.db.models import ProtectedError
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.response import Response
 from tarcom.base.models import *
@@ -19,6 +22,24 @@ class IsAdminOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return bool(request.user and request.user.is_staff)
+
+
+class ProtectedDeleteMixin:
+    """Report a referenced record's failed delete as a 400, not a 500."""
+
+    protected_message = _(
+        "This record cannot be deleted because other records reference it."
+    )
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError:
+            raise DRFValidationError(
+                {"non_field_errors": [self.protected_message]}
+            ) from None
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(
@@ -40,12 +61,15 @@ class IsAdminOrReadOnly(BasePermission):
         tags=["Units of Measure"], summary="Delete a unit of measure (admin only)"
     ),
 )
-class UnitOfMeasureViewSet(viewsets.ModelViewSet):
+class UnitOfMeasureViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
     queryset = UnitOfMeasure.objects.all()
     serializer_class = UnitOfMeasureSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = UnitOfMeasureFilter
+    protected_message = _(
+        "This unit cannot be deleted because products reference it."
+    )
 
 
 @extend_schema_view(
@@ -64,12 +88,15 @@ class UnitOfMeasureViewSet(viewsets.ModelViewSet):
         tags=["Categories"], summary="Delete a material category (admin only)"
     ),
 )
-class MaterialCategoryViewSet(viewsets.ModelViewSet):
+class MaterialCategoryViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
     queryset = MaterialCategory.objects.all()
     serializer_class = MaterialCategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaterialCategoryFilter
+    protected_message = _(
+        "This category cannot be deleted because products reference it."
+    )
 
 
 @extend_schema_view(

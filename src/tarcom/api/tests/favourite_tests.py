@@ -104,6 +104,25 @@ class FavouriteAPITest(TestCase):
         self.assertFalse(FavouriteItem.objects.filter(id=favourite.id).exists())
         self.assertTrue(FavouriteItem.objects.filter(id=other_favourite.id).exists())
 
+    def test_retrieve_own_favourite(self):
+        favourite = FavouriteItem.objects.create(user=self.user, material=self.material)
+        self.authenticate()
+
+        response = self.client.get(f"{self.url}{favourite.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], favourite.id)
+        self.assertEqual(response.data["material"], self.material.id)
+        self.assertEqual(response.data["material_detail"]["name"], "Hammer")
+
+    def test_retrieve_other_users_favourite_is_404(self):
+        other_favourite = FavouriteItem.objects.create(
+            user=self.other_user, material=self.material
+        )
+        self.authenticate()
+
+        response = self.client.get(f"{self.url}{other_favourite.id}/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_delete_favourite_by_material_id(self):
         FavouriteItem.objects.create(user=self.user, material=self.material)
         self.authenticate()
