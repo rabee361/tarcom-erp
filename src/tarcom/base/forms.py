@@ -3,7 +3,13 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from tarcom.base.models import CustomUser, Material, MaterialCategory, UnitOfMeasure
+from tarcom.base.models import (
+    Company,
+    CustomUser,
+    Material,
+    MaterialCategory,
+    UnitOfMeasure,
+)
 from tarcom.utils.enums import OrderStatus, PaymentStatus
 
 
@@ -169,6 +175,12 @@ class MaterialForm(forms.ModelForm):
         empty_label=None,
     )
 
+    company = forms.ModelChoiceField(
+        queryset=Company.objects.all(),
+        label=_("الشركة"),
+        empty_label=None,
+    )
+
     class Meta:
         model = Material
         fields = [
@@ -238,6 +250,20 @@ class MaterialForm(forms.ModelForm):
 
         self.fields["category"].label_from_instance = lambda obj: obj.name_ar
         self.fields["uom"].label_from_instance = lambda obj: obj.name_ar
+        self.fields["company"].label_from_instance = lambda obj: obj.name
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = ["name", "logo"]
+        labels = {
+            "name": _("اسم الشركة"),
+            "logo": _("شعار الشركة"),
+        }
+        widgets = {
+            "logo": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+        }
 
 
 class CategoryForm(forms.ModelForm):

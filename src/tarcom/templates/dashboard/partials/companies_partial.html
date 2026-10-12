@@ -1,0 +1,22 @@
+{% load static %}
+{% for company in companies %}
+<tr onclick="clickHandler(event)" data-link="{% url 'company-edit' company.pk %}">
+    <td>
+        {% if company.has_uploaded_logo %}
+            <img src="{{ company.logo.crop.40x40 }}" alt="{{ company.name }}" width="40" height="40">
+        {% else %}
+            <img src="{% static 'assets/images/companies/lenovo.png' %}" alt="{{ company.name }}" width="40" height="40">
+        {% endif %}
+    </td>
+    <td>{{ company.name }}</td>
+    <td>
+        <div class="row-actions">
+            <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'company-delete' company.pk %}" data-object-name="{{ company.name }}">🗑️</button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3">لا توجد شركات.</td>
+</tr>
+{% endfor %}

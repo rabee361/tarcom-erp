@@ -57,7 +57,7 @@ class MaterialListView(StaffRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = (
-            Material.objects.select_related("category", "uom")
+            Material.objects.select_related("category", "uom", "company")
             .all()
             .order_by("-created_at")
         )
@@ -306,6 +306,50 @@ class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("units-list")
     protected_message = "لا يمكن حذف وحدة القياس لارتباطها بمنتجات في النظام."
     deleted_message = "تم حذف وحدة القياس بنجاح."
+
+
+class CompanyListView(StaffRequiredMixin, ListView):
+    model = Company
+    template_name = "dashboard/companies/companies_list.html"
+    context_object_name = "companies"
+
+    def get_queryset(self):
+        qs = Company.objects.all().order_by("name")
+        if self.request.htmx:
+            self.template_name = "dashboard/partials/companies_partial.html"
+        if self.request.GET.get("q"):
+            qs = qs.filter(Q(name__icontains=self.request.GET.get("q")))
+        return qs
+
+
+class CompanyCreateView(StaffRequiredMixin, CreateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = "dashboard/companies/company_form.html"
+    success_url = reverse_lazy("companies-list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "تم إضافة الشركة بنجاح.")
+        return super().form_valid(form)
+
+
+class CompanyUpdateView(StaffRequiredMixin, UpdateView):
+    model = Company
+    form_class = CompanyForm
+    template_name = "dashboard/companies/company_form.html"
+    success_url = reverse_lazy("companies-list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "تم تعديل الشركة بنجاح.")
+        return super().form_valid(form)
+
+
+class CompanyDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
+    model = Company
+    http_method_names = ["post"]
+    success_url = reverse_lazy("companies-list")
+    protected_message = "لا يمكن حذف الشركة لارتباطها بمواد في النظام."
+    deleted_message = "تم حذف الشركة بنجاح."
 
 
 class OrderListView(StaffRequiredMixin, ListView):

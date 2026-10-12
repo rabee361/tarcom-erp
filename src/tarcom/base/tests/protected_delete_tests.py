@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -22,10 +23,12 @@ class DashboardProtectedDeleteTest(TestCase):
         self.client.force_login(self.staff)
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
+        self.company = Company.objects.create(name="Steel Co")
         self.material = Material.objects.create(
             name="Steel Rod",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("100.00"),
         )
 

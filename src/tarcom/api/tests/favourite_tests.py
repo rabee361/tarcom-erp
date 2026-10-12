@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     FavouriteItem,
     Material,
@@ -22,10 +23,12 @@ class FavouriteAPITest(TestCase):
         )
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Tools")
+        self.company = Company.objects.create(name="Tools Co")
         self.material = Material.objects.create(
             name="Hammer",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=25.00,
             is_active=True,
         )
@@ -33,11 +36,16 @@ class FavouriteAPITest(TestCase):
             name="Saw",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=40.00,
             is_active=True,
         )
         self.inactive_material = Material.objects.create(
-            name="Retired", category=self.category, uom=self.uom, is_active=False
+            name="Retired",
+            category=self.category,
+            uom=self.uom,
+            company=self.company,
+            is_active=False,
         )
         self.url = "/api/favourites/"
 

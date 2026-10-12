@@ -97,6 +97,24 @@ urlpatterns = [
     path(
         "dashboard/units/<int:pk>/delete/", UnitDeleteView.as_view(), name="unit-delete"
     ),
+    path(
+        "dashboard/companies/", CompanyListView.as_view(), name="companies-list"
+    ),
+    path(
+        "dashboard/companies/create/",
+        CompanyCreateView.as_view(),
+        name="company-create",
+    ),
+    path(
+        "dashboard/companies/<int:pk>/edit/",
+        CompanyUpdateView.as_view(),
+        name="company-edit",
+    ),
+    path(
+        "dashboard/companies/<int:pk>/delete/",
+        CompanyDeleteView.as_view(),
+        name="company-delete",
+    ),
     path("dashboard/orders/", OrderListView.as_view(), name="orders-list"),
     path("dashboard/orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
     path(

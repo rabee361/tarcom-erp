@@ -5,6 +5,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -67,10 +68,12 @@ class OrderModelTest(TestCase):
         )
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
+        self.company = Company.objects.create(name="Steel Co")
         self.material1 = Material.objects.create(
             name="Steel Rod",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("100.00"),
             supplier_price=Decimal("80.00"),
         )
@@ -78,6 +81,7 @@ class OrderModelTest(TestCase):
             name="Steel Sheet",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("50.00"),
             supplier_price=Decimal("40.00"),
         )

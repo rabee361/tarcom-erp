@@ -110,7 +110,7 @@ class MaterialCategoryViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
     destroy=extend_schema(tags=["Materials"], summary="Delete a material"),
 )
 class MaterialViewSet(viewsets.ModelViewSet):
-    queryset = Material.objects.select_related("category", "uom").all()
+    queryset = Material.objects.select_related("category", "uom", "company").all()
     serializer_class = MaterialSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
@@ -120,22 +120,24 @@ class MaterialViewSet(viewsets.ModelViewSet):
         tags=["Materials"],
         summary="List the companies used by materials",
         description=(
-            "Plain array of distinct company names, sorted. Accepts the same "
-            "filters as the list endpoint, so `?category=<id>` narrows it to the "
-            "companies of that category's materials."
+            "Company objects of the materials matched by the same filters as the "
+            "list endpoint, so `?category=<id>` narrows it to the companies of "
+            "that category's materials."
         ),
-        responses={200: {"type": "array", "items": {"type": "string"}}},
+        responses={200: CompanySerializer(many=True)},
     )
     @action(detail=False, methods=["get"])
     def companies(self, request):
-        companies = (
+        company_ids = (
             self.filter_queryset(self.get_queryset())
-            .exclude(company="")
-            .order_by("company")
-            .values_list("company", flat=True)
+            .values_list("company_id", flat=True)
             .distinct()
         )
-        return Response(list(companies))
+        companies = Company.objects.filter(pk__in=company_ids).order_by("name")
+        serializer = CompanySerializer(
+            companies, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
 
 
 @extend_schema_view(

@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -60,10 +61,12 @@ class DashboardPageRenderTest(TestCase):
         )
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
+        self.company = Company.objects.create(name="Steel Co")
         self.material = Material.objects.create(
             name="Steel Rod",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("100.00"),
         )
         self.order = Order.objects.create(user=self.customer)
@@ -85,6 +88,9 @@ class DashboardPageRenderTest(TestCase):
             "/dashboard/units/",
             "/dashboard/units/create/",
             f"/dashboard/units/{self.uom.pk}/edit/",
+            "/dashboard/companies/",
+            "/dashboard/companies/create/",
+            f"/dashboard/companies/{self.company.pk}/edit/",
             "/dashboard/orders/",
             f"/dashboard/orders/{self.order.pk}/",
             "/change-password/",
@@ -99,6 +105,7 @@ class DashboardPageRenderTest(TestCase):
             f"/dashboard/materials/{self.material.pk}/delete/",
             f"/dashboard/categories/{self.category.pk}/delete/",
             f"/dashboard/units/{self.uom.pk}/delete/",
+            f"/dashboard/companies/{self.company.pk}/delete/",
         ]
         for url in urls:
             response = self.client.get(url)

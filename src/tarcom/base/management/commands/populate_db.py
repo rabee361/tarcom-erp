@@ -3,11 +3,12 @@
 Tarcom is an electronics marketplace, so this seeds the 5 real storefront
 categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each
 seeded with its cover image uploaded into media storage -- plus the units of
-measure they reference, 10 materials with a company and every spec key/value
-pair filled, 2 active users (one customer, one supplier -- every non-admin
-type), and 3 orders per user with 1-2 line items each. No OTP codes are
-generated; the users are marked verified and active so they can log in
-immediately.
+measure they reference, 10 companies (each assigned one of the 4 static brand
+logos at random until the real logos are added), 10 materials linked to those
+companies with every spec key/value pair filled, 2 active users (one customer,
+one supplier -- every non-admin type), and 3 orders per user with 1-2 line
+items each. No OTP codes are generated; the users are marked verified and
+active so they can log in immediately.
 
 Run:  python manage.py populate_db            (idempotent, safe to re-run)
       python manage.py populate_db --flush    (wipe seeded rows first)
@@ -24,6 +25,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -49,6 +51,19 @@ COVER_DIR = (
     / "categories"
     / "covers"
 )
+
+# Only these 4 brand logos exist so far; they are assigned randomly to the
+# seeded companies until the real company logos replace them.
+LOGO_DIR = (
+    Path(settings.BASE_DIR)
+    / "base"
+    / "static"
+    / "assets"
+    / "images"
+    / "companies"
+)
+
+LOGO_FILES = ["DELL.png", "acer.png", "asus.png", "lenovo.png"]
 
 UNITS = [
     ("EA", "Each", "حبة"),
@@ -284,14 +299,16 @@ class Command(BaseCommand):
 
         uoms = self._seed_uoms()
         categories = self._seed_categories()
-        materials = self._seed_materials(uoms, categories)
+        companies = self._seed_companies(rng)
+        materials = self._seed_materials(uoms, categories, companies)
         users = self._seed_users()
         order_count = self._seed_orders(users, materials, rng)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Populated: {len(uoms)} units, {len(categories)} categories, "
-                f"{len(materials)} materials, {len(users)} users, {order_count} orders."
+                f"{len(companies)} companies, {len(materials)} materials, "
+                f"{len(users)} users, {order_count} orders."
             )
         )
 
@@ -301,6 +318,7 @@ class Command(BaseCommand):
         Material.objects.all().delete()
         MaterialCategory.objects.all().delete()
         UnitOfMeasure.objects.all().delete()
+        Company.objects.all().delete()
         CustomUser.objects.filter(email__in=[u[0] for u in USERS]).delete()
         self.stdout.write("Flushed existing seeded data.")
 
@@ -329,7 +347,26 @@ class Command(BaseCommand):
             categories.append(category)
         return categories
 
-    def _seed_materials(self, uoms, categories):
+    def _seed_companies(self, rng):
+        """Create one Company per distinct company string in MATERIALS.
+
+        Companies without a real logo get one of the static brand logos copied
+        into media storage, picked at random.
+        """
+        names = [spec["company"] for spec in MATERIALS]
+        companies = {}
+        for name in names:
+            company, _ = Company.objects.get_or_create(name=name)
+            if not company.has_uploaded_logo:
+                filename = rng.choice(LOGO_FILES)
+                logo_path = LOGO_DIR / filename
+                if logo_path.exists():
+                    with logo_path.open("rb") as f:
+                        company.logo.save(filename, File(f), save=True)
+            companies[name] = company
+        return companies
+
+    def _seed_materials(self, uoms, categories, companies):
         materials = []
         for spec in MATERIALS:
             defaults = {
@@ -340,7 +377,7 @@ class Command(BaseCommand):
                 "description_ar": spec["desc_ar"],
                 "category": categories[spec["category"]],
                 "uom": uoms[spec["uom"]],
-                "company": spec["company"],
+                "company": companies[spec["company"]],
                 "supplier_price": Decimal(spec["supplier_price"]),
                 "consumer_price": Decimal(spec["consumer_price"]),
                 "is_active": True,

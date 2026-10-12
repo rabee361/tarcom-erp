@@ -108,9 +108,10 @@ class MaterialFilter(SearchableFilterSet):
     search_fields = ("name", "name_en", "name_ar")
     search = django_filters.CharFilter(method="filter_search", help_text=SEARCH_HELP)
     category = django_filters.NumberFilter(help_text=_("Filter by category id."))
-    company = django_filters.CharFilter(
-        lookup_expr="iexact",
-        help_text=_("Filter by exact company name (case-insensitive)."),
+    company_name = django_filters.CharFilter(
+        field_name='company__name', 
+        lookup_expr='icontains',
+        help_text=_("Filter by company name.")
     )
     is_active = django_filters.BooleanFilter(
         help_text=_("Filter by active flag (true/false).")

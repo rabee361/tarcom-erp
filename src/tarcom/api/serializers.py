@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
+from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -397,12 +398,33 @@ class MaterialCategorySerializer(TranslateModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
+class CompanySerializer(serializers.ModelSerializer):
+    logo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Company
+        fields = ["id", "name", "logo", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    @extend_schema_field(serializers.URLField)
+    def get_logo(self, obj):
+        if obj.logo and obj.logo.name != Company.DEFAULT_LOGO:
+            url = obj.logo.url
+        else:
+            url = static(Company.DEFAULT_LOGO)
+        request = self.context.get("request")
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
+
+
 class MaterialSerializer(TranslateModelSerializer):
     translation_options = MaterialTranslationOptions
     category_name = serializers.CharField(source="category.name", read_only=True)
     uom_name = serializers.CharField(source="uom.name", read_only=True)
     category_detail = MaterialCategoryChildSerializer(source="category", read_only=True)
     uom_detail = UnitOfMeasureSerializer(source="uom", read_only=True)
+    company_detail = CompanySerializer(source="company", read_only=True)
 
     class Meta:
         model = Material
@@ -421,6 +443,7 @@ class MaterialSerializer(TranslateModelSerializer):
             "uom_name",
             "uom_detail",
             "company",
+            "company_detail",
             "supplier_price",
             "consumer_price",
             "is_active",
@@ -466,6 +489,7 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "uom_name",
             "uom_detail",
             "company",
+            "company_detail",
             "supplier_price",
             "consumer_price",
             "is_active",

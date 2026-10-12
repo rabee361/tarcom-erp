@@ -162,6 +162,27 @@ class MaterialCategory(TimeStampModel):
         return self.name
 
 
+class Company(TimeStampModel):
+    DEFAULT_LOGO = "assets/images/companies/lenovo.png"
+
+    name = models.CharField(max_length=100, unique=True)
+    logo = VersatileImageField(
+        upload_to="images/companies", default=DEFAULT_LOGO, blank=True
+    )
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def has_uploaded_logo(self):
+        """True when the logo was actually uploaded; the DEFAULT_LOGO name
+        points at a static asset and must be rendered from /static/, not /media/."""
+        return bool(self.logo) and self.logo.name != self.DEFAULT_LOGO
+
+
 class Material(TimeStampModel):
     name = models.CharField(max_length=150)
     category = models.ForeignKey(
@@ -170,7 +191,9 @@ class Material(TimeStampModel):
     uom = models.ForeignKey(
         UnitOfMeasure, on_delete=models.PROTECT, related_name="materials"
     )
-    company = models.CharField(max_length=100)
+    company = models.ForeignKey(
+        Company, on_delete=models.PROTECT, related_name="materials"
+    )
     description = models.TextField(blank=True)
     supplier_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     consumer_price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)

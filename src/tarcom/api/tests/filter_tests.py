@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     FavouriteItem,
     Material,
@@ -72,10 +73,12 @@ class OrderListFilterTest(TestCase):
         )
         self.category = MaterialCategory.objects.create(name="Steel")
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
+        self.company = Company.objects.create(name="Steel Co")
         self.material = Material.objects.create(
             name="Steel Rod",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("100.00"),
             is_active=True,
         )
@@ -233,10 +236,12 @@ class MaterialListFilterTest(TestCase):
         self.client = APIClient()
         self.category = MaterialCategory.objects.create(name="Devices")
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
+        self.company = Company.objects.create(name="Devices Co")
         self.cheap = Material.objects.create(
             name="Basic Phone",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("50.00"),
             is_active=True,
         )
@@ -244,6 +249,7 @@ class MaterialListFilterTest(TestCase):
             name="Fancy Phone",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("900.00"),
             is_active=True,
         )
@@ -251,6 +257,7 @@ class MaterialListFilterTest(TestCase):
             name="Old Phone",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("10.00"),
             is_active=False,
         )
@@ -337,6 +344,7 @@ class MaterialListFilterTest(TestCase):
             name="Laptop",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("1200.00"),
             is_active=True,
             spec_key1="RAM",
@@ -346,6 +354,7 @@ class MaterialListFilterTest(TestCase):
             name="Shirt",
             category=other,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("20.00"),
             is_active=True,
             spec_key1="RAM",
@@ -403,11 +412,20 @@ class FavouriteListFilterTest(TestCase):
         )
         self.category = MaterialCategory.objects.create(name="Tools")
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
+        self.company = Company.objects.create(name="Tools Co")
         self.hammer = Material.objects.create(
-            name="Hammer", category=self.category, uom=self.uom, is_active=True
+            name="Hammer",
+            category=self.category,
+            uom=self.uom,
+            company=self.company,
+            is_active=True,
         )
         self.saw = Material.objects.create(
-            name="Saw Blade", category=self.category, uom=self.uom, is_active=True
+            name="Saw Blade",
+            category=self.category,
+            uom=self.uom,
+            company=self.company,
+            is_active=True,
         )
         self.url = "/api/favourites/"
         self.client.force_authenticate(user=self.user)

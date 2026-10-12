@@ -1,0 +1,46 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}الشركات{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>الشركات</span>
+    </nav>
+</div>
+
+<div class="actions">
+    <div class="search-container">
+        <form method="get" class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input hx-get="{% url 'companies-list' %}" hx-push-url="true" hx-target="#companies-partial" hx-swap="innerHTML" hx-trigger="keyup changed delay:300ms" type="text" name="q" placeholder="بحث باسم الشركة" value="{{ request.GET.q }}">
+        </form>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>الشعار</th>
+                <th>اسم الشركة</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody id="companies-partial">
+            {% include 'dashboard/partials/companies_partial.html' %}
+        </tbody>
+    </table>
+</div>
+
+<div class="table-controls">
+    <div class="action-button-container">
+        <a href="{% url 'company-create' %}" class="btn btn-brown">إضافة</a>
+    </div>
+</div>
+
+{% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}
+{% endblock %}

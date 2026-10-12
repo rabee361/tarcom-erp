@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -182,7 +183,10 @@ class UnitOfMeasureAPITest(TestCase):
 
     def test_protected_unit_delete_returns_400(self):
         category = MaterialCategory.objects.create(name="Devices")
-        Material.objects.create(name="Phone", category=category, uom=self.uom)
+        company = Company.objects.create(name="Acme")
+        Material.objects.create(
+            name="Phone", category=category, uom=self.uom, company=company
+        )
 
         self.client.force_authenticate(user=self.admin_user)
         response = self.client.delete(f"/api/units/{self.uom.id}/")
@@ -291,7 +295,10 @@ class MaterialCategoryAPITest(TestCase):
 
     def test_protected_category_delete_returns_400(self):
         uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
-        Material.objects.create(name="Phone", category=self.category, uom=uom)
+        company = Company.objects.create(name="Acme")
+        Material.objects.create(
+            name="Phone", category=self.category, uom=uom, company=company
+        )
 
         self.client.force_authenticate(user=self.admin_user)
         response = self.client.delete(f"/api/categories/{self.category.id}/")
@@ -325,6 +332,7 @@ class MaterialAPITest(TestCase):
         self.category = MaterialCategory.objects.create(
             name="Devices", name_en="Devices", name_ar="أجهزة"
         )
+        self.company = Company.objects.create(name="Phone Co")
         self.material = Material.objects.create(
             name="Phone",
             name_en="Phone",
@@ -334,7 +342,7 @@ class MaterialAPITest(TestCase):
             description_ar="جهاز ذكي",
             category=self.category,
             uom=self.uom,
-            company="Phone Co",
+            company=self.company,
             supplier_price=500.00,
             consumer_price=700.00,
             is_active=True,
@@ -345,7 +353,36 @@ class MaterialAPITest(TestCase):
         self.assertEqual(res_materials.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_materials.data["results"]), 1)
         self.assertEqual(res_materials.data["results"][0]["category_name"], "Devices")
-        self.assertEqual(res_materials.data["results"][0]["uom_name"], "Piece")
+        self.assertEqual(res_materials.data["results"][0]["`uom_name`"], "Piece")
+        self.assertEqual(res_materials.data["results"][0]["company_detail"]["name"], "Phone Co")
+
+    def test_materials_companies_action(self):
+        response = self.client.get("/api/materials/companies/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["name"], "Phone Co")
+
+        other_cat = MaterialCategory.objects.create(
+            name="Clothing", name_en="Clothing", name_ar="ملابس"
+        )
+        response = self.client.get(f"/api/materials/companies/?category={other_cat.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
+    def test_materials_filter_by_company_id(self):
+        other_co = Company.objects.create(name="Other Co")
+        Material.objects.create(
+            name="Tablet",
+            name_en="Tablet",
+            name_ar="لوحي",
+            category=self.category,
+            uom=self.uom,
+            company=other_co,
+            consumer_price=300.00,
+        )
+        response = self.client.get(f"/api/materials/?company={other_co.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["name_en"], "Tablet")
 
     def test_products_alias_route_is_removed(self):
         for url in (f"/api/products/{self.material.id}/", "/api/products/"):
@@ -362,7 +399,7 @@ class MaterialAPITest(TestCase):
             "description_ar": "شاشة 10 بوصة",
             "category": self.category.id,
             "uom": self.uom.id,
-            "company": "Tablet Co",
+            "company": Company.objects.create(name="Tablet Co").id,
             "supplier_price": "300.00",
             "consumer_price": "450.00",
             "is_active": True,
@@ -413,13 +450,14 @@ class MaterialAPITest(TestCase):
 
     def test_admin_replace_material_with_put(self):
         self.client.force_authenticate(user=self.admin_user)
+        laptop_co = Company.objects.create(name="Laptop Co")
         data = {
             "name_en": "Laptop",
             "name_ar": "حاسوب",
             "description_en": "Full replace",
             "category": self.category.id,
             "uom": self.uom.id,
-            "company": "Laptop Co",
+            "company": laptop_co.id,
             "supplier_price": "400.00",
             "consumer_price": "600.00",
             "is_active": True,
@@ -430,7 +468,7 @@ class MaterialAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.material.refresh_from_db()
         self.assertEqual(self.material.name_en, "Laptop")
-        self.assertEqual(self.material.company, "Laptop Co")
+        self.assertEqual(self.material.company, laptop_co)
         self.assertEqual(str(self.material.consumer_price), "600.00")
 
     def test_admin_can_delete_material(self):
@@ -468,12 +506,14 @@ class MaterialFeatureAPITest(TestCase):
         self.category = MaterialCategory.objects.create(
             name="Devices", name_en="Devices", name_ar="أجهزة"
         )
+        self.company = Company.objects.create(name="Phone Co")
         self.featured = Material.objects.create(
             name="Phone",
             name_en="Phone",
             name_ar="هاتف",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=700.00,
             is_active=True,
             is_feature=True,
@@ -485,6 +525,7 @@ class MaterialFeatureAPITest(TestCase):
             name_ar="كابل",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=25.00,
             is_active=True,
         )

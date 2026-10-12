@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -32,10 +33,12 @@ class OrderAPITest(TestCase):
         )
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
+        self.company = Company.objects.create(name="Steel Co")
         self.material1 = Material.objects.create(
             name="Steel Rod",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("100.00"),
             is_active=True,
         )
@@ -43,6 +46,7 @@ class OrderAPITest(TestCase):
             name="Steel Sheet",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("50.00"),
             is_active=True,
         )
@@ -50,6 +54,7 @@ class OrderAPITest(TestCase):
             name="Discontinued",
             category=self.category,
             uom=self.uom,
+            company=self.company,
             consumer_price=Decimal("10.00"),
             is_active=False,
         )

@@ -1,0 +1,56 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}تعديل شركة{% else %}إضافة شركة{% endif %}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <a href="{% url 'companies-list' %}">الشركات</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>{% if object %}تعديل شركة{% else %}إضافة شركة{% endif %}</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-grid">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="error">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-group img-uploader">
+                        <div class="img-uploader-grid img-uploader-grid--single">
+                            {% include 'dashboard/partials/img_upload_slot.html' with field=form.logo %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">حفظ</button>
+            <a href="{% url 'companies-list' %}" class="btn btn-white">إلغاء</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

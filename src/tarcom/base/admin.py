@@ -72,6 +72,12 @@ class MaterialCategoryAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ("name", "logo")
+    search_fields = ("name",)
+
+
 @admin.register(Material)
 class MaterialAdmin(admin.ModelAdmin):
     list_display = (
@@ -84,7 +90,7 @@ class MaterialAdmin(admin.ModelAdmin):
         "is_active",
     )
     list_filter = ("category", "uom", "company", "is_active")
-    search_fields = ("name", "company")
+    search_fields = ("name", "company__name")
 
 
 @admin.register(FavouriteItem)

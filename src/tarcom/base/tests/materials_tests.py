@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from tarcom.base.models import (
+    Company,
     CustomUser,
     Material,
     MaterialCategory,
@@ -22,12 +23,13 @@ class DashboardMaterialsCrudTest(TestCase):
         self.client.force_login(self.staff)
         self.uom = UnitOfMeasure.objects.create(name="Piece", code="PCS")
         self.category = MaterialCategory.objects.create(name="Steel")
+        self.company = Company.objects.create(name="Steel Co")
         self.form_data = {
             "name_en": "Steel Rod",
             "name_ar": "قضيب فولاذي",
             "category": str(self.category.pk),
             "uom": str(self.uom.pk),
-            "company": "Steel Co",
+            "company": str(self.company.pk),
             "supplier_price": "80.00",
             "consumer_price": "100.00",
             "is_active": "on",
@@ -40,6 +42,7 @@ class DashboardMaterialsCrudTest(TestCase):
         material = Material.objects.get(name="Steel Rod")
         self.assertEqual(material.category, self.category)
         self.assertEqual(material.uom, self.uom)
+        self.assertEqual(material.company, self.company)
         self.assertTrue(material.is_active)
 
         # List
@@ -77,6 +80,7 @@ class DashboardMaterialFeaturesTest(TestCase):
         self.category = MaterialCategory.objects.create(
             name="Steel", name_en="Steel", name_ar="حديد"
         )
+        self.company = Company.objects.create(name="Steel Co")
         self.materials = [
             Material.objects.create(
                 name=f"Material {index}",
@@ -84,6 +88,7 @@ class DashboardMaterialFeaturesTest(TestCase):
                 name_ar=f"مادة {index}",
                 category=self.category,
                 uom=self.uom,
+                company=self.company,
                 consumer_price=Decimal("10.00"),
             )
             for index in range(12)
