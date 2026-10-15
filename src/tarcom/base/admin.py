@@ -104,6 +104,14 @@ class SettingAdmin(admin.ModelAdmin):
     list_display = ("key", "value")
     search_fields = ("key",)
 
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+    list_display = ("phone1", "phone2")
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ("title",)
+
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem

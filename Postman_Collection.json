@@ -165,6 +165,49 @@
             "description": "POST a `refresh` token to obtain a new `access` token.\n\n**Auth:** none (public)\n**Responses:** `200` `{access, refresh?}`, `400`/`401` invalid or expired refresh token."
           },
           "response": []
+        },
+        {
+          "name": "Log out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout",
+                ""
+              ]
+            },
+            "description": "Blacklists the provided `refresh` token so it can no longer mint access tokens. The current access token stays valid until it expires (stateless JWT).\n\n**Auth:** none (public)\n**Responses:** `200` `{message}`, `400` invalid or expired refresh token."
+          },
+          "response": []
         }
       ]
     },
@@ -935,8 +978,13 @@
                 },
                 {
                   "key": "company",
+                  "value": "1",
+                  "description": "Filter by company id"
+                },
+                {
+                  "key": "company_name",
                   "value": "Apple",
-                  "description": "Filter by exact company name (case-insensitive)"
+                  "description": "Filter by company name (icontains)"
                 },
                 {
                   "key": "is_active",
@@ -965,7 +1013,7 @@
                 }
               ]
             },
-            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `category`, `company`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. A `spec_keyN`/`spec_valN` pair matches materials carrying that key and value on the same slot; either may be used alone to match across all five slots.\n\nEvery material carries a required `company` string; use `/api/materials/companies/` to get the picklist."
+            "description": "Materials (Products) list endpoint.\n\n**Auth:** public read (anonymous allowed), bearer/staff required to write.\n**Responses:** `200` array.\n\nQuery params: `category`, `company` (id), `company_name` (icontains), `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. A `spec_keyN`/`spec_valN` pair matches materials carrying that key and value on the same slot; either may be used alone to match across all five slots.\n\nEvery material carries a required `company` id (FK to Company); responses include read-only `company_detail` (`{id, name, logo, created_at, updated_at}`). Use `/api/materials/companies/` to get the companies of the filtered materials."
           },
           "response": []
         },
@@ -1007,7 +1055,7 @@
                 }
               ]
             },
-            "description": "Distinct company names used by materials, sorted, as a plain JSON array of strings (not paginated).\n\n**Auth:** public read.\n**Responses:** `200` e.g. `[\"Apple\", \"Dell\", \"Samsung\"]`.\n\nAccepts the same filters as `/api/materials/`, so `?category=<id>` returns the companies of that category's materials only."
+            "description": "Company objects (`{id, name, logo, created_at, updated_at}`) referenced by the materials matched by the same filters as the list endpoint, sorted by name, as a plain JSON array (not paginated).\n\n**Auth:** public read.\n**Responses:** `200` e.g. `[{\"id\": 1, \"name\": \"Apple\", \"logo\": \"https://.../media/images/companies/...\", ...}]`.\n\nAccepts the same filters as `/api/materials/`, so `?category=<id>` returns the companies of that category's materials only."
           },
           "response": []
         },
@@ -1035,7 +1083,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": \"Apple\",\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
+              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1111,7 +1159,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": \"Apple\",\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
+              "raw": "{\n  \"name_en\": \"Phone Pro\",\n  \"name_ar\": \"هاتف برو\",\n  \"description_en\": \"Flagship smartphone\",\n  \"description_ar\": \"هاتف رائد\",\n  \"category\": 1,\n  \"uom\": 1,\n  \"company\": 1,\n  \"supplier_price\": \"500.00\",\n  \"consumer_price\": \"750.00\",\n  \"is_active\": true,\n  \"expire_date\": \"2027-12-31\",\n  \"spec_key1\": \"Screen\",\n  \"spec_val1\": \"6.7\\\"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1252,8 +1300,13 @@
                 },
                 {
                   "key": "company",
+                  "value": "1",
+                  "description": "Filter by company id"
+                },
+                {
+                  "key": "company_name",
                   "value": "Apple",
-                  "description": "Filter by exact company name (case-insensitive)"
+                  "description": "Filter by company name (icontains)"
                 },
                 {
                   "key": "is_active",
@@ -1272,7 +1325,7 @@
                 }
               ]
             },
-            "description": "Featured materials list endpoint (read-only). Returns only materials flagged as featured from the dashboard page.\n\n**Auth:** public read (anonymous allowed); writes are not supported (use the dashboard).\n**Responses:** `200` paginated envelope `{count, next, previous, results}` (page size 10; `page` / `page_size` params, max 50).\n\nQuery params match `/api/materials/`: `category`, `company`, `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. Each result adds `feature_reason` on top of the material fields; `is_feature` itself is not returned."
+            "description": "Featured materials list endpoint (read-only). Returns only materials flagged as featured from the dashboard page.\n\n**Auth:** public read (anonymous allowed); writes are not supported (use the dashboard).\n**Responses:** `200` paginated envelope `{count, next, previous, results}` (page size 10; `page` / `page_size` params, max 50).\n\nQuery params match `/api/materials/`: `category`, `company` (id), `company_name` (icontains), `is_active`, `search`, `ordering`, plus spec filters `spec_key1..5` / `spec_val1..5`. Each result adds `feature_reason` on top of the material fields; `is_feature` itself is not returned."
           },
           "response": []
         },
@@ -2058,6 +2111,75 @@
               ]
             },
             "description": "**Responses:** `204`, `404`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Get site contact info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/contact/info/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "contact",
+                "info",
+                ""
+              ]
+            },
+            "description": "Public endpoint returning the site contact info singleton.\n\n**Responses:** `200` with `{id, phone1, phone2, email, address, created_at, updated_at}`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Banners",
+      "item": [
+        {
+          "name": "List site banners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept-Language",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/banners/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "banners",
+                ""
+              ]
+            },
+            "description": "Public endpoint returning the active site banners.\n\n**Responses:** `200` with a list of `{id, title, image, is_active, created_at, updated_at}`."
           },
           "response": []
         }

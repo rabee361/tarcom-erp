@@ -1,9 +1,16 @@
+import io
+import shutil
+import tempfile
 from decimal import Decimal
 
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from PIL import Image
 
 from tarcom.base.models import (
+    Banner,
     Company,
+    Contact,
     CustomUser,
     Material,
     MaterialCategory,
@@ -11,6 +18,18 @@ from tarcom.base.models import (
     UnitOfMeasure,
 )
 from tarcom.utils.enums import UserType
+
+TEST_MEDIA_ROOT = tempfile.mkdtemp(prefix="tarcom_test_media_")
+
+
+def tearDownModule():
+    shutil.rmtree(TEST_MEDIA_ROOT, ignore_errors=True)
+
+
+def jpeg_bytes(size=(8, 8)):
+    buffer = io.BytesIO()
+    Image.new("RGB", size, color=(30, 60, 200)).save(buffer, format="JPEG")
+    return buffer.getvalue()
 
 
 class DashboardViewTest(TestCase):
@@ -70,6 +89,7 @@ class DashboardPageRenderTest(TestCase):
             consumer_price=Decimal("100.00"),
         )
         self.order = Order.objects.create(user=self.customer)
+        self.banner = Banner.objects.create(title="Welcome")
         self.client.force_login(self.staff)
 
     def test_dashboard_pages_render(self):
@@ -91,6 +111,10 @@ class DashboardPageRenderTest(TestCase):
             "/dashboard/companies/",
             "/dashboard/companies/create/",
             f"/dashboard/companies/{self.company.pk}/edit/",
+            "/dashboard/contact/",
+            "/dashboard/banners/",
+            "/dashboard/banners/create/",
+            f"/dashboard/banners/{self.banner.pk}/edit/",
             "/dashboard/orders/",
             f"/dashboard/orders/{self.order.pk}/",
             "/change-password/",
@@ -106,6 +130,7 @@ class DashboardPageRenderTest(TestCase):
             f"/dashboard/categories/{self.category.pk}/delete/",
             f"/dashboard/units/{self.uom.pk}/delete/",
             f"/dashboard/companies/{self.company.pk}/delete/",
+            f"/dashboard/banners/{self.banner.pk}/delete/",
         ]
         for url in urls:
             response = self.client.get(url)
@@ -121,3 +146,112 @@ class DashboardPageRenderTest(TestCase):
         response = self.client.post("/logout/")
         self.assertRedirects(response, "/login/")
         self.assertIsNone(self.client.session.get("_auth_user_id"))
+
+
+class ContactDashboardTest(TestCase):
+    def setUp(self):
+        self.staff = CustomUser.objects.create_user(
+            email="staff@tarcom.com",
+            password="StaffPass123!",
+            is_staff=True,
+        )
+        self.client.force_login(self.staff)
+
+    def test_contact_form_renders(self):
+        response = self.client.get("/dashboard/contact/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="phone1"')
+        self.assertContains(response, 'name="address"')
+
+    def test_update_contact_persists_singleton(self):
+        response = self.client.post(
+            "/dashboard/contact/",
+            {
+                "phone1": "123456789",
+                "phone2": "987654321",
+                "email": "info@tarcom.com",
+                "address": "Main Street",
+            },
+        )
+        self.assertRedirects(response, "/dashboard/contact/")
+        self.assertEqual(Contact.objects.count(), 1)
+        contact = Contact.get_solo()
+        self.assertEqual(contact.phone1, "123456789")
+        self.assertEqual(contact.phone2, "987654321")
+        self.assertEqual(contact.email, "info@tarcom.com")
+        self.assertEqual(contact.address, "Main Street")
+
+    def test_update_contact_updates_existing_row(self):
+        Contact.objects.create(phone1="111", phone2="222", address="Old address")
+        self.client.post(
+            "/dashboard/contact/",
+            {"phone1": "333", "phone2": "444", "email": "", "address": "New address"},
+        )
+        self.assertEqual(Contact.objects.count(), 1)
+        contact = Contact.get_solo()
+        self.assertEqual(contact.phone1, "333")
+        self.assertEqual(contact.address, "New address")
+        self.assertIsNone(contact.email)
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class BannerDashboardTest(TestCase):
+    def setUp(self):
+        self.staff = CustomUser.objects.create_user(
+            email="staff@tarcom.com",
+            password="StaffPass123!",
+            is_staff=True,
+        )
+        self.client.force_login(self.staff)
+
+    def test_create_banner_via_dashboard(self):
+        response = self.client.post(
+            "/dashboard/banners/create/",
+            {"title": "تخفيضات الشتاء", "is_active": "on"},
+        )
+        self.assertRedirects(response, "/dashboard/banners/")
+        banner = Banner.objects.get(title="تخفيضات الشتاء")
+        self.assertEqual(banner.title, "تخفيضات الشتاء")
+        self.assertTrue(banner.is_active)
+
+    def test_create_banner_persists_uploaded_image(self):
+        # Regression: banner_form.html was missing enctype="multipart/form-data",
+        # so the file never reached request.FILES and image saved as null.
+        response = self.client.post(
+            "/dashboard/banners/create/",
+            {
+                "title": "Winter Sale",
+                "is_active": "on",
+                "image": SimpleUploadedFile(
+                    "banner.jpg", jpeg_bytes(), content_type="image/jpeg"
+                ),
+            },
+        )
+        self.assertRedirects(response, "/dashboard/banners/")
+        banner = Banner.objects.get(title="Winter Sale")
+        self.assertTrue(banner.image)
+        self.assertTrue(str(banner.image.name).startswith("images/banners/"))
+
+    def test_update_banner_via_dashboard(self):
+        banner = Banner.objects.create(title="Old")
+        response = self.client.post(
+            f"/dashboard/banners/{banner.pk}/edit/",
+            {"title": "جديد", "is_active": "on"},
+        )
+        self.assertRedirects(response, "/dashboard/banners/")
+        banner.refresh_from_db()
+        self.assertEqual(banner.title, "جديد")
+
+    def test_delete_banner_via_dashboard(self):
+        banner = Banner.objects.create(title="Doomed")
+        response = self.client.post(f"/dashboard/banners/{banner.pk}/delete/")
+        self.assertRedirects(response, "/dashboard/banners/")
+        self.assertFalse(Banner.objects.filter(pk=banner.pk).exists())
+
+    def test_banner_search_matches_title(self):
+        Banner.objects.create(title="Summer Sale")
+        Banner.objects.create(title="عرض خاص")
+        response = self.client.get("/dashboard/banners/", {"q": "summ"})
+        self.assertContains(response, "Summer Sale")
+        response = self.client.get("/dashboard/banners/", {"q": "عرض"})
+        self.assertContains(response, "عرض خاص")

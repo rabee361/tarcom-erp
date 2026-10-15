@@ -116,6 +116,15 @@ class MaterialViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = MaterialFilter
 
+    def get_queryset(self):
+        # Non-staff callers only ever see the live catalogue; staff keep full
+        # visibility so inactive rows stay editable through the API.
+        qs = Material.objects.select_related("category", "uom", "company").all()
+        user = self.request.user
+        if not (user.is_authenticated and (user.is_staff or user.is_admin)):
+            qs = qs.filter(is_active=True)
+        return qs
+
     @extend_schema(
         tags=["Materials"],
         summary="List the companies used by materials",
@@ -141,11 +150,46 @@ class MaterialViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
+    info=extend_schema(
+        tags=["Contact"],
+        summary="Get site contact info",
+        responses={200: ContactSerializer},
+    ),
+)
+class ContactViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminOrReadOnly]
+
+    @action(detail=False, methods=["get"])
+    def info(self, request):
+        contact = Contact.get_solo()
+        serializer = ContactSerializer(contact, context={"request": request})
+        return Response(serializer.data)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Banners"],
+        summary="Get site banners",
+        responses={200: BannerSerializer(many=True)},
+    ),
+)
+class BannerViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdminOrReadOnly]
+
+    def list(self, request):
+        banners = Banner.objects.filter(is_active=True)
+        serializer = BannerSerializer(banners, context={"request": request}, many=True)
+        return Response(serializer.data)
+
+    
+@extend_schema_view(
     list=extend_schema(tags=["Features"], summary="List featured materials"),
     retrieve=extend_schema(tags=["Features"], summary="Retrieve a featured material"),
 )
 class MaterialFeatureViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Material.objects.filter(is_feature=True).select_related("category", "uom")
+    queryset = Material.objects.filter(is_feature=True, is_active=True).select_related(
+        "category", "uom"
+    )
     serializer_class = FeatureMaterialSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]

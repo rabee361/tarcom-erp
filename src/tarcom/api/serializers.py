@@ -173,9 +173,6 @@ class SignupSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150, required=False, default="")
     last_name = serializers.CharField(max_length=150, required=False, default="")
     phone = serializers.CharField(max_length=20, required=False, default="")
-    user_type = serializers.ChoiceField(
-        choices=UserType.choices, default=UserType.CUSTOMER
-    )
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -185,13 +182,15 @@ class SignupSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        # user_type is deliberately not taken from the request: is_admin is a
+        # plain user_type check, so a self-served "admin" would own the dashboard.
         user = CustomUser.objects.create_user(
             email=validated_data["email"],
             password=validated_data["password"],
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
             phone=validated_data.get("phone", ""),
-            user_type=validated_data.get("user_type", UserType.CUSTOMER),
+            user_type=UserType.CUSTOMER,
             is_verified=False,
         )
         return user
@@ -218,6 +217,10 @@ class LoginSerializer(serializers.Serializer):
             )  ## should be removed
         attrs["user"] = user
         return attrs
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(write_only=True)
 
 
 class SendOtpSerializer(serializers.Serializer):
@@ -418,6 +421,38 @@ class CompanySerializer(serializers.ModelSerializer):
         return url
 
 
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contact
+        fields = ["id", "phone1", "phone2", "email", "address", "created_at", "updated_at"]
+        read_only_fields = fields
+
+
+class BannerSerializer(TranslateModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Banner
+        fields = [
+            "id",
+            "title",
+            "image",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+    @extend_schema_field(serializers.URLField)
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get("request")
+        if request is not None:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
+
+
 class MaterialSerializer(TranslateModelSerializer):
     translation_options = MaterialTranslationOptions
     category_name = serializers.CharField(source="category.name", read_only=True)
@@ -459,10 +494,6 @@ class MaterialSerializer(TranslateModelSerializer):
             "spec_val4",
             "spec_val5",
             "image1",
-            "image2",
-            "image3",
-            "image4",
-            "image5",
             "created_at",
             "updated_at",
         ]
@@ -505,10 +536,6 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "spec_val4",
             "spec_val5",
             "image1",
-            "image2",
-            "image3",
-            "image4",
-            "image5",
             "created_at",
             "updated_at",
             "feature_reason",

@@ -115,6 +115,11 @@ urlpatterns = [
         CompanyDeleteView.as_view(),
         name="company-delete",
     ),
+    path("dashboard/contact/", ContactUpdateView.as_view(), name="contact-edit"),
+    path("dashboard/banners/", BannerListView.as_view(), name="banners-list"),
+    path("dashboard/banners/create/", BannerCreateView.as_view(), name="banner-create"),
+    path("dashboard/banners/<int:pk>/edit/", BannerUpdateView.as_view(), name="banner-edit"),
+    path("dashboard/banners/<int:pk>/delete/", BannerDeleteView.as_view(), name="banner-delete"),
     path("dashboard/orders/", OrderListView.as_view(), name="orders-list"),
     path("dashboard/orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
     path(

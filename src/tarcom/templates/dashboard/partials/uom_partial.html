@@ -3,7 +3,7 @@
     <td>{{ unit.name_ar }}</td>
     <td>{{ unit.code }}</td>
     <td>{{ unit.materials.count }}</td>
-    <td>
+    <td onclick="event.stopPropagation();">
         <div class="row-actions">
             <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'unit-delete' unit.pk %}" data-object-name="{{ unit }}" title="حذف" aria-label="حذف {{ unit }}">🗑️</button>
         </div>

@@ -111,6 +111,26 @@
                         </div>
                     </div>
 
+                    <!-- Contact Info -->
+                    <div class="nav-item">
+                        <a href="{% url 'contact-edit' %}">
+                            <div class="nav-header">
+                                <i class="fa-solid fa-address-book"></i>
+                                <span>معلومات التواصل</span>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <!-- Banner -->
+                    <div class="nav-item">
+                        <a href="{% url 'banners-list' %}">
+                            <div class="nav-header">
+                                <i class="fa-solid fa-image"></i>
+                                <span>البانر</span>
+                            </div>
+                        </a>
+                    </div>
+
                     <!-- Logout -->
                     <div class="nav-item">
                         <form action="{% url 'logout' %}" method="post" id="logout-form">

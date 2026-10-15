@@ -267,25 +267,36 @@ class MaterialListFilterTest(TestCase):
         found = self.client.get(f"{self.url}?search=Fancy")
         self.assertEqual([m["id"] for m in found.data["results"]], [self.pricey.id])
 
+        # Anonymous callers never see inactive rows, whatever the filter says.
         inactive = self.client.get(f"{self.url}?is_active=false")
-        self.assertEqual([m["id"] for m in inactive.data["results"]], [self.retired.id])
+        self.assertEqual(inactive.data["results"], [])
 
         active = self.client.get(f"{self.url}?is_active=true")
         self.assertEqual(
             {m["id"] for m in active.data["results"]}, {self.cheap.id, self.pricey.id}
         )
 
+    def test_staff_can_still_list_inactive_materials(self):
+        staff = CustomUser.objects.create_user(
+            email="staff@tarcom.com", password="StaffPass123!", is_staff=True
+        )
+        self.client.force_authenticate(user=staff)
+        response = self.client.get(f"{self.url}?is_active=false")
+        self.assertEqual(
+            [m["id"] for m in response.data["results"]], [self.retired.id]
+        )
+
     def test_ordering_by_consumer_price(self):
         ascending = self.client.get(f"{self.url}?ordering=consumer_price")
         self.assertEqual(
             [m["id"] for m in ascending.data["results"]],
-            [self.retired.id, self.cheap.id, self.pricey.id],
+            [self.cheap.id, self.pricey.id],
         )
 
         descending = self.client.get(f"{self.url}?ordering=-consumer_price")
         self.assertEqual(
             [m["id"] for m in descending.data["results"]],
-            [self.pricey.id, self.cheap.id, self.retired.id],
+            [self.pricey.id, self.cheap.id],
         )
 
     def test_malformed_category_is_rejected_with_400(self):
@@ -331,12 +342,14 @@ class MaterialListFilterTest(TestCase):
         )
 
     def test_spec_val_alone_matches_any_slot(self):
-        Material.objects.filter(pk=self.retired.pk).update(
+        # The anonymous listing hides inactive rows, so the spec fixture must
+        # live on an active material.
+        Material.objects.filter(pk=self.cheap.pk).update(
             spec_key2="Storage", spec_val2="512GB"
         )
 
         by_val = self.client.get(f"{self.url}?spec_val3=512")
-        self.assertEqual([m["id"] for m in by_val.data["results"]], [self.retired.id])
+        self.assertEqual([m["id"] for m in by_val.data["results"]], [self.cheap.id])
 
     def test_spec_filters_combine_with_category(self):
         other = MaterialCategory.objects.create(name="Clothing")

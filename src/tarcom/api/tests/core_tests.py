@@ -353,7 +353,7 @@ class MaterialAPITest(TestCase):
         self.assertEqual(res_materials.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_materials.data["results"]), 1)
         self.assertEqual(res_materials.data["results"][0]["category_name"], "Devices")
-        self.assertEqual(res_materials.data["results"][0]["`uom_name`"], "Piece")
+        self.assertEqual(res_materials.data["results"][0]["uom_name"], "Piece")
         self.assertEqual(res_materials.data["results"][0]["company_detail"]["name"], "Phone Co")
 
     def test_materials_companies_action(self):
@@ -437,6 +437,23 @@ class MaterialAPITest(TestCase):
         res_active = self.client.get("/api/materials/?is_active=true")
         self.assertEqual(res_active.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_active.data["results"]), 1)
+
+    def test_anonymous_cannot_view_inactive_material(self):
+        self.material.is_active = False
+        self.material.save()
+        response = self.client.get(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get("/api/materials/")
+        self.assertEqual(len(response.data["results"]), 0)
+
+    def test_staff_can_view_inactive_material(self):
+        self.material.is_active = False
+        self.material.save()
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.get(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get("/api/materials/")
+        self.assertEqual(len(response.data["results"]), 1)
 
     def test_admin_update_material(self):
         self.client.force_authenticate(user=self.admin_user)
@@ -542,6 +559,14 @@ class MaterialFeatureAPITest(TestCase):
         response = self.client.get(f"/api/features/{self.featured.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["feature_reason"], FeatureReason.OFFER)
+
+    def test_features_hide_inactive_materials(self):
+        self.featured.is_active = False
+        self.featured.save()
+        response = self.client.get("/api/features/")
+        self.assertEqual(response.data["results"], [])
+        response = self.client.get(f"/api/features/{self.featured.id}/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_features_endpoint_rejects_writes(self):
         self.client.force_authenticate(user=self.admin_user)

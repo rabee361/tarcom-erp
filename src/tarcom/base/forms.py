@@ -4,7 +4,9 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from tarcom.base.models import (
+    Banner,
     Company,
+    Contact,
     CustomUser,
     Material,
     MaterialCategory,
@@ -205,10 +207,6 @@ class MaterialForm(forms.ModelForm):
             "spec_val5",
             "is_active",
             "image1",
-            "image2",
-            "image3",
-            "image4",
-            "image5",
         ]
         labels = {
             "name_en": _("الاسم بالإنجليزية"),
@@ -232,17 +230,9 @@ class MaterialForm(forms.ModelForm):
             "spec_val5": _("قيمة المواصفة 5"),
             "is_active": _("نشط"),
             "image1": _("الصورة الرئيسية"),
-            "image2": _("صورة إضافية 1"),
-            "image3": _("صورة إضافية 2"),
-            "image4": _("صورة إضافية 3"),
-            "image5": _("صورة إضافية 4"),
         }
         widgets = {
             "image1": forms.ClearableFileInput(attrs={"accept": "image/*"}),
-            "image2": forms.ClearableFileInput(attrs={"accept": "image/*"}),
-            "image3": forms.ClearableFileInput(attrs={"accept": "image/*"}),
-            "image4": forms.ClearableFileInput(attrs={"accept": "image/*"}),
-            "image5": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -263,6 +253,35 @@ class CompanyForm(forms.ModelForm):
         }
         widgets = {
             "logo": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+        }
+
+
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        fields = ["phone1", "phone2", "email", "address"]
+        labels = {
+            "phone1": _("رقم الهاتف الأول"),
+            "phone2": _("رقم الهاتف الثاني"),
+            "email": _("البريد الإلكتروني"),
+            "address": _("العنوان"),
+        }
+        widgets = {
+            "address": forms.Textarea(attrs={"rows": 4}),
+        }
+
+
+class BannerForm(forms.ModelForm):
+    class Meta:
+        model = Banner
+        fields = ["title", "image", "is_active"]
+        labels = {
+            "title": _("العنوان"),
+            "image": _("الصورة"),
+            "is_active": _("نشط"),
+        }
+        widgets = {
+            "image": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
 
 

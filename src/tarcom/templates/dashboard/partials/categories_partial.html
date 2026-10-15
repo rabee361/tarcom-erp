@@ -9,7 +9,7 @@
     </td>
     <td>{{ category.name_ar }}</td>
     <td>{{ category.materials.count }}</td>
-    <td>
+    <td onclick="event.stopPropagation();">
         <div class="row-actions">
             <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'category-delete' category.pk %}" data-object-name="{{ category.name_ar }}">🗑️</button>
         </div>

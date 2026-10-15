@@ -2044,22 +2044,6 @@ components:
           type: string
           format: uri
           nullable: true
-        image2:
-          type: string
-          format: uri
-          nullable: true
-        image3:
-          type: string
-          format: uri
-          nullable: true
-        image4:
-          type: string
-          format: uri
-          nullable: true
-        image5:
-          type: string
-          format: uri
-          nullable: true
         created_at:
           type: string
           format: date-time

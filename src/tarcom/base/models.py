@@ -215,10 +215,6 @@ class Material(TimeStampModel):
     spec_val5 = models.CharField(max_length=100, blank=True, null=True)
 
     image1 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
-    image2 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
-    image3 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
-    image4 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
-    image5 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -226,6 +222,213 @@ class Material(TimeStampModel):
     def __str__(self):
         return self.name
 
+
+# ==========================================
+# 5. System Configuration
+# ==========================================
+
+
+class Contact(TimeStampModel):
+    phone1 = models.CharField(max_length=20)
+    phone2 = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
+    address = models.TextField()
+
+    class Meta:
+        verbose_name = _("Contact")
+        verbose_name_plural = _("Contacts")
+
+    def __str__(self):
+        return self.email or self.phone1
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        if self._state.adding and self.created_at is None:
+            existing = Contact.objects.filter(pk=self.pk).first()
+            if existing is not None:
+                # With pk set, Django UPDATEs the existing row and would write
+                # created_at=NULL for an unsaved instance, hitting NOT NULL.
+                self.created_at = existing.created_at
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Setting(TimeStampModel):
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["key"]
+
+    def __str__(self):
+        return self.key
+
+
+class Banner(TimeStampModel):
+    title = models.CharField(max_length=100)
+    image = VersatileImageField(upload_to="images/banners", null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title
+
+# ==========================================
+# 6. Orders & Order Items
+# ==========================================
+
+
+class Order(TimeStampModel):
+    order_number = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        editable=False,
+    )
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.PROTECT,
+        related_name="orders",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=OrderStatus.choices,
+        default=OrderStatus.PENDING,
+        db_index=True,
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.UNPAID,
+    )
+    shipping_address = models.TextField(blank=True)
+    shipping_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        validators=[PhoneNumberValidator],
+    )
+    notes = models.TextField(blank=True)
+    subtotal = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    total_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Order #{self.order_number} ({self.user.email})"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            for _ in range(5):
+                candidate = f"ORD-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+                if not Order.objects.filter(order_number=candidate).exists():
+                    self.order_number = candidate
+                    break
+        super().save(*args, **kwargs)
+
+    def calculate_totals(self, save_instance=True):
+        """
+        Recalculates subtotal and total_amount based on associated OrderItems.
+        """
+        items = self.items.all()
+        self.subtotal = (
+            sum(item.line_total for item in items)
+            if items.exists()
+            else Decimal("0.00")
+        )
+        self.total_amount = max(
+            Decimal("0.00"), self.subtotal - (self.discount_amount or Decimal("0.00"))
+        )
+        if save_instance and self.pk:
+            self.save(update_fields=["subtotal", "total_amount"])
+        return self.total_amount
+
+
+class OrderItem(TimeStampModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.PROTECT,
+        related_name="order_items",
+    )
+    quantity = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0.001"))],
+    )
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    line_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    class Meta:
+        unique_together = ("order", "material")
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.material.name} x {self.quantity} ({self.order.order_number})"
+
+    def clean(self):
+        if self.quantity is not None and self.quantity <= 0:
+            raise ValidationError(
+                {"quantity": _("Quantity must be greater than zero.")}
+            )
+        if self.unit_price is not None and self.unit_price < 0:
+            raise ValidationError({"unit_price": _("Unit price cannot be negative.")})
+        if self.discount_amount is not None and self.discount_amount < 0:
+            raise ValidationError(
+                {"discount_amount": _("Discount amount cannot be negative.")}
+            )
+
+    def save(self, *args, **kwargs):
+        if not self.unit_price and self.material:
+            self.unit_price = self.material.consumer_price or Decimal("0.00")
+
+        qty = self.quantity or Decimal("0.000")
+        price = self.unit_price or Decimal("0.00")
+        disc = self.discount_amount or Decimal("0.00")
+        self.line_total = max(Decimal("0.00"), (qty * price) - disc)
+
+        super().save(*args, **kwargs)
+        if self.order_id:
+            self.order.calculate_totals()
+
+    def delete(self, *args, **kwargs):
+        order = self.order
+        super().delete(*args, **kwargs)
+        if order:
+            order.calculate_totals()
 
 #     name = models.CharField(max_length=100)
 #     code = models.CharField(max_length=50, unique=True)
@@ -446,170 +649,3 @@ class Material(TimeStampModel):
 #     def __str__(self):
 #         return f"{self.movement_type} - {self.material.code} ({self.quantity}) at {self.warehouse.code}"
 
-
-# ==========================================
-# 5. System Configuration
-# ==========================================
-
-
-class Setting(TimeStampModel):
-    key = models.CharField(max_length=100, unique=True)
-    value = models.TextField()
-    description = models.TextField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["key"]
-
-    def __str__(self):
-        return self.key
-
-
-# ==========================================
-# 6. Orders & Order Items
-# ==========================================
-
-
-class Order(TimeStampModel):
-    order_number = models.CharField(
-        max_length=64,
-        unique=True,
-        db_index=True,
-        editable=False,
-    )
-    user = models.ForeignKey(
-        CustomUser,
-        on_delete=models.PROTECT,
-        related_name="orders",
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=OrderStatus.choices,
-        default=OrderStatus.PENDING,
-        db_index=True,
-    )
-    payment_method = models.CharField(
-        max_length=20,
-        choices=PaymentMethod.choices,
-        default=PaymentMethod.CASH,
-    )
-    payment_status = models.CharField(
-        max_length=20,
-        choices=PaymentStatus.choices,
-        default=PaymentStatus.UNPAID,
-    )
-    shipping_address = models.TextField(blank=True)
-    shipping_phone = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        validators=[PhoneNumberValidator],
-    )
-    notes = models.TextField(blank=True)
-    subtotal = models.DecimalField(
-        max_digits=12, decimal_places=2, default=Decimal("0.00")
-    )
-    discount_amount = models.DecimalField(
-        max_digits=12, decimal_places=2, default=Decimal("0.00")
-    )
-    total_amount = models.DecimalField(
-        max_digits=12, decimal_places=2, default=Decimal("0.00")
-    )
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"Order #{self.order_number} ({self.user.email})"
-
-    def save(self, *args, **kwargs):
-        if not self.order_number:
-            for _ in range(5):
-                candidate = f"ORD-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
-                if not Order.objects.filter(order_number=candidate).exists():
-                    self.order_number = candidate
-                    break
-        super().save(*args, **kwargs)
-
-    def calculate_totals(self, save_instance=True):
-        """
-        Recalculates subtotal and total_amount based on associated OrderItems.
-        """
-        items = self.items.all()
-        self.subtotal = (
-            sum(item.line_total for item in items)
-            if items.exists()
-            else Decimal("0.00")
-        )
-        self.total_amount = max(
-            Decimal("0.00"), self.subtotal - (self.discount_amount or Decimal("0.00"))
-        )
-        if save_instance and self.pk:
-            self.save(update_fields=["subtotal", "total_amount"])
-        return self.total_amount
-
-
-class OrderItem(TimeStampModel):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
-    material = models.ForeignKey(
-        Material,
-        on_delete=models.PROTECT,
-        related_name="order_items",
-    )
-    quantity = models.DecimalField(
-        max_digits=12,
-        decimal_places=3,
-        validators=[MinValueValidator(Decimal("0.001"))],
-    )
-    unit_price = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00"),
-    )
-    discount_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00"),
-    )
-    line_total = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00"),
-    )
-
-    class Meta:
-        unique_together = ("order", "material")
-        ordering = ["id"]
-
-    def __str__(self):
-        return f"{self.material.name} x {self.quantity} ({self.order.order_number})"
-
-    def clean(self):
-        if self.quantity is not None and self.quantity <= 0:
-            raise ValidationError(
-                {"quantity": _("Quantity must be greater than zero.")}
-            )
-        if self.unit_price is not None and self.unit_price < 0:
-            raise ValidationError({"unit_price": _("Unit price cannot be negative.")})
-        if self.discount_amount is not None and self.discount_amount < 0:
-            raise ValidationError(
-                {"discount_amount": _("Discount amount cannot be negative.")}
-            )
-
-    def save(self, *args, **kwargs):
-        if not self.unit_price and self.material:
-            self.unit_price = self.material.consumer_price or Decimal("0.00")
-
-        qty = self.quantity or Decimal("0.000")
-        price = self.unit_price or Decimal("0.00")
-        disc = self.discount_amount or Decimal("0.00")
-        self.line_total = max(Decimal("0.00"), (qty * price) - disc)
-
-        super().save(*args, **kwargs)
-        if self.order_id:
-            self.order.calculate_totals()
-
-    def delete(self, *args, **kwargs):
-        order = self.order
-        super().delete(*args, **kwargs)
-        if order:
-            order.calculate_totals()

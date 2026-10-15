@@ -13,6 +13,8 @@ router.register(r"features", MaterialFeatureViewSet, basename="features")
 router.register(r"categories", MaterialCategoryViewSet, basename="categories")
 router.register(r"units", UnitOfMeasureViewSet, basename="units")
 router.register(r"settings", SettingsViewSet, basename="settings")
+router.register(r"contact", ContactViewSet, basename="contact")
+router.register(r"banners", BannerViewSet, basename="banners")
 router.register(r"favourites", FavouriteViewSet, basename="favourites")
 router.register(r"orders", OrderViewSet, basename="orders")
 

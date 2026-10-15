@@ -1,0 +1,21 @@
+{% for banner in banners %}
+<tr onclick="clickHandler(event)" data-link="{% url 'banner-edit' banner.pk %}">
+    <td>
+        {% if banner.image %}
+            <img src="{{ banner.image.crop.40x40 }}" alt="{{ banner.title }}" width="40" height="40">
+        {% else %}
+            -
+        {% endif %}
+    </td>
+    <td>{{ banner.title }}</td>
+    <td onclick="event.stopPropagation();">
+        <div class="row-actions">
+            <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'banner-delete' banner.pk %}" data-object-name="{{ banner.title }}">🗑️</button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3">لا توجد بانرات.</td>
+</tr>
+{% endfor %}

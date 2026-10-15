@@ -121,6 +121,29 @@ class AuthViewSet(viewsets.GenericViewSet):
 
     @extend_schema(
         tags=["Auth"],
+        request=LogoutSerializer,
+        responses={200: MessageResponseSerializer, 400: ErrorResponseSerializer},
+        summary="Log out",
+        description=(
+            "Blacklists the provided refresh token so it can no longer mint access "
+            "tokens. The current access token stays valid until it expires "
+            "(stateless JWT) — keep its lifetime short."
+        ),
+    )
+    @action(detail=False, methods=["post"], url_path="logout", url_name="logout")
+    def logout(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            RefreshToken(serializer.validated_data["refresh"]).blacklist()
+        except TokenError:
+            raise ValidationError(
+                {"non_field_errors": [_("Invalid or expired refresh token.")]}
+            )
+        return Response({"message": _("Logged out successfully.")})
+
+    @extend_schema(
+        tags=["Auth"],
         request=TokenRefreshSerializer,
         responses={
             200: TokenRefreshResponseSerializer,

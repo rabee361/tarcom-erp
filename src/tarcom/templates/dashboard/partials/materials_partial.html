@@ -17,7 +17,7 @@
             {% if material.is_active %}نشط{% else %}موقوف{% endif %}
         </span>
     </td>
-    <td>
+    <td onclick="event.stopPropagation();">
         <div class="row-actions">
             <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'material-delete' material.pk %}" data-object-name="{{ material.name_ar }}" title="حذف" aria-label="حذف {{ material.name_ar }}">🗑️</button>
         </div>

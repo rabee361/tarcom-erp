@@ -352,6 +352,68 @@ class CompanyDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     deleted_message = "تم حذف الشركة بنجاح."
 
 
+class ContactUpdateView(StaffRequiredMixin, UpdateView):
+    model = Contact
+    form_class = ContactForm
+    template_name = "dashboard/contact/contact_form.html"
+    success_url = reverse_lazy("contact-edit")
+
+    def get_object(self, queryset=None):
+        return Contact.get_solo()
+
+    def form_valid(self, form):
+        messages.success(self.request, "تم حفظ معلومات التواصل بنجاح.")
+        return super().form_valid(form)
+
+
+class BannerListView(StaffRequiredMixin, ListView):
+    model = Banner
+    template_name = "dashboard/banners/banners_list.html"
+    context_object_name = "banners"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = Banner.objects.all().order_by("-created_at")
+        if self.request.htmx:
+            self.template_name = "dashboard/partials/banners_partial.html"
+        if self.request.GET.get("q"):
+            q = self.request.GET.get("q")
+            qs = qs.filter(
+                Q(title__icontains=q)
+            )
+        return qs
+
+
+class BannerCreateView(StaffRequiredMixin, CreateView):
+    model = Banner
+    form_class = BannerForm
+    template_name = "dashboard/banners/banner_form.html"
+    success_url = reverse_lazy("banners-list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "تم إضافة البانر بنجاح.")
+        return super().form_valid(form)
+
+
+class BannerUpdateView(StaffRequiredMixin, UpdateView):
+    model = Banner
+    form_class = BannerForm
+    template_name = "dashboard/banners/banner_form.html"
+    success_url = reverse_lazy("banners-list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "تم تعديل البانر بنجاح.")
+        return super().form_valid(form)
+
+
+class BannerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
+    model = Banner
+    http_method_names = ["post"]
+    success_url = reverse_lazy("banners-list")
+    protected_message = "لا يمكن حذف البانر لارتباطه ببيانات أخرى في النظام."
+    deleted_message = "تم حذف البانر بنجاح."
+
+
 class OrderListView(StaffRequiredMixin, ListView):
     model = Order
     template_name = "dashboard/orders/orders_list.html"

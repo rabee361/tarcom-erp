@@ -9,7 +9,7 @@
         {% endif %}
     </td>
     <td>{{ company.name }}</td>
-    <td>
+    <td onclick="event.stopPropagation();">
         <div class="row-actions">
             <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'company-delete' company.pk %}" data-object-name="{{ company.name }}">🗑️</button>
         </div>
