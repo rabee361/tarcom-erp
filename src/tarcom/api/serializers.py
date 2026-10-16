@@ -31,18 +31,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    """
-    Allowed fields for the authenticated user's own profile (`/api/users/me/`).
-    Includes avatar format and file size validation (<= 2MB).
-    """
-
     class Meta:
         model = CustomUser
         fields = ["first_name", "last_name", "phone", "avatar"]
 
     def validate_avatar(self, value):
         if value:
-            # 2MB size limit
             if value.size > 2 * 1024 * 1024:
                 raise serializers.ValidationError(_("Avatar size cannot exceed 2MB."))
             allowed_extensions = (".jpg", ".jpeg", ".png", ".webp", ".jfif")
@@ -54,11 +48,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    """
-    Serializer for authenticated user changing password.
-    Requires current password confirmation and new password validation.
-    """
-
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(
         required=True, write_only=True, validators=[validate_password]
@@ -109,8 +98,6 @@ class AccountDeactivateSerializer(serializers.Serializer):
 
 
 class MessageResponseSerializer(serializers.Serializer):
-    """Standard informational response: {"message": "..."}"""
-
     message = serializers.CharField()
     email_sent = serializers.BooleanField(
         required=False,
@@ -134,8 +121,6 @@ class TokenPairSerializer(serializers.Serializer):
 
 
 class TokenResponseSerializer(serializers.Serializer):
-    """JWT payload returned by login and signup verification."""
-
     tokens = TokenPairSerializer()
     user = UserSerializer()
     message = serializers.CharField(required=False)
@@ -147,11 +132,6 @@ class TokenRefreshResponseSerializer(serializers.Serializer):
 
 
 class VerifyOtpResponseSerializer(serializers.Serializer):
-    """
-    Verify-OTP response.
-    SIGNUP flow returns `tokens` + `user`; password flows return a signed `reset_token`.
-    """
-
     message = serializers.CharField()
     tokens = TokenPairSerializer(required=False)
     user = UserSerializer(required=False)
@@ -159,8 +139,6 @@ class VerifyOtpResponseSerializer(serializers.Serializer):
 
 
 class ErrorResponseSerializer(serializers.Serializer):
-    """Standard envelope returned for every DRF error response."""
-
     status = serializers.CharField()
     code = serializers.IntegerField()
     message = serializers.CharField()

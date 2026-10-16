@@ -98,6 +98,11 @@ class MaterialCategoryViewSet(ProtectedDeleteMixin, viewsets.ModelViewSet):
         "This category cannot be deleted because products reference it."
     )
 
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().is_system:
+            raise DRFValidationError({"non_field_errors": [_("System categories cannot be deleted.")]})
+        return super().destroy(request, *args, **kwargs)
+
 
 @extend_schema_view(
     list=extend_schema(tags=["Materials"], summary="List materials"),

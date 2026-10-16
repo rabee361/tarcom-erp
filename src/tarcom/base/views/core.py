@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -259,6 +260,15 @@ class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("categories-list")
     protected_message = "لا يمكن حذف التصنيف لارتباطه بمنتجات في النظام."
     deleted_message = "تم حذف التصنيف بنجاح."
+    system_message = "لا يمكن حذف هذا التصنيف لأنه من تصنيفات النظام الأساسية."
+
+    def form_valid(self, form):
+        if self.object.is_system:
+            if self.is_ajax_request():
+                return JsonResponse({"ok": False, "message": self.system_message})
+            messages.error(self.request, self.system_message)
+            return redirect(self.success_url)
+        return super().form_valid(form)
 
 
 class UnitListView(StaffRequiredMixin, ListView):

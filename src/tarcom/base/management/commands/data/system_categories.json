@@ -1,0 +1,32 @@
+[
+    {
+        "internal_name": "laptops",
+        "name_en": "Laptops",
+        "name_ar": "لابتوبات",
+        "image": "laptop.jpg"
+    },
+    {
+        "internal_name": "batteries",
+        "name_en": "Batteries",
+        "name_ar": "بطاريات",
+        "image": "batteries.jpg"
+    },
+    {
+        "internal_name": "solar_boards",
+        "name_en": "Solar Boards",
+        "name_ar": "ألواح الطاقة الشمسية",
+        "image": "solar_panels.jpg"
+    },
+    {
+        "internal_name": "cables",
+        "name_en": "Cables",
+        "name_ar": "كابلات",
+        "image": "usb_cable.jpg"
+    },
+    {
+        "internal_name": "home_tech",
+        "name_en": "Home Tech",
+        "name_ar": "الأجهزة المنزلية الذكية",
+        "image": "home_tech.jpg"
+    }
+]

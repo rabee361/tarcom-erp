@@ -76,3 +76,29 @@ class DashboardProtectedDeleteTest(TestCase):
         payload = response.json()
         self.assertFalse(payload["ok"])
         self.assertTrue(CustomUser.objects.filter(pk=self.staff.pk).exists())
+
+    def test_system_category_delete_is_blocked_with_a_message(self):
+        system = MaterialCategory.objects.create(name="System Cat", is_system=True)
+        url = f"/dashboard/categories/{system.pk}/delete/"
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(MaterialCategory.objects.filter(pk=system.pk).exists())
+        followed = self.client.get(response["Location"])
+        self.assertEqual(followed.status_code, 200)
+        self.assertContains(followed, "من تصنيفات النظام الأساسية")
+
+    def test_ajax_delete_of_system_category_returns_error_json(self):
+        system = MaterialCategory.objects.create(name="System Cat", is_system=True)
+        url = f"/dashboard/categories/{system.pk}/delete/"
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertFalse(payload["ok"])
+        self.assertTrue(payload["message"].startswith("لا يمكن حذف"))
+        self.assertTrue(MaterialCategory.objects.filter(pk=system.pk).exists())
+
+    def test_non_system_category_still_deletes(self):
+        free = MaterialCategory.objects.create(name="Free Cat")
+        response = self.client.post(f"/dashboard/categories/{free.pk}/delete/")
+        self.assertRedirects(response, "/dashboard/categories/")
+        self.assertFalse(MaterialCategory.objects.filter(pk=free.pk).exists())

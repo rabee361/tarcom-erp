@@ -1,28 +1,29 @@
 """Seed the database with deterministic fake data for local development.
 
-Tarcom is an electronics marketplace, so this seeds the 5 real storefront
-categories (Laptops, Batteries, Solar Boards, Cables, Home Tech) -- each
-seeded with its cover image uploaded into media storage -- plus the units of
-measure they reference, 10 companies (each assigned one of the 4 static brand
-logos at random until the real logos are added), 10 materials linked to those
-companies with every spec key/value pair filled, 2 active users (one customer,
-one supplier -- every non-admin type), and 3 orders per user with 1-2 line
-items each. No OTP codes are generated; the users are marked verified and
-active so they can log in immediately.
+The storefront categories and companies come from data/system_categories.json
+and data/system_companies.json (shared with populate_prod_db); categories
+seeded from there are flagged is_system=True with their stable internal_name.
+On top of that this seeds the units of measure the materials reference, 10
+materials linked to those categories/companies with every spec key/value pair
+filled, 2 active users (one customer, one supplier -- every non-admin type),
+and 3 orders per user with 1-2 line items each. No OTP codes are generated;
+the users are marked verified and active so they can log in immediately.
 
 Run:  python manage.py populate_db            (idempotent, safe to re-run)
       python manage.py populate_db --flush    (wipe seeded rows first)
       python manage.py populate_db --seed 7   (different but reproducible data)
 """
 
+import json
 import random
 from decimal import Decimal
 from pathlib import Path
 
 from django.conf import settings
 from django.core.files import File
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 
 from tarcom.base.models import (
     Company,
@@ -42,6 +43,8 @@ from tarcom.utils.enums import (
 
 PASSWORD = "Passw0rd!123"
 
+DATA_DIR = Path(__file__).resolve().parent / "data"
+
 COVER_DIR = (
     Path(settings.BASE_DIR)
     / "base"
@@ -52,8 +55,6 @@ COVER_DIR = (
     / "covers"
 )
 
-# Only these 4 brand logos exist so far; they are assigned randomly to the
-# seeded companies until the real company logos replace them.
 LOGO_DIR = (
     Path(settings.BASE_DIR)
     / "base"
@@ -63,20 +64,13 @@ LOGO_DIR = (
     / "companies"
 )
 
+# Only these 4 brand logos exist so far; they are assigned randomly to
+# companies without an explicit JSON logo until the real logos are added.
 LOGO_FILES = ["DELL.png", "acer.png", "asus.png", "lenovo.png"]
 
 UNITS = [
     ("EA", "Each", "حبة"),
     ("BX", "Box", "صندوق"),
-]
-
-# (name_en, name_ar, cover image filename)
-CATEGORIES = [
-    ("Laptops", "لابتوبات", "laptop.jpg"),
-    ("Batteries", "بطاريات", "batteries.jpg"),
-    ("Solar Boards", "ألواح الطاقة الشمسية", "solar_panels.jpg"),
-    ("Cables", "كابلات", "usb_cable.jpg"),
-    ("Home Tech", "الأجهزة المنزلية الذكية", "home_tech.jpg"),
 ]
 
 MATERIALS = [
@@ -86,7 +80,7 @@ MATERIALS = [
         "company": "Dell",
         "desc_en": "15.6-inch OLED creator laptop with 13th-gen Intel Core i7.",
         "desc_ar": "لابتوب بشاشة OLED مقاس 15.6 بوصة للمبدعين بمعالج إنتل كور i7 من الجيل الثالث عشر.",
-        "category": 0,
+        "category": "laptops",
         "uom": "EA",
         "supplier_price": "900.00",
         "consumer_price": "1200.00",
@@ -104,7 +98,7 @@ MATERIALS = [
         "company": "Apple",
         "desc_en": "Thin and light 13.6-inch laptop powered by the Apple M3 chip.",
         "desc_ar": "لابتوب نحيف وخفيف بشاشة 13.6 بوصة يعمل بشريحة أبل M3.",
-        "category": 0,
+        "category": "laptops",
         "uom": "EA",
         "supplier_price": "850.00",
         "consumer_price": "1100.00",
@@ -122,7 +116,7 @@ MATERIALS = [
         "company": "LG Chem",
         "desc_en": "High-drain rechargeable 18650 lithium-ion cell, sold in boxes.",
         "desc_ar": "خلية ليثيوم أيون قابلة لإعادة الشحن عالية التصريف 18650، تُباع بالصندوق.",
-        "category": 1,
+        "category": "batteries",
         "uom": "BX",
         "supplier_price": "2.00",
         "consumer_price": "4.00",
@@ -140,7 +134,7 @@ MATERIALS = [
         "company": "Exide",
         "desc_en": "AGM lead-acid deep-cycle battery for solar and backup systems.",
         "desc_ar": "بطارية حمضية AGM عميقة التفريغ لأنظمة الطاقة الشمسية والأنظمة الاحتياطية.",
-        "category": 1,
+        "category": "batteries",
         "uom": "EA",
         "supplier_price": "120.00",
         "consumer_price": "180.00",
@@ -158,7 +152,7 @@ MATERIALS = [
         "company": "Canadian Solar",
         "desc_en": "200-watt monocrystalline solar panel with high cell efficiency.",
         "desc_ar": "لوح طاقة شمسية أحادي التبلور بقدرة 200 واط بكفاءة خلايا عالية.",
-        "category": 2,
+        "category": "solar_boards",
         "uom": "EA",
         "supplier_price": "90.00",
         "consumer_price": "140.00",
@@ -176,7 +170,7 @@ MATERIALS = [
         "company": "Victron Energy",
         "desc_en": "30-amp MPPT solar charge controller with auto system voltage.",
         "desc_ar": "منظم شحن شمسي بتقنية MPPT بتيار 30 أمبير مع جهد نظام تلقائي.",
-        "category": 2,
+        "category": "solar_boards",
         "uom": "EA",
         "supplier_price": "35.00",
         "consumer_price": "60.00",
@@ -194,7 +188,7 @@ MATERIALS = [
         "company": "Anker",
         "desc_en": "Braided 100W power-delivery USB-C cable with USB 3.2 data.",
         "desc_ar": "كابل USB-C مضفر باستطاعة 100 واط للشحن السريع مع نقل بيانات USB 3.2.",
-        "category": 3,
+        "category": "cables",
         "uom": "EA",
         "supplier_price": "1.50",
         "consumer_price": "4.00",
@@ -212,7 +206,7 @@ MATERIALS = [
         "company": "Ugreen",
         "desc_en": "Ultra-high-speed HDMI 2.1 cable supporting 8K at 60Hz.",
         "desc_ar": "كابل HDMI 2.1 فائق السرعة يدعم دقة 8K بمعدل 60 هرتز.",
-        "category": 3,
+        "category": "cables",
         "uom": "EA",
         "supplier_price": "3.00",
         "consumer_price": "7.00",
@@ -230,7 +224,7 @@ MATERIALS = [
         "company": "LG",
         "desc_en": "Wi-Fi enabled split inverter air conditioner, 18000 BTU.",
         "desc_ar": "مكيف هواء سبليت انفرتر يدعم الواي فاي، 18000 وحدة حرارية.",
-        "category": 4,
+        "category": "home_tech",
         "uom": "EA",
         "supplier_price": "400.00",
         "consumer_price": "600.00",
@@ -248,7 +242,7 @@ MATERIALS = [
         "company": "Samsung",
         "desc_en": "500-litre frost-free smart refrigerator with touch display.",
         "desc_ar": "ثلاجة ذكية بسعة 500 لتر بدون ثلج مع شاشة تعمل باللمس.",
-        "category": 4,
+        "category": "home_tech",
         "uom": "EA",
         "supplier_price": "700.00",
         "consumer_price": "1000.00",
@@ -272,6 +266,96 @@ ADDRESSES = [
     "45 Nile Corniche, Aleppo",
     "7 Garden Square, Homs",
 ]
+
+
+def load_system_data(filename):
+    path = DATA_DIR / filename
+    try:
+        with path.open(encoding="utf-8") as f:
+            entries = json.load(f)
+    except FileNotFoundError:
+        raise CommandError(f"Missing seed file: {path}") from None
+    except json.JSONDecodeError as exc:
+        raise CommandError(f"{filename} is not valid JSON: {exc}") from None
+    if not isinstance(entries, list) or not entries:
+        raise CommandError(f"{filename} must be a non-empty JSON list.")
+    return entries
+
+
+def _validate_entries(entries, filename, required):
+    seen = {key: set() for key in required}
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            raise CommandError(f"{filename} entry #{index} must be a JSON object.")
+        missing = [key for key in required if not str(entry.get(key, "")).strip()]
+        if missing:
+            raise CommandError(
+                f"{filename} entry #{index} is missing: {', '.join(missing)}"
+            )
+        for key in required:
+            value = entry[key]
+            if value in seen[key]:
+                raise CommandError(f"{filename} has a duplicate {key}: {value!r}")
+            seen[key].add(value)
+
+
+def seed_system_categories():
+    """Create or sync the system categories from data/system_categories.json.
+
+    Rows are matched by internal_name, falling back to name_en so a category
+    that already exists (e.g. seeded before internal_name was introduced) is
+    adopted instead of colliding with the unique name constraint. The JSON is
+    the source of truth: every run rewrites the display names and re-flags
+    the row is_system=True. Returns the categories keyed by internal_name.
+    """
+    filename = "system_categories.json"
+    entries = load_system_data(filename)
+    _validate_entries(entries, filename, ["internal_name", "name_en", "name_ar"])
+
+    categories = {}
+    for entry in entries:
+        category = MaterialCategory.objects.filter(
+            Q(internal_name=entry["internal_name"]) | Q(name_en=entry["name_en"])
+        ).first()
+        if category is None:
+            category = MaterialCategory(internal_name=entry["internal_name"])
+        category.name = entry["name_en"]
+        category.name_en = entry["name_en"]
+        category.name_ar = entry["name_ar"]
+        category.internal_name = entry["internal_name"]
+        category.is_system = True
+        category.save()
+        if not category.image and entry.get("image"):
+            image_path = COVER_DIR / entry["image"]
+            if image_path.exists():
+                with image_path.open("rb") as f:
+                    category.image.save(entry["image"], File(f), save=True)
+        categories[entry["internal_name"]] = category
+    return categories
+
+
+def seed_system_companies(rng):
+    """Create the companies from data/system_companies.json, keyed by name.
+
+    Companies with an explicit "logo" in the JSON get that static brand logo
+    uploaded; the rest get one of the placeholder logos at random until the
+    real logos are added. Already-uploaded logos are never overwritten.
+    """
+    filename = "system_companies.json"
+    entries = load_system_data(filename)
+    _validate_entries(entries, filename, ["name"])
+
+    companies = {}
+    for entry in entries:
+        company, _ = Company.objects.get_or_create(name=entry["name"])
+        if not company.has_uploaded_logo:
+            logo_filename = entry.get("logo") or rng.choice(LOGO_FILES)
+            logo_path = LOGO_DIR / logo_filename
+            if logo_path.exists():
+                with logo_path.open("rb") as f:
+                    company.logo.save(logo_filename, File(f), save=True)
+        companies[entry["name"]] = company
+    return companies
 
 
 class Command(BaseCommand):
@@ -298,7 +382,7 @@ class Command(BaseCommand):
             self._flush()
 
         uoms = self._seed_uoms()
-        categories = self._seed_categories()
+        categories = seed_system_categories()
         companies = self._seed_companies(rng)
         materials = self._seed_materials(uoms, categories, companies)
         users = self._seed_users()
@@ -332,38 +416,16 @@ class Command(BaseCommand):
             uoms[code] = uom
         return uoms
 
-    def _seed_categories(self):
-        categories = []
-        for name_en, name_ar, image_filename in CATEGORIES:
-            category, _ = MaterialCategory.objects.update_or_create(
-                name_en=name_en,
-                defaults={"name": name_en, "name_ar": name_ar},
-            )
-            if not category.image:
-                image_path = COVER_DIR / image_filename
-                if image_path.exists():
-                    with image_path.open("rb") as f:
-                        category.image.save(image_filename, File(f), save=True)
-            categories.append(category)
-        return categories
-
     def _seed_companies(self, rng):
-        """Create one Company per distinct company string in MATERIALS.
-
-        Companies without a real logo get one of the static brand logos copied
-        into media storage, picked at random.
-        """
-        names = [spec["company"] for spec in MATERIALS]
-        companies = {}
-        for name in names:
-            company, _ = Company.objects.get_or_create(name=name)
-            if not company.has_uploaded_logo:
-                filename = rng.choice(LOGO_FILES)
-                logo_path = LOGO_DIR / filename
-                if logo_path.exists():
-                    with logo_path.open("rb") as f:
-                        company.logo.save(filename, File(f), save=True)
-            companies[name] = company
+        """Seed the companies from system_companies.json, then make sure every
+        company the fake materials reference is actually in that file."""
+        companies = seed_system_companies(rng)
+        missing = sorted({spec["company"] for spec in MATERIALS} - companies.keys())
+        if missing:
+            raise CommandError(
+                "system_companies.json is missing companies referenced by "
+                f"the seed materials: {', '.join(missing)}"
+            )
         return companies
 
     def _seed_materials(self, uoms, categories, companies):

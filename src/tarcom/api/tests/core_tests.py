@@ -279,6 +279,23 @@ class MaterialCategoryAPITest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(MaterialCategory.objects.filter(pk=self.category.pk).exists())
 
+    def test_admin_cannot_delete_system_category(self):
+        MaterialCategory.objects.filter(pk=self.category.pk).update(is_system=True)
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/categories/{self.category.id}/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("System categories cannot be deleted", response.data["message"])
+        self.assertTrue(MaterialCategory.objects.filter(pk=self.category.pk).exists())
+
+    def test_internal_fields_are_not_exposed(self):
+        MaterialCategory.objects.filter(pk=self.category.pk).update(
+            is_system=True, internal_name="electronics"
+        )
+        response = self.client.get(f"/api/categories/{self.category.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("internal_name", response.data)
+        self.assertNotIn("is_system", response.data)
+
     def test_non_admin_cannot_write_categories(self):
         customer = CustomUser.objects.create_user(
             email="customer@example.com", password="StrongPass123!"

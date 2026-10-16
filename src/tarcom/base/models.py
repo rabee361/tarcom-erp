@@ -149,6 +149,8 @@ class UnitConversion(TimeStampModel):
 
 class MaterialCategory(TimeStampModel):
     name = models.CharField(max_length=100, unique=True)
+    internal_name = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    is_system = models.BooleanField(default=False)
     image = VersatileImageField(
         upload_to="images/categories/covers", blank=True, null=True
     )
