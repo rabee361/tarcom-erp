@@ -372,11 +372,12 @@ class MaterialCategorySerializer(TranslateModelSerializer):
             "name",
             "name_en",
             "name_ar",
+            "internal_name",
             "image",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at","internal_name"]
 
 
 class CompanySerializer(serializers.ModelSerializer):

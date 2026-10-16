@@ -91,8 +91,6 @@ class MaterialCategoryFilter(SearchableFilterSet):
         fields = []
 
 
-# Material specs live in five positional (spec_keyN, spec_valN) column pairs.
-SPEC_SLOTS = (1, 2, 3, 4, 5)
 
 SPEC_KEY_HELP = _(
     "Match materials whose specs include this key. Pair it with the same-numbered "
@@ -115,6 +113,11 @@ class MaterialFilter(SearchableFilterSet):
     )
     is_active = django_filters.BooleanFilter(
         help_text=_("Filter by active flag (true/false).")
+    )
+    category_internal_name = django_filters.CharFilter(
+        field_name='category__internal_name', 
+        lookup_expr='icontains',
+        help_text=_("Filter by category internal name.")
     )
     ordering = django_filters.OrderingFilter(
         fields=("consumer_price", "supplier_price", "created_at", "name"),
@@ -161,7 +164,7 @@ class MaterialFilter(SearchableFilterSet):
         # per-slot ANDs together rather than matching key and value independently.
         slot_value = self.data.get(f"spec_val{name[-1]}")
         condition = Q()
-        for slot in SPEC_SLOTS:
+        for slot in (1, 2, 3, 4, 5):
             slot_q = Q(**{f"spec_key{slot}__icontains": value})
             if slot_value:
                 slot_q &= Q(**{f"spec_val{slot}__icontains": slot_value})
@@ -174,7 +177,7 @@ class MaterialFilter(SearchableFilterSet):
         if self.data.get(f"spec_key{name[-1]}"):
             return queryset
         condition = Q()
-        for slot in SPEC_SLOTS:
+        for slot in (1, 2, 3, 4, 5):
             condition |= Q(**{f"spec_val{slot}__icontains": value})
         return queryset.filter(condition)
 
