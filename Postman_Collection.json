@@ -1605,7 +1605,7 @@
                 ""
               ]
             },
-            "description": "Delete (admin/staff).\n\n**Responses:** `204`, `401`/`403`."
+            "description": "Delete (admin/staff). `400` when products reference the category or when it is a system category (`is_system`) installed by the populate commands.\n\n**Responses:** `204`, `400`, `401`/`403`."
           },
           "response": []
         }
