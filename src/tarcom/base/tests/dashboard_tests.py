@@ -96,9 +96,13 @@ class DashboardPageRenderTest(TestCase):
         pages = [
             "/",
             "/dashboard/",
-            "/dashboard/users/",
-            "/dashboard/users/create/",
-            f"/dashboard/users/{self.customer.pk}/edit/",
+            "/dashboard/admins/",
+            "/dashboard/admins/create/",
+            f"/dashboard/admins/{self.customer.pk}/edit/",
+            "/dashboard/customers/",
+            "/dashboard/customers/create/",
+            "/dashboard/suppliers/",
+            "/dashboard/suppliers/create/",
             "/dashboard/materials/",
             "/dashboard/materials/create/",
             f"/dashboard/materials/{self.material.pk}/edit/",
@@ -125,7 +129,7 @@ class DashboardPageRenderTest(TestCase):
 
     def test_delete_pages_reject_get(self):
         urls = [
-            f"/dashboard/users/{self.customer.pk}/delete/",
+            f"/dashboard/admins/{self.customer.pk}/delete/",
             f"/dashboard/materials/{self.material.pk}/delete/",
             f"/dashboard/categories/{self.category.pk}/delete/",
             f"/dashboard/units/{self.uom.pk}/delete/",

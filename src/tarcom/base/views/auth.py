@@ -1,7 +1,9 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import ProtectedError, Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -102,7 +104,7 @@ class DashboardLogoutView(View):
 
 
 class DashboardChangePasswordView(StaffRequiredMixin, View):
-    template_name = "dashboard/users/change_password.html"
+    template_name = "dashboard/change_password.html"
 
     def get(self, request):
         form = DashboardChangePasswordForm(user=request.user)
@@ -119,10 +121,10 @@ class DashboardChangePasswordView(StaffRequiredMixin, View):
         return render(request, self.template_name, {"form": form})
 
 
-class UsersListView(StaffRequiredMixin, ListView):
+class AdminsListView(StaffRequiredMixin, ListView):
     model = CustomUser
-    template_name = "dashboard/users/users_list.html"
-    context_object_name = "users"
+    template_name = "dashboard/admins/admins_list.html"
+    context_object_name = "admins"
     paginate_by = 20
 
     def get_queryset(self):
@@ -140,22 +142,22 @@ class UsersListView(StaffRequiredMixin, ListView):
         return qs
 
 
-class UserCreateView(StaffRequiredMixin, CreateView):
+class AdminCreateView(StaffRequiredMixin, CreateView):
     model = CustomUser
-    form_class = UserForm
-    template_name = "dashboard/users/user_form.html"
-    success_url = reverse_lazy("users-list")
+    form_class = AdminUserForm
+    template_name = "dashboard/admins/admin_form.html"
+    success_url = reverse_lazy("admins-list")
 
     def form_valid(self, form):
         messages.success(self.request, "تم إنشاء المستخدم بنجاح.")
         return super().form_valid(form)
 
 
-class UserUpdateView(StaffRequiredMixin, UpdateView):
+class AdminUpdateView(StaffRequiredMixin, UpdateView):
     model = CustomUser
-    form_class = UserForm
-    template_name = "dashboard/users/user_form.html"
-    success_url = reverse_lazy("users-list")
+    form_class = AdminUserForm
+    template_name = "dashboard/admins/admin_form.html"
+    success_url = reverse_lazy("admins-list")
 
     def get_queryset(self):
         # Only admins can be edited via this view to prevent privilege abuse.
@@ -166,10 +168,10 @@ class UserUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class UserDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
+class AdminDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     model = CustomUser
     http_method_names = ["post"]
-    success_url = reverse_lazy("users-list")
+    success_url = reverse_lazy("admins-list")
     protected_message = "لا يمكن حذف هذا المستخدم لأنه مرتبط بسجلات أخرى."
     deleted_message = "تم حذف المستخدم بنجاح."
 
@@ -263,6 +265,39 @@ class CustomerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
             messages.error(self.request, message)
             return redirect(self.success_url)
         return super().form_valid(form)
+
+
+class CustomerBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "customers-list"
+    protected_message = (
+        "لا يمكن حذف بعض العملاء المحددين لارتباطهم بطلبات أو بيانات أخرى في النظام."
+    )
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        # Scoped like the row-level views so this can never touch
+        # admin or supplier accounts.
+        customers = CustomUser.objects.filter(
+            user_type=UserType.CUSTOMER, id__in=selected_ids
+        )
+        if action == "delete":
+            try:
+                customers.delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف العملاء المحددين بنجاح.")
+        elif action == "activate":
+            customers.update(is_active=True)
+            messages.success(request, "تم تفعيل العملاء المحددين بنجاح.")
+        elif action == "inactivate":
+            customers.update(is_active=False)
+            messages.success(request, "تم إيقاف العملاء المحددين بنجاح.")
+        return redirect(self.list_url_name)
 
 
 class SupplierListView(StaffRequiredMixin, ListView):

@@ -19,23 +19,40 @@
             <input hx-get="{% url 'units-list' %}" hx-push-url="true" hx-target="#uom-partial" hx-swap="innerHTML" hx-trigger="keyup changed delay:300ms" type="text" name="q" placeholder="بحث باسم الوحدة" value="{{ request.GET.q }}">
         </form>
     </div>
+
+    <div class="actions-dropdown">
+        <div class="action-controls">
+            <select id="bulkAction">
+                <option value="" selected disabled>اختر إجراء...</option>
+                <option value="delete">حذف</option>
+            </select>
+            <button type="button" class="btn-go" onclick="executeBulkAction()">تنفيذ</button>
+        </div>
+    </div>
 </div>
 
-<div class="table-container">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>اسم الوحدة</th>
-                <th>الرمز (Code)</th>
-                <th>عدد المنتجات</th>
-                <th>إجراءات</th>
-            </tr>
-        </thead>
-        <tbody id="uom-partial">
-            {% include 'dashboard/partials/uom_partial.html' %}
-        </tbody>
-    </table>
-</div>
+<form id="bulkActionForm" method="POST" action="{% url 'unit-bulk-action' %}">
+    {% csrf_token %}
+    <input type="hidden" name="selected_ids" id="selectedIds">
+    <input type="hidden" name="action" id="selectedAction">
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" class="select-all-checkbox"></th>
+                    <th>اسم الوحدة</th>
+                    <th>الرمز (Code)</th>
+                    <th>عدد المنتجات</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="uom-partial">
+                {% include 'dashboard/partials/uom_partial.html' %}
+            </tbody>
+        </table>
+    </div>
+</form>
 
 <div class="table-controls">
     <div class="action-button-container">

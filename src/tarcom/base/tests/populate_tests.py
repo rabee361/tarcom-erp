@@ -73,9 +73,11 @@ class PopulateProdDbTest(TestCase):
         self.assertEqual(MaterialCategory.objects.count(), 5)
 
     def test_rerun_adopts_a_category_created_before_internal_name_existed(self):
-        MaterialCategory.objects.create(
+        category = MaterialCategory.objects.create(
             name="Laptops", name_en="Laptops", name_ar="قديم"
         )
+        # Simulate a row that predates auto-generated internal names.
+        MaterialCategory.objects.filter(pk=category.pk).update(internal_name=None)
         call_command("populate_prod_db")
 
         self.assertEqual(MaterialCategory.objects.count(), 5)

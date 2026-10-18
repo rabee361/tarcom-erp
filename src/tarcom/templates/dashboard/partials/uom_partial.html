@@ -1,5 +1,6 @@
 {% for unit in units %}
 <tr onclick="clickHandler(event)" data-link="{% url 'unit-edit' unit.pk %}">
+    <td onclick="event.stopPropagation();"><input type="checkbox" class="row-checkbox" value="{{ unit.id }}"></td>
     <td>{{ unit.name_ar }}</td>
     <td>{{ unit.code }}</td>
     <td>{{ unit.materials.count }}</td>
@@ -11,6 +12,6 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="4">لا توجد وحدات قياس.</td>
+    <td colspan="5">لا توجد وحدات قياس.</td>
 </tr>
 {% endfor %}

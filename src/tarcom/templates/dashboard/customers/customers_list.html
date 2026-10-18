@@ -19,47 +19,66 @@
             <input type="text" name="q" placeholder="بحث باسم العميل أو البريد أو الهاتف" value="{{ request.GET.q }}">
         </form>
     </div>
+
+    <div class="actions-dropdown">
+        <div class="action-controls">
+            <select id="bulkAction">
+                <option value="" selected disabled>اختر إجراء...</option>
+                <option value="delete">حذف</option>
+                <option value="activate">تفعيل</option>
+                <option value="inactivate">إيقاف</option>
+            </select>
+            <button type="button" class="btn-go" onclick="executeBulkAction()">تنفيذ</button>
+        </div>
+    </div>
 </div>
 
-<div class="table-container">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>البريد الإلكتروني</th>
-                <th>الاسم الكامل</th>
-                <th>الهاتف</th>
-                <th>نوع المستخدم</th>
-                <th>الحالة</th>
-                <th>إجراءات</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in customers %}
-            <tr>
-                <td>{{ u.email }}</td>
-                <td>{{ u.get_full_name|default:"-" }}</td>
-                <td>{{ u.phone|default:"-" }}</td>
-                <td>{{ u.get_user_type_display }}</td>
-                <td>
-                    <span class="status {% if u.is_active %}text-success{% else %}text-danger{% endif %}">
-                        {% if u.is_active %}نشط{% else %}موقوف{% endif %}
-                    </span>
-                </td>
-                <td>
-                    <div class="row-actions">
-                        <a href="{% url 'customer-edit' u.pk %}" class="btn-white" title="تعديل" aria-label="تعديل {{ u.email }}">✏️</a>
-                        <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'customer-delete' u.pk %}" data-object-name="{{ u.email }}" title="حذف" aria-label="حذف {{ u.email }}">🗑️</button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6">لا يوجد عملاء.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<form id="bulkActionForm" method="POST" action="{% url 'customer-bulk-action' %}">
+    {% csrf_token %}
+    <input type="hidden" name="selected_ids" id="selectedIds">
+    <input type="hidden" name="action" id="selectedAction">
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" class="select-all-checkbox"></th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الاسم الكامل</th>
+                    <th>الهاتف</th>
+                    <th>نوع المستخدم</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in customers %}
+                <tr onclick="clickHandler(event)" data-link="{% url 'customer-edit' u.pk %}">
+                    <td><input type="checkbox" class="row-checkbox" value="{{ u.id }}"></td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.get_full_name|default:"-" }}</td>
+                    <td>{{ u.phone|default:"-" }}</td>
+                    <td>{{ u.get_user_type_display }}</td>
+                    <td>
+                        <span class="status {% if u.is_active %}text-success{% else %}text-danger{% endif %}">
+                            {% if u.is_active %}نشط{% else %}موقوف{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'customer-delete' u.pk %}" data-object-name="{{ u.email }}" title="حذف" aria-label="حذف {{ u.email }}">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">لا يوجد عملاء.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
 
 <div class="table-controls">
     <div class="action-button-container">

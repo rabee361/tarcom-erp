@@ -16,11 +16,11 @@ urlpatterns = [
     path(
         "dashboard/partial/", DashboardPartialView.as_view(), name="dashboard-partial"
     ),
-    path("dashboard/users/", UsersListView.as_view(), name="users-list"),
-    path("dashboard/users/create/", UserCreateView.as_view(), name="user-create"),
-    path("dashboard/users/<int:pk>/edit/", UserUpdateView.as_view(), name="user-edit"),
+    path("dashboard/admins/", AdminsListView.as_view(), name="admins-list"),
+    path("dashboard/admins/create/", AdminCreateView.as_view(), name="admin-create"),
+    path("dashboard/admins/<int:pk>/edit/", AdminUpdateView.as_view(), name="admin-edit"),
     path(
-        "dashboard/users/<int:pk>/delete/", UserDeleteView.as_view(), name="user-delete"
+        "dashboard/admins/<int:pk>/delete/", AdminDeleteView.as_view(), name="admin-delete"
     ),
     path("dashboard/customers/", CustomerListView.as_view(), name="customers-list"),
     path(
@@ -37,6 +37,11 @@ urlpatterns = [
         "dashboard/customers/<int:pk>/delete/",
         CustomerDeleteView.as_view(),
         name="customer-delete",
+    ),
+    path(
+        "dashboard/customers/action/",
+        CustomerBulkActionView.as_view(),
+        name="customer-bulk-action",
     ),
     path("dashboard/suppliers/", SupplierListView.as_view(), name="suppliers-list"),
     path(
@@ -75,6 +80,11 @@ urlpatterns = [
         MaterialDeleteView.as_view(),
         name="material-delete",
     ),
+    path(
+        "dashboard/materials/action/",
+        MaterialBulkActionView.as_view(),
+        name="material-bulk-action",
+    ),
     path("dashboard/categories/", CategoryListView.as_view(), name="categories-list"),
     path(
         "dashboard/categories/create/",
@@ -91,12 +101,18 @@ urlpatterns = [
         CategoryDeleteView.as_view(),
         name="category-delete",
     ),
+    path(
+        "dashboard/categories/action/",
+        CategoryBulkActionView.as_view(),
+        name="category-bulk-action",
+    ),
     path("dashboard/units/", UnitListView.as_view(), name="units-list"),
     path("dashboard/units/create/", UnitCreateView.as_view(), name="unit-create"),
     path("dashboard/units/<int:pk>/edit/", UnitUpdateView.as_view(), name="unit-edit"),
     path(
         "dashboard/units/<int:pk>/delete/", UnitDeleteView.as_view(), name="unit-delete"
     ),
+    path("dashboard/units/action/", UnitBulkActionView.as_view(), name="unit-bulk-action"),
     path(
         "dashboard/companies/", CompanyListView.as_view(), name="companies-list"
     ),
@@ -115,11 +131,17 @@ urlpatterns = [
         CompanyDeleteView.as_view(),
         name="company-delete",
     ),
+    path(
+        "dashboard/companies/action/",
+        CompanyBulkActionView.as_view(),
+        name="company-bulk-action",
+    ),
     path("dashboard/contact/", ContactUpdateView.as_view(), name="contact-edit"),
     path("dashboard/banners/", BannerListView.as_view(), name="banners-list"),
     path("dashboard/banners/create/", BannerCreateView.as_view(), name="banner-create"),
     path("dashboard/banners/<int:pk>/edit/", BannerUpdateView.as_view(), name="banner-edit"),
     path("dashboard/banners/<int:pk>/delete/", BannerDeleteView.as_view(), name="banner-delete"),
+    path("dashboard/banners/action/", BannerBulkActionView.as_view(), name="banner-bulk-action"),
     path("dashboard/orders/", OrderListView.as_view(), name="orders-list"),
     path("dashboard/orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
     path(

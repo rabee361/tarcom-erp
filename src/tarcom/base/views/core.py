@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import ProtectedError, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -108,6 +108,32 @@ class MaterialDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("materials-list")
     protected_message = "لا يمكن حذف المادة لارتباطها بطلبات أو حركات أخرى في النظام."
     deleted_message = "تم حذف المادة بنجاح."
+
+
+class MaterialBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "materials-list"
+    protected_message = "لا يمكن حذف بعض المواد المحددة لارتباطها بطلبات أو حركات أخرى في النظام."
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        if action == "delete":
+            try:
+                Material.objects.filter(id__in=selected_ids).delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف المواد المحددة بنجاح.")
+        elif action == "activate":
+            Material.objects.filter(id__in=selected_ids).update(is_active=True)
+            messages.success(request, "تم تفعيل المواد المحددة بنجاح.")
+        elif action == "inactivate":
+            Material.objects.filter(id__in=selected_ids).update(is_active=False)
+            messages.success(request, "تم إيقاف المواد المحددة بنجاح.")
+        return redirect(self.list_url_name)
 
 
 MAX_FEATURED_MATERIALS = 10
@@ -271,6 +297,34 @@ class CategoryDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
         return super().form_valid(form)
 
 
+class CategoryBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "categories-list"
+    protected_message = "لا يمكن حذف بعض التصنيفات المحددة لارتباطها بمنتجات في النظام."
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        if action == "delete":
+            if MaterialCategory.objects.filter(
+                id__in=selected_ids, is_system=True
+            ).exists():
+                messages.error(
+                    request,
+                    "لا يمكن حذف التصنيفات المحددة لأن بعضها من تصنيفات النظام الأساسية.",
+                )
+                return redirect(self.list_url_name)
+            try:
+                MaterialCategory.objects.filter(id__in=selected_ids).delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف التصنيفات المحددة بنجاح.")
+        return redirect(self.list_url_name)
+
+
 class UnitListView(StaffRequiredMixin, ListView):
     model = UnitOfMeasure
     template_name = "dashboard/units/units_list.html"
@@ -318,6 +372,26 @@ class UnitDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     deleted_message = "تم حذف وحدة القياس بنجاح."
 
 
+class UnitBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "units-list"
+    protected_message = "لا يمكن حذف بعض وحدات القياس المحددة لارتباطها بمنتجات في النظام."
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        if action == "delete":
+            try:
+                UnitOfMeasure.objects.filter(id__in=selected_ids).delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف وحدات القياس المحددة بنجاح.")
+        return redirect(self.list_url_name)
+
+
 class CompanyListView(StaffRequiredMixin, ListView):
     model = Company
     template_name = "dashboard/companies/companies_list.html"
@@ -360,6 +434,26 @@ class CompanyDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("companies-list")
     protected_message = "لا يمكن حذف الشركة لارتباطها بمواد في النظام."
     deleted_message = "تم حذف الشركة بنجاح."
+
+
+class CompanyBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "companies-list"
+    protected_message = "لا يمكن حذف بعض الشركات المحددة لارتباطها بمواد في النظام."
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        if action == "delete":
+            try:
+                Company.objects.filter(id__in=selected_ids).delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف الشركات المحددة بنجاح.")
+        return redirect(self.list_url_name)
 
 
 class ContactUpdateView(StaffRequiredMixin, UpdateView):
@@ -422,6 +516,32 @@ class BannerDeleteView(StaffRequiredMixin, ProtectedDeleteMixin, DeleteView):
     success_url = reverse_lazy("banners-list")
     protected_message = "لا يمكن حذف البانر لارتباطه ببيانات أخرى في النظام."
     deleted_message = "تم حذف البانر بنجاح."
+
+
+class BannerBulkActionView(StaffRequiredMixin, View):
+    list_url_name = "banners-list"
+    protected_message = "لا يمكن حذف بعض البانرات المحددة لارتباطها ببيانات أخرى في النظام."
+
+    def post(self, request):
+        selected_ids = json.loads(request.POST.get("selected_ids", "[]"))
+        action = request.POST.get("action")
+        if not selected_ids:
+            messages.error(request, "الرجاء اختيار عنصر واحد على الأقل.")
+            return redirect(self.list_url_name)
+        if action == "delete":
+            try:
+                Banner.objects.filter(id__in=selected_ids).delete()
+            except ProtectedError:
+                messages.error(request, self.protected_message)
+            else:
+                messages.success(request, "تم حذف البانرات المحددة بنجاح.")
+        elif action == "activate":
+            Banner.objects.filter(id__in=selected_ids).update(is_active=True)
+            messages.success(request, "تم تفعيل البانرات المحددة بنجاح.")
+        elif action == "inactivate":
+            Banner.objects.filter(id__in=selected_ids).update(is_active=False)
+            messages.success(request, "تم إيقاف البانرات المحددة بنجاح.")
+        return redirect(self.list_url_name)
 
 
 class OrderListView(StaffRequiredMixin, ListView):

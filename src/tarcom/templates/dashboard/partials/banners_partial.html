@@ -1,5 +1,6 @@
 {% for banner in banners %}
 <tr onclick="clickHandler(event)" data-link="{% url 'banner-edit' banner.pk %}">
+    <td onclick="event.stopPropagation();"><input type="checkbox" class="row-checkbox" value="{{ banner.id }}"></td>
     <td>
         {% if banner.image %}
             <img src="{{ banner.image.crop.40x40 }}" alt="{{ banner.title }}" width="40" height="40">
@@ -16,6 +17,6 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="3">لا توجد بانرات.</td>
+    <td colspan="4">لا توجد بانرات.</td>
 </tr>
 {% endfor %}

@@ -22,38 +22,43 @@
 
     <div class="actions-dropdown">
         <div class="action-controls">
-            <form method="get" id="material-category-filter">
-                {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
-                <select name="category" onchange="document.getElementById('material-category-filter').submit()">
-                    <option value="">كل التصنيفات</option>
-                    {% for category in categories %}
-                        <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name_ar }}</option>
-                    {% endfor %}
-                </select>
-            </form>
+            <select id="bulkAction">
+                <option value="" selected disabled>اختر إجراء...</option>
+                <option value="delete">حذف</option>
+                <option value="activate">تفعيل</option>
+                <option value="inactivate">إيقاف</option>
+            </select>
+            <button type="button" class="btn-go" onclick="executeBulkAction()">تنفيذ</button>
         </div>
     </div>
 </div>
 
-<div class="table-container">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th>الصورة</th>
-                <th>الاسم</th>
-                <th>التصنيف</th>
-                <th>وحدة القياس</th>
-                <th>سعر المورد</th>
-                <th>سعر المستهلك</th>
-                <th>الحالة</th>
-                <th>إجراءات</th>
-            </tr>
-        </thead>
-        <tbody id="materials-partial">
-            {% include 'dashboard/partials/materials_partial.html' %}
-        </tbody>
-    </table>
-</div>
+<form id="bulkActionForm" method="POST" action="{% url 'material-bulk-action' %}">
+    {% csrf_token %}
+    <input type="hidden" name="selected_ids" id="selectedIds">
+    <input type="hidden" name="action" id="selectedAction">
+
+    <div class="table-container">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" class="select-all-checkbox"></th>
+                    <th>الصورة</th>
+                    <th>الاسم</th>
+                    <th>التصنيف</th>
+                    <th>وحدة القياس</th>
+                    <th>سعر المورد</th>
+                    <th>سعر المستهلك</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="materials-partial">
+                {% include 'dashboard/partials/materials_partial.html' %}
+            </tbody>
+        </table>
+    </div>
+</form>
 
 <div class="table-controls">
     <div class="action-button-container">

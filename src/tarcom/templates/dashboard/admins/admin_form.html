@@ -8,7 +8,7 @@
     <nav class="breadcrumb">
         <a href="{% url 'dashboard' %}">لوحة التحكم</a>
         <i class="separator fas fa-chevron-left"></i>
-        <a href="{% url 'users-list' %}">المستخدمون</a>
+        <a href="{% url 'admins-list' %}">المدراء</a>
         <i class="separator fas fa-chevron-left"></i>
         <span>{% if object %}تعديل مستخدم{% else %}إضافة مستخدم{% endif %}</span>
     </nav>
@@ -122,7 +122,7 @@
 
         <div class="form-button-container">
             <button type="submit" class="btn btn-brown">حفظ</button>
-            <a href="{% url 'users-list' %}" class="btn btn-white">إلغاء</a>
+            <a href="{% url 'admins-list' %}" class="btn btn-white">إلغاء</a>
         </div>
     </form>
 </div>

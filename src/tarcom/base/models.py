@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from versatileimagefield.fields import VersatileImageField
@@ -162,6 +163,16 @@ class MaterialCategory(TimeStampModel):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # internal_name is derived from the English name on creation
+        # (e.g. "Solar Boards" -> "solar_boards"); renames keep the
+        # original identifier, and a non-ASCII name stays NULL.
+        if not self.internal_name:
+            candidate = slugify(self.name_en or self.name).replace("-", "_")
+            if candidate:
+                self.internal_name = candidate
+        super().save(*args, **kwargs)
 
 
 class Company(TimeStampModel):

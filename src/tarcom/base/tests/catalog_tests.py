@@ -17,8 +17,8 @@ class DashboardCategoryTest(TestCase):
         form = CategoryForm()
         self.assertIn("image", form.fields)
 
-    def test_category_form_exposes_internal_name(self):
-        self.assertIn("internal_name", CategoryForm().fields)
+    def test_category_form_does_not_expose_internal_name(self):
+        self.assertNotIn("internal_name", CategoryForm().fields)
 
     def test_create_category_via_dashboard(self):
         response = self.client.post(
@@ -29,21 +29,17 @@ class DashboardCategoryTest(TestCase):
         category = MaterialCategory.objects.get(name_en="Accessories")
         self.assertFalse(category.image)
 
-    def test_create_category_with_internal_name(self):
+    def test_create_category_auto_generates_internal_name(self):
         response = self.client.post(
             "/dashboard/categories/create/",
-            {
-                "name_en": "Accessories",
-                "name_ar": "إكسسوارات",
-                "internal_name": "accessories",
-            },
+            {"name_en": "Solar Boards", "name_ar": "ألواح"},
         )
         self.assertRedirects(response, "/dashboard/categories/")
-        category = MaterialCategory.objects.get(name_en="Accessories")
-        self.assertEqual(category.internal_name, "accessories")
+        category = MaterialCategory.objects.get(name_en="Solar Boards")
+        self.assertEqual(category.internal_name, "solar_boards")
         self.assertFalse(category.is_system)
 
-    def test_blank_internal_name_saves_as_null_for_every_category(self):
+    def test_every_created_category_gets_an_internal_name(self):
         for name_en, name_ar in (
             ("Accessories", "إكسسوارات"),
             ("Wearables", "أجهزة قابلة للارتداء"),
@@ -54,21 +50,24 @@ class DashboardCategoryTest(TestCase):
             )
             self.assertRedirects(response, "/dashboard/categories/")
         self.assertEqual(
-            MaterialCategory.objects.filter(internal_name__isnull=True).count(), 2
+            set(
+                MaterialCategory.objects.values_list("internal_name", flat=True)
+            ),
+            {"accessories", "wearables"},
         )
 
-    def test_duplicate_internal_name_is_rejected(self):
-        MaterialCategory.objects.create(
-            name="Accessories", name_en="Accessories", internal_name="accessories"
-        )
+    def test_renaming_a_category_keeps_its_internal_name(self):
         response = self.client.post(
             "/dashboard/categories/create/",
-            {
-                "name_en": "Wearables",
-                "name_ar": "قابلة للارتداء",
-                "internal_name": "accessories",
-            },
+            {"name_en": "Accessories", "name_ar": "إكسسوارات"},
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("internal_name", response.context["form"].errors)
-        self.assertFalse(MaterialCategory.objects.filter(name_en="Wearables").exists())
+        self.assertRedirects(response, "/dashboard/categories/")
+        category = MaterialCategory.objects.get(internal_name="accessories")
+
+        self.client.post(
+            f"/dashboard/categories/{category.pk}/edit/",
+            {"name_en": "Gadgets", "name_ar": "أدوات"},
+        )
+        category.refresh_from_db()
+        self.assertEqual(category.name_en, "Gadgets")
+        self.assertEqual(category.internal_name, "accessories")

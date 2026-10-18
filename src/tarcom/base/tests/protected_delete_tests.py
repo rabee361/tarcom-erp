@@ -70,7 +70,7 @@ class DashboardProtectedDeleteTest(TestCase):
         self.assertTrue(MaterialCategory.objects.filter(pk=self.category.pk).exists())
 
     def test_ajax_delete_of_own_account_returns_error_json(self):
-        url = f"/dashboard/users/{self.staff.pk}/delete/"
+        url = f"/dashboard/admins/{self.staff.pk}/delete/"
         response = self.client.post(url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertEqual(response.status_code, 200)
         payload = response.json()

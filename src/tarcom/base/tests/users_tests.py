@@ -20,8 +20,8 @@ class DashboardUsersCrudTest(TestCase):
             "first_name": "First",
             "last_name": "User",
             "phone": "+963912345678",
-            # `users-list` is the admins page, so the CRUD flow is exercised with
-            # admins to keep the list assertion below meaningful.
+            # `admins-list` is the admins page, so the CRUD flow is exercised
+            # with admins to keep the list assertion below meaningful.
             "user_type": UserType.ADMIN,
             "is_active": "on",
             "password": "StrongPass123!",
@@ -33,20 +33,20 @@ class DashboardUsersCrudTest(TestCase):
     def test_dashboard_users_crud(self):
         # Two consecutive creates prove the username collision is handled
         response = self.client.post(
-            "/dashboard/users/create/", self._payload("first@example.com")
+            "/dashboard/admins/create/", self._payload("first@example.com")
         )
-        self.assertRedirects(response, "/dashboard/users/")
+        self.assertRedirects(response, "/dashboard/admins/")
         response = self.client.post(
-            "/dashboard/users/create/", self._payload("second@example.com")
+            "/dashboard/admins/create/", self._payload("second@example.com")
         )
-        self.assertRedirects(response, "/dashboard/users/")
+        self.assertRedirects(response, "/dashboard/admins/")
 
         first = CustomUser.objects.get(email="first@example.com")
         self.assertTrue(first.check_password("StrongPass123!"))
         self.assertEqual(first.username, "first@example.com")
 
         # List
-        response = self.client.get("/dashboard/users/")
+        response = self.client.get("/dashboard/admins/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "first@example.com")
 
@@ -54,20 +54,20 @@ class DashboardUsersCrudTest(TestCase):
         edit = self._payload(
             "first@example.com", password="", confirm_password="", first_name="Edited"
         )
-        response = self.client.post(f"/dashboard/users/{first.pk}/edit/", edit)
-        self.assertRedirects(response, "/dashboard/users/")
+        response = self.client.post(f"/dashboard/admins/{first.pk}/edit/", edit)
+        self.assertRedirects(response, "/dashboard/admins/")
         first.refresh_from_db()
         self.assertEqual(first.first_name, "Edited")
         self.assertTrue(first.check_password("StrongPass123!"))
 
         # Delete
-        response = self.client.post(f"/dashboard/users/{first.pk}/delete/")
-        self.assertRedirects(response, "/dashboard/users/")
+        response = self.client.post(f"/dashboard/admins/{first.pk}/delete/")
+        self.assertRedirects(response, "/dashboard/admins/")
         self.assertFalse(CustomUser.objects.filter(pk=first.pk).exists())
 
     def test_dashboard_user_cannot_delete_own_account(self):
-        response = self.client.post(f"/dashboard/users/{self.staff.pk}/delete/")
-        self.assertRedirects(response, "/dashboard/users/")
+        response = self.client.post(f"/dashboard/admins/{self.staff.pk}/delete/")
+        self.assertRedirects(response, "/dashboard/admins/")
         self.assertTrue(CustomUser.objects.filter(pk=self.staff.pk).exists())
 
 
@@ -99,12 +99,12 @@ class DashboardUserPagesTest(TestCase):
         self.client.force_login(self.staff)
 
     def test_users_list_shows_only_admins(self):
-        response = self.client.get("/dashboard/users/")
+        response = self.client.get("/dashboard/admins/")
         self.assertEqual(response.status_code, 200)
         # Assert on the list, not the rendered HTML: the sidebar prints the
         # signed-in user's email on every page.
         self.assertEqual(
-            {u.email for u in response.context["users"]},
+            {u.email for u in response.context["admins"]},
             {self.staff.email, "second-admin@tarcom.com"},
         )
 
@@ -197,7 +197,7 @@ class DashboardUserPagesTest(TestCase):
         for url in (
             "/dashboard/customers/",
             "/dashboard/suppliers/",
-            "/dashboard/users/",
+            "/dashboard/admins/",
         ):
             with self.subTest(url=url):
                 response = self.client.get(url)

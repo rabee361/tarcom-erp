@@ -21,6 +21,7 @@ from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Q
+from django.utils.text import slugify
 
 from tarcom.base.models import Company, MaterialCategory
 
@@ -80,27 +81,29 @@ def _validate_entries(entries, filename, required):
 def seed_system_categories():
     """Create or sync the system categories from data/system_categories.json.
 
-    Rows are matched by internal_name, falling back to name_en so a category
-    that already exists (e.g. seeded before internal_name was introduced) is
-    adopted instead of colliding with the unique name constraint. The JSON is
-    the source of truth: every run rewrites the display names and re-flags
-    the row is_system=True. Returns the categories keyed by internal_name.
+    The internal_name is derived from name_en exactly the way the model's
+    save() derives it (e.g. "Solar Boards" -> "solar_boards"), so rows are
+    matched by that value, falling back to name_en so a category that already
+    exists (e.g. seeded before internal_name was introduced) is adopted
+    instead of colliding with the unique name constraint. The JSON is the
+    source of truth: every run rewrites the display names and re-flags the
+    row is_system=True. Returns the categories keyed by internal_name.
     """
     filename = "system_categories.json"
     entries = load_system_data(filename)
-    _validate_entries(entries, filename, ["internal_name", "name_en", "name_ar"])
+    _validate_entries(entries, filename, ["name_en", "name_ar"])
 
     categories = {}
     for entry in entries:
+        internal_name = slugify(entry["name_en"]).replace("-", "_")
         category = MaterialCategory.objects.filter(
-            Q(internal_name=entry["internal_name"]) | Q(name_en=entry["name_en"])
+            Q(internal_name=internal_name) | Q(name_en=entry["name_en"])
         ).first()
         if category is None:
-            category = MaterialCategory(internal_name=entry["internal_name"])
+            category = MaterialCategory()
         category.name = entry["name_en"]
         category.name_en = entry["name_en"]
         category.name_ar = entry["name_ar"]
-        category.internal_name = entry["internal_name"]
         category.is_system = True
         category.save()
         if not category.image and entry.get("image"):
@@ -108,7 +111,7 @@ def seed_system_categories():
             if image_path.exists():
                 with image_path.open("rb") as f:
                     category.image.save(entry["image"], File(f), save=True)
-        categories[entry["internal_name"]] = category
+        categories[internal_name] = category
     return categories
 
 

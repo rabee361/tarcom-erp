@@ -35,7 +35,7 @@
         </thead>
         <tbody>
             {% for u in suppliers %}
-            <tr>
+            <tr onclick="clickHandler(event)" data-link="{% url 'supplier-edit' u.pk %}">
                 <td>{{ u.email }}</td>
                 <td>{{ u.get_full_name|default:"-" }}</td>
                 <td>{{ u.phone|default:"-" }}</td>
@@ -47,7 +47,6 @@
                 </td>
                 <td>
                     <div class="row-actions">
-                        <a href="{% url 'supplier-edit' u.pk %}" class="btn-white" title="تعديل" aria-label="تعديل {{ u.email }}">✏️</a>
                         <button type="button" class="btn-white js-delete-btn" data-delete-url="{% url 'supplier-delete' u.pk %}" data-object-name="{{ u.email }}" title="حذف" aria-label="حذف {{ u.email }}">🗑️</button>
                     </div>
                 </td>

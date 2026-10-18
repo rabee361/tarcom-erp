@@ -154,6 +154,11 @@ class UserForm(forms.ModelForm):
         return user
 
 
+class AdminUserForm(UserForm):
+    class Meta(UserForm.Meta):
+        widgets = {"user_type": forms.HiddenInput()}
+
+
 class CustomerUserForm(UserForm):
     class Meta(UserForm.Meta):
         widgets = {"user_type": forms.HiddenInput()}
@@ -288,11 +293,10 @@ class BannerForm(forms.ModelForm):
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = MaterialCategory
-        fields = ["name_en", "name_ar", "internal_name", "image"]
+        fields = ["name_en", "name_ar", "image"]
         labels = {
             "name_en": _("الاسم بالإنجليزية"),
             "name_ar": _("الاسم بالعربية"),
-            "internal_name": _("الاسم الداخلي"),
             "image": _("صورة التصنيف"),
         }
         widgets = {
