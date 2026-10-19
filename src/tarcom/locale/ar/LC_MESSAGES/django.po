@@ -274,10 +274,6 @@ msgstr "تم إعادة تعيين كلمة المرور بنجاح. يمكنك 
 msgid "Passwords do not match."
 msgstr "كلمتا المرور غير متطابقتين."
 
-#: utils/enums.py:49
-msgid "Pending"
-msgstr "قيد الانتظار"
-
 #: utils/validators.py:6
 msgid "Phone number must start with +963 followed by 9 digits: +963XXXXXXXXX."
 msgstr "يجب أن يبدأ رقم الهاتف ب +963 متبوعا ب 9 أرقام"
