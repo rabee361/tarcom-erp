@@ -554,6 +554,16 @@ class MaterialCompactSerializer(serializers.ModelSerializer):
             "category_name",
             "uom",
             "uom_name",
+            "spec_key1",
+            "spec_key2",
+            "spec_key3",
+            "spec_key4",
+            "spec_key5",
+            "spec_val1",
+            "spec_val2",
+            "spec_val3",
+            "spec_val4",
+            "spec_val5",
         ]
 
 
