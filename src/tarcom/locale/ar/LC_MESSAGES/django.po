@@ -24,7 +24,7 @@ msgstr "يوجد مستخدم بهذا البريد الإلكتروني بال�
 
 #: api/views/auth.py:49
 msgid "Account created. Please verify your email." 
-msgstr "تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني."
+msgstr "تم إنشاء الحساب. يرجى التحقق من بريدك الإلكتروني أو الرسائل المهملة."
 
 #: api/views/auth.py:297, api/views/auth.py:344
 msgid "Account deactivated successfully."
@@ -263,8 +263,8 @@ msgid "Password is incorrect."
 msgstr "كلمة المرور غير صحيحة."
 
 #: api/views/auth.py:216
-msgid "Password reset OTP sent to your email."
-msgstr "تم إرسال رمز إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."
+msgid "Password reset OTP sent to your email, check your email or spam"
+msgstr "تم إرسال رمز إعادة تعيين كلمة المرور إلى بريدك الإلكتروني, تحقق من البريد أو الرسائل المهملة."
 
 #: api/views/auth.py:256
 msgid "Password reset successfully. You can now log in."
