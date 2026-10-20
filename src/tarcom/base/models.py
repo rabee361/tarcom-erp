@@ -246,6 +246,7 @@ class Contact(TimeStampModel):
     phone2 = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField()
+    facebook = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         verbose_name = _("Contact")

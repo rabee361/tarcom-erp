@@ -264,12 +264,13 @@ class CompanyForm(forms.ModelForm):
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
-        fields = ["phone1", "phone2", "email", "address"]
+        fields = ["phone1", "phone2", "email", "address", "facebook"]
         labels = {
             "phone1": _("رقم الهاتف الأول"),
             "phone2": _("رقم الهاتف الثاني"),
             "email": _("البريد الإلكتروني"),
             "address": _("العنوان"),
+            "facebook": _("فيسبوك"),
         }
         widgets = {
             "address": forms.Textarea(attrs={"rows": 4}),

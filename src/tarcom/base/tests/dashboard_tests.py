@@ -175,6 +175,7 @@ class ContactDashboardTest(TestCase):
                 "phone2": "987654321",
                 "email": "info@tarcom.com",
                 "address": "Main Street",
+                "facebook": "https://facebook.com/tarcom",
             },
         )
         self.assertRedirects(response, "/dashboard/contact/")
@@ -184,17 +185,19 @@ class ContactDashboardTest(TestCase):
         self.assertEqual(contact.phone2, "987654321")
         self.assertEqual(contact.email, "info@tarcom.com")
         self.assertEqual(contact.address, "Main Street")
+        self.assertEqual(contact.facebook, "https://facebook.com/tarcom")
 
     def test_update_contact_updates_existing_row(self):
         Contact.objects.create(phone1="111", phone2="222", address="Old address")
         self.client.post(
             "/dashboard/contact/",
-            {"phone1": "333", "phone2": "444", "email": "", "address": "New address"},
+            {"phone1": "333", "phone2": "444", "email": "", "address": "New address", "facebook": "https://facebook.com/tarcom"},
         )
         self.assertEqual(Contact.objects.count(), 1)
         contact = Contact.get_solo()
         self.assertEqual(contact.phone1, "333")
         self.assertEqual(contact.address, "New address")
+        self.assertEqual(contact.facebook, "https://facebook.com/tarcom")
         self.assertIsNone(contact.email)
 
 

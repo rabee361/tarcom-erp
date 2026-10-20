@@ -86,6 +86,7 @@ class ContactAPITest(TestCase):
         contact.phone2 = "0222222222"
         contact.email = "info@tarcom.com"
         contact.address = "Damascus, Syria"
+        contact.facebook = "https://facebook.com/tarcom"
         contact.save()
 
         response = self.client.get("/api/contact/info/")
@@ -95,6 +96,7 @@ class ContactAPITest(TestCase):
         self.assertEqual(response.data["phone2"], "0222222222")
         self.assertEqual(response.data["email"], "info@tarcom.com")
         self.assertEqual(response.data["address"], "Damascus, Syria")
+        self.assertEqual(response.data["facebook"], "https://facebook.com/tarcom")
 
     def test_info_is_public(self):
         response = self.client.get("/api/contact/info/")
@@ -127,6 +129,7 @@ class ContactAPITest(TestCase):
             phone2="0888888888",
             email="second@tarcom.com",
             address="Address two",
+            facebook="https://facebook.com/tarcom2",
         ).save()
 
         self.assertEqual(Contact.objects.count(), 1)

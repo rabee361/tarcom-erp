@@ -403,7 +403,7 @@ class CompanySerializer(serializers.ModelSerializer):
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
-        fields = ["id", "phone1", "phone2", "email", "address", "created_at", "updated_at"]
+        fields = ["id", "phone1", "phone2", "email", "address", "facebook", "created_at", "updated_at"]
         read_only_fields = fields
 
 
