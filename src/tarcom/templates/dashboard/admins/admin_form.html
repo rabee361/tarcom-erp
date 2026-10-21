@@ -55,14 +55,6 @@
 
                 <div class="form-section">
                     <div class="form-group">
-                        <label>{{ form.user_type.label }}</label>
-                        {{ form.user_type }}
-                        {% if form.user_type.errors %}
-                            <div class="error">{{ form.user_type.errors }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="form-group">
                         <label>{{ form.is_active.label }}</label>
                         {{ form.is_active }}
                         {% if form.is_active.errors %}
@@ -95,21 +87,19 @@
                             <div class="error">{{ form.confirm_password.errors }}</div>
                         {% endif %}
                     </div>
-
-                    <div class="form-group image-picker">
-                        <label>{{ form.avatar.label }}</label>
-                        {{ form.avatar }}
-                        <div class="image-preview">
-                            <img id="image-preview" width="100" height="100"
-                                 src="{% if form.instance.avatar %}{{ form.instance.avatar.url }}{% endif %}"
-                                 class="{% if form.instance.avatar %}is-visible{% endif %}" alt="Preview">
-                            {% if not form.instance.avatar %}
-                                <div class="placeholder-text" id="placeholder-text">لا توجد صورة محددة</div>
-                            {% endif %}
-                        </div>
+                    
+                    <div class="img-uploader-title">{{ form.avatar.label }}</div>
+                    <div class="img-uploader-grid">
+                        {% include 'dashboard/partials/img_upload_slot.html' with field=form.avatar %}
                     </div>
+
                 </div>
             </div>
+
+        </div>
+    
+            <div class="img-uploader">
+
 
             {% if form.non_field_errors %}
                 <div class="error-message">

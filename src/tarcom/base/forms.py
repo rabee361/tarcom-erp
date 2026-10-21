@@ -116,7 +116,6 @@ class UserForm(forms.ModelForm):
             "first_name",
             "last_name",
             "phone",
-            "user_type",
             "is_active",
             "avatar",
         ]
@@ -125,7 +124,6 @@ class UserForm(forms.ModelForm):
             "first_name": _("الاسم الأول"),
             "last_name": _("اسم العائلة"),
             "phone": _("رقم الهاتف"),
-            "user_type": _("نوع المستخدم"),
             "is_active": _("الحساب نشط"),
             "avatar": _("الصورة الشخصية"),
         }

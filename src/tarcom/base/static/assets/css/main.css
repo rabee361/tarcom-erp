@@ -37,8 +37,8 @@
     --color-disabled-bg: #CCCCCC;
 
     /* Accent derivatives: hovers, focus rings, row highlight */
-    --accent-hover: #AC8559;
-    --accent-hover-deep: #A17F4F;
+    --accent-hover: #0066B2;
+    --accent-hover-deep: #0066B2;
     --accent-ring: rgba(0, 102, 178, 0.2);
     --accent-ring-soft: rgba(0, 102, 178, 0.1);
     --accent-row-hover: rgba(0, 102, 178, 0.08);
@@ -90,8 +90,8 @@
     --color-disabled-bg: #CCCCCC;
 
     /* Accent derivatives: hovers, focus rings, row highlight */
-    --accent-hover: #AC8559;
-    --accent-hover-deep: #A17F4F;
+    --accent-hover: #0066B2;
+    --accent-hover-deep: #0066B2;
     --accent-ring: rgba(0, 102, 178, 0.2);
     --accent-ring-soft: rgba(0, 102, 178, 0.1);
     --accent-row-hover: rgba(0, 102, 178, 0.08);
@@ -777,6 +777,16 @@
     margin-bottom: 0.25rem;
 }
 
+.form-group:has(input[type="checkbox"]:not([name$="-clear"])) {
+    flex-direction: row;
+    align-items: center;
+    gap: 3.75rem;
+}
+
+.form-group:has(input[type="checkbox"]:not([name$="-clear"])) label {
+    margin-bottom: 0;
+}
+
 .form-group input,
 .form-group select {
     padding: 0 0.55rem;
@@ -1372,7 +1382,7 @@ input[type="checkbox"] {
 }
 
 .actions-dropdown select:hover {
-    border-color: var(--accent-color);
+    border-color: red;
 }
 
 /* Add responsive styles for the dropdown */
