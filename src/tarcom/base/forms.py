@@ -12,7 +12,7 @@ from tarcom.base.models import (
     MaterialCategory,
     UnitOfMeasure,
 )
-from tarcom.utils.enums import OrderStatus, PaymentStatus
+from tarcom.utils.enums import UserType
 
 
 class DashboardLoginForm(forms.Form):
@@ -152,9 +152,48 @@ class UserForm(forms.ModelForm):
         return user
 
 
-class AdminUserForm(UserForm):
-    class Meta(UserForm.Meta):
+class AdminUserForm(forms.ModelForm):
+    password = forms.CharField(
+        label=_("كلمة المرور"),
+        required=False,
+        widget=forms.PasswordInput(attrs={"placeholder": _("كلمة المرور")}),
+    )
+    confirm_password = forms.CharField(
+        label=_("تأكيد كلمة المرور"),
+        required=False,
+        widget=forms.PasswordInput(attrs={"placeholder": _("تأكيد كلمة المرور")}),
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "is_active",
+            "avatar",
+        ]
+        labels = {
+            "email": _("البريد الإلكتروني"),
+            "first_name": _("الاسم الأول"),
+            "last_name": _("اسم العائلة"),
+            "phone": _("رقم الهاتف"),
+            "is_active": _("الحساب نشط"),
+            "avatar": _("الصورة الشخصية"),
+        }
         widgets = {"user_type": forms.HiddenInput()}
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get("password")
+        if password:
+            user.set_password(password)
+        user.username = user.email
+        user.user_type = UserType.ADMIN
+        if commit:
+            user.save()
+        return user
 
 
 class CustomerUserForm(UserForm):

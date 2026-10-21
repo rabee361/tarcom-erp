@@ -31,12 +31,12 @@ from tarcom.base.models import (
     CustomUser,
     Material,
     MaterialCategory,
-    Order,
-    OrderItem,
+    # Order,
+    # OrderItem,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import (
-    OrderStatus,
+    # OrderStatus,
     PaymentMethod,
     PaymentStatus,
     UserType,
@@ -389,19 +389,15 @@ class Command(BaseCommand):
         companies = self._seed_companies(rng)
         materials = self._seed_materials(uoms, categories, companies)
         users = self._seed_users()
-        order_count = self._seed_orders(users, materials, rng)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Populated: {len(uoms)} units, {len(categories)} categories, "
                 f"{len(companies)} companies, {len(materials)} materials, "
-                f"{len(users)} users, {order_count} orders."
             )
         )
 
     def _flush(self):
-        OrderItem.objects.all().delete()
-        Order.objects.all().delete()
         Material.objects.all().delete()
         MaterialCategory.objects.all().delete()
         UnitOfMeasure.objects.all().delete()
@@ -477,31 +473,3 @@ class Command(BaseCommand):
                 user.save()
             users.append(user)
         return users
-
-    def _seed_orders(self, users, materials, rng):
-        statuses = list(OrderStatus)
-        methods = list(PaymentMethod)
-        order_count = 0
-        for user in users:
-            for i in range(3):
-                if Order.objects.filter(user=user).count() > i:
-                    order_count += 1
-                    continue
-
-                order = Order.objects.create(
-                    user=user,
-                    status=rng.choice(statuses),
-                    payment_method=rng.choice(methods),
-                    payment_status=rng.choice(list(PaymentStatus)),
-                    shipping_address=rng.choice(ADDRESSES),
-                    shipping_phone=user.phone,
-                    notes=f"Seed order #{i + 1} for {user.email}",
-                )
-                for material in rng.sample(materials, k=rng.randint(1, 2)):
-                    OrderItem.objects.create(
-                        order=order,
-                        material=material,
-                        quantity=Decimal(rng.randint(1, 5)),
-                    )
-                order_count += 1
-        return order_count
