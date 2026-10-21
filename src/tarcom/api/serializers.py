@@ -604,172 +604,172 @@ class FavouriteToggleResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
 
 
-# ==========================================
-# Orders & Order Items
-# ==========================================
+# # ==========================================
+# # Orders & Order Items
+# # ==========================================
 
 
-class OrderItemReadSerializer(serializers.ModelSerializer):
-    material_name = serializers.CharField(source="material.name", read_only=True)
-    material_image = serializers.ImageField(source="material.image1", read_only=True)
-    uom_code = serializers.CharField(source="material.uom.code", read_only=True)
+# class OrderItemReadSerializer(serializers.ModelSerializer):
+#     material_name = serializers.CharField(source="material.name", read_only=True)
+#     material_image = serializers.ImageField(source="material.image1", read_only=True)
+#     uom_code = serializers.CharField(source="material.uom.code", read_only=True)
 
-    class Meta:
-        model = OrderItem
-        fields = [
-            "id",
-            "material",
-            "material_name",
-            "material_image",
-            "uom_code",
-            "quantity",
-            "unit_price",
-            "discount_amount",
-            "line_total",
-        ]
-        read_only_fields = fields
-
-
-class OrderItemInputSerializer(serializers.Serializer):
-    material = serializers.PrimaryKeyRelatedField(
-        queryset=Material.objects.filter(is_active=True),
-        help_text=_("ID of the material to purchase."),
-    )
-    quantity = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=3,
-        min_value=Decimal("0.001"),
-        required=True,
-        help_text=_("Quantity ordered (must be greater than 0)."),
-    )
+#     class Meta:
+#         model = OrderItem
+#         fields = [
+#             "id",
+#             "material",
+#             "material_name",
+#             "material_image",
+#             "uom_code",
+#             "quantity",
+#             "unit_price",
+#             "discount_amount",
+#             "line_total",
+#         ]
+#         read_only_fields = fields
 
 
-class OrderCreateSerializer(serializers.ModelSerializer):
-    items = OrderItemInputSerializer(many=True, write_only=True, required=True)
-
-    class Meta:
-        model = Order
-        fields = [
-            "id",
-            "order_number",
-            "payment_method",
-            "shipping_address",
-            "shipping_phone",
-            "notes",
-            "items",
-            "subtotal",
-            "discount_amount",
-            "total_amount",
-            "created_at",
-        ]
-        read_only_fields = [
-            "id",
-            "order_number",
-            "subtotal",
-            "discount_amount",
-            "total_amount",
-            "created_at",
-        ]
-
-    def validate_items(self, items):
-        if not items:
-            raise serializers.ValidationError(
-                _("Order must contain at least one item.")
-            )
-        # Verify no duplicate materials in the single submission
-        material_ids = [item["material"].id for item in items]
-        if len(material_ids) != len(set(material_ids)):
-            raise serializers.ValidationError(
-                _("Duplicate materials in single order are not allowed.")
-            )
-        return items
-
-    def create(self, validated_data):
-        items_data = validated_data.pop("items")
-        user = self.context["request"].user
-
-        with transaction.atomic():
-            order = Order.objects.create(
-                user=user,
-                status=OrderStatus.PENDING,
-                payment_status=PaymentStatus.UNPAID,
-                **validated_data,
-            )
-            for item in items_data:
-                mat = item["material"]
-                qty = item["quantity"]
-                price = mat.consumer_price or Decimal("0.00")
-                OrderItem.objects.create(
-                    order=order,
-                    material=mat,
-                    quantity=qty,
-                    unit_price=price,
-                    discount_amount=Decimal("0.00"),
-                )
-            order.calculate_totals(save_instance=True)
-        return order
+# class OrderItemInputSerializer(serializers.Serializer):
+#     material = serializers.PrimaryKeyRelatedField(
+#         queryset=Material.objects.filter(is_active=True),
+#         help_text=_("ID of the material to purchase."),
+#     )
+#     quantity = serializers.DecimalField(
+#         max_digits=12,
+#         decimal_places=3,
+#         min_value=Decimal("0.001"),
+#         required=True,
+#         help_text=_("Quantity ordered (must be greater than 0)."),
+#     )
 
 
-class OrderDetailSerializer(serializers.ModelSerializer):
-    items = OrderItemReadSerializer(many=True, read_only=True)
-    user_email = serializers.CharField(source="user.email", read_only=True)
-    user_name = serializers.SerializerMethodField()
+# class OrderCreateSerializer(serializers.ModelSerializer):
+#     items = OrderItemInputSerializer(many=True, write_only=True, required=True)
 
-    class Meta:
-        model = Order
-        fields = [
-            "id",
-            "order_number",
-            "user",
-            "user_email",
-            "user_name",
-            "status",
-            "payment_method",
-            "payment_status",
-            "shipping_address",
-            "shipping_phone",
-            "notes",
-            "subtotal",
-            "discount_amount",
-            "total_amount",
-            "items",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = fields
+#     class Meta:
+#         model = Order
+#         fields = [
+#             "id",
+#             "order_number",
+#             "payment_method",
+#             "shipping_address",
+#             "shipping_phone",
+#             "notes",
+#             "items",
+#             "subtotal",
+#             "discount_amount",
+#             "total_amount",
+#             "created_at",
+#         ]
+#         read_only_fields = [
+#             "id",
+#             "order_number",
+#             "subtotal",
+#             "discount_amount",
+#             "total_amount",
+#             "created_at",
+#         ]
 
-    @extend_schema_field(serializers.CharField())
-    def get_user_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.email
+#     def validate_items(self, items):
+#         if not items:
+#             raise serializers.ValidationError(
+#                 _("Order must contain at least one item.")
+#             )
+#         # Verify no duplicate materials in the single submission
+#         material_ids = [item["material"].id for item in items]
+#         if len(material_ids) != len(set(material_ids)):
+#             raise serializers.ValidationError(
+#                 _("Duplicate materials in single order are not allowed.")
+#             )
+#         return items
+
+#     def create(self, validated_data):
+#         items_data = validated_data.pop("items")
+#         user = self.context["request"].user
+
+#         with transaction.atomic():
+#             order = Order.objects.create(
+#                 user=user,
+#                 status=OrderStatus.PENDING,
+#                 payment_status=PaymentStatus.UNPAID,
+#                 **validated_data,
+#             )
+#             for item in items_data:
+#                 mat = item["material"]
+#                 qty = item["quantity"]
+#                 price = mat.consumer_price or Decimal("0.00")
+#                 OrderItem.objects.create(
+#                     order=order,
+#                     material=mat,
+#                     quantity=qty,
+#                     unit_price=price,
+#                     discount_amount=Decimal("0.00"),
+#                 )
+#             order.calculate_totals(save_instance=True)
+#         return order
 
 
-class OrderListSerializer(serializers.ModelSerializer):
-    items_count = serializers.IntegerField(source="items.count", read_only=True)
+# class OrderDetailSerializer(serializers.ModelSerializer):
+#     items = OrderItemReadSerializer(many=True, read_only=True)
+#     user_email = serializers.CharField(source="user.email", read_only=True)
+#     user_name = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Order
-        fields = [
-            "id",
-            "order_number",
-            "status",
-            "payment_method",
-            "payment_status",
-            "total_amount",
-            "items_count",
-            "created_at",
-        ]
-        read_only_fields = fields
+#     class Meta:
+#         model = Order
+#         fields = [
+#             "id",
+#             "order_number",
+#             "user",
+#             "user_email",
+#             "user_name",
+#             "status",
+#             "payment_method",
+#             "payment_status",
+#             "shipping_address",
+#             "shipping_phone",
+#             "notes",
+#             "subtotal",
+#             "discount_amount",
+#             "total_amount",
+#             "items",
+#             "created_at",
+#             "updated_at",
+#         ]
+#         read_only_fields = fields
+
+#     @extend_schema_field(serializers.CharField())
+#     def get_user_name(self, obj):
+#         return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.email
 
 
-class OrderStatusUpdateSerializer(serializers.Serializer):
-    status = serializers.ChoiceField(choices=OrderStatus.choices, required=False)
-    payment_status = serializers.ChoiceField(
-        choices=PaymentStatus.choices, required=False
-    )
+# class OrderListSerializer(serializers.ModelSerializer):
+#     items_count = serializers.IntegerField(source="items.count", read_only=True)
 
-    def validate(self, attrs):
-        if not attrs.get("status") and not attrs.get("payment_status"):
-            raise serializers.ValidationError(
-                _("At least one of status or payment_status must be provided.")
-            )
-        return attrs
+#     class Meta:
+#         model = Order
+#         fields = [
+#             "id",
+#             "order_number",
+#             "status",
+#             "payment_method",
+#             "payment_status",
+#             "total_amount",
+#             "items_count",
+#             "created_at",
+#         ]
+#         read_only_fields = fields
+
+
+# class OrderStatusUpdateSerializer(serializers.Serializer):
+#     status = serializers.ChoiceField(choices=OrderStatus.choices, required=False)
+#     payment_status = serializers.ChoiceField(
+#         choices=PaymentStatus.choices, required=False
+#     )
+
+#     def validate(self, attrs):
+#         if not attrs.get("status") and not attrs.get("payment_status"):
+#             raise serializers.ValidationError(
+#                 _("At least one of status or payment_status must be provided.")
+#             )
+#         return attrs

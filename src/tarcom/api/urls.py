@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views.auth import *
 from .views.core import *
 from .views.favourites import FavouriteViewSet
-from .views.orders import OrderViewSet
+# from .views.orders import OrderViewSet
 
 router = DefaultRouter()
 router.register(r"auth", AuthViewSet, basename="auth")
@@ -16,6 +16,6 @@ router.register(r"settings", SettingsViewSet, basename="settings")
 router.register(r"contact", ContactViewSet, basename="contact")
 router.register(r"banners", BannerViewSet, basename="banners")
 router.register(r"favourites", FavouriteViewSet, basename="favourites")
-router.register(r"orders", OrderViewSet, basename="orders")
+# router.register(r"orders", OrderViewSet, basename="orders")
 
 urlpatterns = router.urls

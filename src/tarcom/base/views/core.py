@@ -19,7 +19,7 @@ from django.views.generic import (
 
 from tarcom.base.forms import *
 from tarcom.base.models import *
-from tarcom.utils.enums import FeatureReason, OrderStatus, UserType
+from tarcom.utils.enums import FeatureReason, UserType
 
 from .auth import ProtectedDeleteMixin, StaffRequiredMixin
 
@@ -35,15 +35,15 @@ class DashboardPartialView(StaffRequiredMixin, View):
         context = {
             "products_count": Material.objects.count(),
             "categories_count": MaterialCategory.objects.count(),
-            "orders_count": Order.objects.filter(status=OrderStatus.PENDING).count(),
+            # "orders_count": Order.objects.filter(status=OrderStatus.PENDING).count(),
             "clients_count": CustomUser.objects.filter(
                 user_type=UserType.CUSTOMER
             ).count(),
             "admins_count": CustomUser.objects.filter(is_staff=True).count(),
-            "total_sales": Order.objects.exclude(
-                status=OrderStatus.CANCELLED
-            ).aggregate(total=Sum("total_amount"))["total"]
-            or Decimal("0.00"),
+            # "total_sales": Order.objects.exclude(
+                # status=OrderStatus.CANCELLED
+            # ).aggregate(total=Sum("total_amount"))["total"]
+            # or Decimal("0.00"),
         }
         return render(
             request, "dashboard/partials/dashboard_partial.html", context=context
@@ -544,59 +544,59 @@ class BannerBulkActionView(StaffRequiredMixin, View):
         return redirect(self.list_url_name)
 
 
-class OrderListView(StaffRequiredMixin, ListView):
-    model = Order
-    template_name = "dashboard/orders/orders_list.html"
-    context_object_name = "orders"
-    paginate_by = 20
+# class OrderListView(StaffRequiredMixin, ListView):
+#     model = Order
+#     template_name = "dashboard/orders/orders_list.html"
+#     context_object_name = "orders"
+#     paginate_by = 20
 
-    def get_queryset(self):
-        qs = Order.objects.select_related("user").all().order_by("-created_at")
-        status_param = self.request.GET.get("status")
-        if status_param:
-            qs = qs.filter(status=status_param)
-        q = self.request.GET.get("q")
-        if q:
-            qs = qs.filter(
-                Q(order_number__icontains=q)
-                | Q(user__email__icontains=q)
-                | Q(shipping_phone__icontains=q)
-            )
-        return qs
+#     def get_queryset(self):
+#         qs = Order.objects.select_related("user").all().order_by("-created_at")
+#         status_param = self.request.GET.get("status")
+#         if status_param:
+#             qs = qs.filter(status=status_param)
+#         q = self.request.GET.get("q")
+#         if q:
+#             qs = qs.filter(
+#                 Q(order_number__icontains=q)
+#                 | Q(user__email__icontains=q)
+#                 | Q(shipping_phone__icontains=q)
+#             )
+#         return qs
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["status_choices"] = OrderStatus.choices
-        return ctx
-
-
-class OrderDetailView(StaffRequiredMixin, DetailView):
-    model = Order
-    template_name = "dashboard/orders/order_detail.html"
-    context_object_name = "order"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["status_form"] = OrderDashboardStatusForm(
-            initial={
-                "status": self.object.status,
-                "payment_status": self.object.payment_status,
-            }
-        )
-        return ctx
+#     def get_context_data(self, **kwargs):
+#         ctx = super().get_context_data(**kwargs)
+#         ctx["status_choices"] = OrderStatus.choices
+#         return ctx
 
 
-class OrderStatusUpdateView(StaffRequiredMixin, View):
-    def post(self, request, pk):
-        order = get_object_or_404(Order, pk=pk)
-        form = OrderDashboardStatusForm(request.POST)
-        if form.is_valid():
-            order.status = form.cleaned_data["status"]
-            order.payment_status = form.cleaned_data["payment_status"]
-            order.save(update_fields=["status", "payment_status"])
-            messages.success(
-                request, f"تم تحديث حالة الطلب #{order.order_number} بنجاح."
-            )
-        else:
-            messages.error(request, "تعذر تحديث حالة الطلب. الرجاء اختيار قيم صحيحة.")
-        return redirect("order-detail", pk=order.pk)
+# class OrderDetailView(StaffRequiredMixin, DetailView):
+#     model = Order
+#     template_name = "dashboard/orders/order_detail.html"
+#     context_object_name = "order"
+
+#     def get_context_data(self, **kwargs):
+#         ctx = super().get_context_data(**kwargs)
+#         ctx["status_form"] = OrderDashboardStatusForm(
+#             initial={
+#                 "status": self.object.status,
+#                 "payment_status": self.object.payment_status,
+#             }
+#         )
+#         return ctx
+
+
+# class OrderStatusUpdateView(StaffRequiredMixin, View):
+#     def post(self, request, pk):
+#         order = get_object_or_404(Order, pk=pk)
+#         form = OrderDashboardStatusForm(request.POST)
+#         if form.is_valid():
+#             order.status = form.cleaned_data["status"]
+#             order.payment_status = form.cleaned_data["payment_status"]
+#             order.save(update_fields=["status", "payment_status"])
+#             messages.success(
+#                 request, f"تم تحديث حالة الطلب #{order.order_number} بنجاح."
+#             )
+#         else:
+#             messages.error(request, "تعذر تحديث حالة الطلب. الرجاء اختيار قيم صحيحة.")
+#         return redirect("order-detail", pk=order.pk)

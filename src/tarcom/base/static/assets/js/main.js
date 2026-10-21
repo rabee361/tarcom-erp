@@ -208,3 +208,69 @@ function togglePasswordVisibility() {
         toggleButton.classList.add('fa-eye');
     }
 }
+
+// Spec pairs (material form): show filled rows, add/remove rows
+document.addEventListener('DOMContentLoaded', function() {
+    const pairs = Array.from(document.querySelectorAll('.spec-pair'));
+    if (pairs.length === 0) {
+        return;
+    }
+
+    const addButton = document.getElementById('add-spec-pair');
+
+    function isHidden(pair) {
+        return pair.style.display === 'none';
+    }
+
+    function hasValue(pair) {
+        return Array.from(pair.querySelectorAll('input')).some(function (input) {
+            return input.value.trim() !== '';
+        });
+    }
+
+    function refreshAddButton() {
+        if (!addButton) {
+            return;
+        }
+        addButton.style.display = pairs.some(isHidden) ? '' : 'none';
+    }
+
+    pairs.forEach(function (pair) {
+        // Pairs that already hold a spec (edit page) stay visible.
+        if (isHidden(pair) && hasValue(pair)) {
+            pair.style.display = '';
+        }
+
+        const removeButton = pair.querySelector('.spec-remove-btn');
+        if (removeButton) {
+            removeButton.addEventListener('click', function () {
+                pair.style.display = 'none';
+                pair.querySelectorAll('input').forEach(function (input) {
+                    input.value = '';
+                });
+                refreshAddButton();
+            });
+        }
+    });
+
+    if (addButton) {
+        addButton.addEventListener('click', function () {
+            const next = pairs.find(function (pair) { return isHidden(pair); });
+            if (!next) {
+                return;
+            }
+            next.style.display = '';
+            next.querySelector('input').focus();
+            refreshAddButton();
+        });
+    }
+
+    refreshAddButton();
+});
+
+function clickHandler(event) {
+    const link = event.currentTarget.getAttribute('data-link');
+    if (link) {
+        window.location.href = link;
+    }
+}

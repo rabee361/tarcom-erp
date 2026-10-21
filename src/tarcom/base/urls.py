@@ -142,11 +142,11 @@ urlpatterns = [
     path("dashboard/banners/<int:pk>/edit/", BannerUpdateView.as_view(), name="banner-edit"),
     path("dashboard/banners/<int:pk>/delete/", BannerDeleteView.as_view(), name="banner-delete"),
     path("dashboard/banners/action/", BannerBulkActionView.as_view(), name="banner-bulk-action"),
-    path("dashboard/orders/", OrderListView.as_view(), name="orders-list"),
-    path("dashboard/orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
-    path(
-        "dashboard/orders/<int:pk>/status/",
-        OrderStatusUpdateView.as_view(),
-        name="order-status-update",
-    ),
+    # path("dashboard/orders/", OrderListView.as_view(), name="orders-list"),
+    # path("dashboard/orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
+    # path(
+    #     "dashboard/orders/<int:pk>/status/",
+    #     OrderStatusUpdateView.as_view(),
+    #     name="order-status-update",
+    # ),
 ]

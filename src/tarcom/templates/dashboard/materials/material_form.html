@@ -117,7 +117,8 @@
                     <label>المواصفات</label>
 
                     <div class="spec-pair" data-slot="1">
-                        <div class="form-grid">
+                        <div class="spec-pair-row">
+                            <div class="form-grid">
                             <div class="form-group">
                                 <label>{{ form.spec_key1.label }}</label>
                                 {{ form.spec_key1 }}
@@ -133,10 +134,15 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        </div>
                     </div>
 
                     <div class="spec-pair" data-slot="2" style="display: none">
-                        <div class="form-grid">
+                        <div class="spec-pair-row">
+                            <div class="form-grid">
                             <div class="form-group">
                                 <label>{{ form.spec_key2.label }}</label>
                                 {{ form.spec_key2 }}
@@ -152,10 +158,15 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        </div>
                     </div>
 
                     <div class="spec-pair" data-slot="3" style="display: none">
-                        <div class="form-grid">
+                        <div class="spec-pair-row">
+                            <div class="form-grid">
                             <div class="form-group">
                                 <label>{{ form.spec_key3.label }}</label>
                                 {{ form.spec_key3 }}
@@ -171,10 +182,15 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        </div>
                     </div>
 
                     <div class="spec-pair" data-slot="4" style="display: none">
-                        <div class="form-grid">
+                        <div class="spec-pair-row">
+                            <div class="form-grid">
                             <div class="form-group">
                                 <label>{{ form.spec_key4.label }}</label>
                                 {{ form.spec_key4 }}
@@ -190,10 +206,15 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        </div>
                     </div>
 
                     <div class="spec-pair" data-slot="5" style="display: none">
-                        <div class="form-grid">
+                        <div class="spec-pair-row">
+                            <div class="form-grid">
                             <div class="form-group">
                                 <label>{{ form.spec_key5.label }}</label>
                                 {{ form.spec_key5 }}
@@ -208,6 +229,10 @@
                                     <div class="error">{{ form.spec_val5.errors }}</div>
                                 {% endif %}
                             </div>
+                        </div>
+                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                            <i class="fas fa-times"></i>
+                        </button>
                         </div>
                     </div>
 
@@ -234,43 +259,4 @@
     </form>
 </div>
 
-<script>
-(function () {
-    const pairs = Array.from(document.querySelectorAll('.spec-pair'));
-    const addButton = document.getElementById('add-spec-pair');
-
-    function isHidden(pair) {
-        return pair.style.display === 'none';
-    }
-
-    function hasValue(pair) {
-        return Array.from(pair.querySelectorAll('input')).some(function (input) {
-            return input.value.trim() !== '';
-        });
-    }
-
-    // Pairs that already hold a spec (edit page) stay visible.
-    pairs.forEach(function (pair) {
-        if (isHidden(pair) && hasValue(pair)) {
-            pair.style.display = '';
-        }
-    });
-
-    function refreshAddButton() {
-        addButton.style.display = pairs.some(isHidden) ? '' : 'none';
-    }
-
-    addButton.addEventListener('click', function () {
-        const next = pairs.find(function (pair) { return isHidden(pair); });
-        if (!next) {
-            return;
-        }
-        next.style.display = '';
-        next.querySelector('input').focus();
-        refreshAddButton();
-    });
-
-    refreshAddButton();
-})();
-</script>
 {% endblock %}

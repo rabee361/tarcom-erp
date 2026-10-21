@@ -314,14 +314,14 @@ class UnitOfMeasureForm(forms.ModelForm):
         }
 
 
-class OrderDashboardStatusForm(forms.Form):
-    status = forms.ChoiceField(
-        choices=OrderStatus.choices,
-        label=_("حالة الطلب"),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-    payment_status = forms.ChoiceField(
-        choices=PaymentStatus.choices,
-        label=_("حالة الدفع"),
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
+# class OrderDashboardStatusForm(forms.Form):
+#     status = forms.ChoiceField(
+#         choices=OrderStatus.choices,
+#         label=_("حالة الطلب"),
+#         widget=forms.Select(attrs={"class": "form-control"}),
+#     )
+#     payment_status = forms.ChoiceField(
+#         choices=PaymentStatus.choices,
+#         label=_("حالة الدفع"),
+#         widget=forms.Select(attrs={"class": "form-control"}),
+#     )

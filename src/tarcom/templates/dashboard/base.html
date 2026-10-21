@@ -8,22 +8,19 @@
         document.documentElement.setAttribute('data-theme', currentTheme);
     </script>
     <script rel="script" src="{% static 'assets/min/js/main.min.js' %}"></script>
-    <script rel="script" src="{% static 'assets/min/js/chat.min.js' %}"></script>
-    <script rel="script" src="{% static 'assets/min/js/copy_btn.min.js' %}"></script>
-    <script rel="script" src="{% static 'assets/js/modal.js' %}"></script>
-    <script rel="script" src="{% static 'assets/js/image_uploader.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/modal.min.js' %}"></script>
+    <script rel="script" src="{% static 'assets/min/js/image_uploader.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/theme.min.js' %}"></script>
     <script rel="script" src="{% static 'assets/min/js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/modal.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/img_uploader.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/min/css/main.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/min/css/modal.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/min/css/img_uploader.min.css' %}">
     <script src="https://unpkg.com/htmx-ext-ws@2.0.2" integrity="sha384-vuKxTKv5TX/b3lLzDKP2U363sOAoRo5wSvzzc3LJsbaQRSBSS+3rKKHcOx5J8doU" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <meta charset="UTF-8">
     <meta name="description" content="Tarcom Dashboard - لوحة تحكم تاركم">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tarcom - {% block title %}لوحة التحكم{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.4.0/clipboard.min.js">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="container-body">
@@ -89,7 +86,7 @@
                             <i class="fas fa-chevron-down arrow"></i>
                         </div>
                         <div class="nav-content">
-                            <a href="{% url 'orders-list' %}" class="sub-item">الطلبات</a>
+                            <a href="" class="sub-item">الطلبات</a>
                             <a href="" class="sub-item">فواتير المبيعات</a>
                             <a href="" class="sub-item">فواتير الشراء</a>
                             <a href="" class="sub-item">عروض الأسعار</a>

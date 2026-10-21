@@ -17,11 +17,11 @@ from tarcom.base.models import (
     FavouriteItem,
     Material,
     MaterialCategory,
-    Order,
+    # Order,
     Setting,
     UnitOfMeasure,
 )
-from tarcom.utils.enums import OrderStatus, PaymentStatus
+from tarcom.utils.enums import PaymentStatus
 
 SEARCH_HELP = _("A search term.")
 ORDERING_HELP = _("Which field to use when ordering the results.")
@@ -192,22 +192,22 @@ class SettingFilter(SearchableFilterSet):
         fields = []
 
 
-class OrderFilter(SearchableFilterSet):
-    search_fields = ("order_number", "shipping_phone", "user__email")
-    search = django_filters.CharFilter(method="filter_search", help_text=SEARCH_HELP)
-    status = CaseInsensitiveChoiceFilter(
-        choices=OrderStatus.choices, help_text=_("Filter by order status.")
-    )
-    payment_status = CaseInsensitiveChoiceFilter(
-        choices=PaymentStatus.choices, help_text=_("Filter by payment status.")
-    )
-    ordering = django_filters.OrderingFilter(
-        fields=("created_at", "total_amount", "status"), help_text=ORDERING_HELP
-    )
+# class OrderFilter(SearchableFilterSet):
+#     search_fields = ("order_number", "shipping_phone", "user__email")
+#     search = django_filters.CharFilter(method="filter_search", help_text=SEARCH_HELP)
+#     status = CaseInsensitiveChoiceFilter(
+#         choices=OrderStatus.choices, help_text=_("Filter by order status.")
+#     )
+#     payment_status = CaseInsensitiveChoiceFilter(
+#         choices=PaymentStatus.choices, help_text=_("Filter by payment status.")
+#     )
+#     ordering = django_filters.OrderingFilter(
+#         fields=("created_at", "total_amount", "status"), help_text=ORDERING_HELP
+#     )
 
-    class Meta:
-        model = Order
-        fields = ["status", "payment_status"]
+#     class Meta:
+#         model = Order
+#         fields = ["status", "payment_status"]
 
 
 class FavouriteItemFilter(django_filters.FilterSet):
