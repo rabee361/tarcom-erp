@@ -12,7 +12,7 @@ class DashboardSettingsTest(TestCase):
             is_staff=True,
         )
         self.setting = Setting.objects.create(
-            key_en="conversion_price", key_ar="سعر التحويل", value="140"
+            key_en="conversion_price", key_ar="سعر الصرف", value="140"
         )
 
     def test_settings_page_renders_for_staff(self):
@@ -20,7 +20,7 @@ class DashboardSettingsTest(TestCase):
         response = self.client.get("/dashboard/settings/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "conversion_price")
-        self.assertContains(response, "سعر التحويل")
+        self.assertContains(response, "سعر الصرف")
         self.assertContains(response, 'value="140"')
 
     def test_settings_page_requires_login(self):
@@ -67,7 +67,7 @@ class DashboardSettingsTest(TestCase):
         with translation.override("ar"):
             response = self.client.get("/dashboard/settings/")
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, "سعر التحويل")
+            self.assertContains(response, "سعر الصرف")
             self.assertContains(response, 'name="conversion_price"')
 
             response = self.client.post(

@@ -147,12 +147,12 @@ def seed_system_settings():
         key_en="conversion_price",
         defaults={
             "key_en": "conversion_price",
-            "key_ar": "سعر التحويل",
+            "key_ar": "سعر الصرف",
             "value": "140",
         },
     )
     if not setting.key_ar:
-        setting.key_ar = "سعر التحويل"
+        setting.key_ar = "سعر الصرف"
         setting.save(update_fields=["key_ar"])
     return 1
 

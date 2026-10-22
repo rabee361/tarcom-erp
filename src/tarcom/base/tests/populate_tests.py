@@ -105,7 +105,7 @@ class PopulateProdDbTest(TestCase):
         settings = Setting.objects.filter(key_en="conversion_price")
         self.assertEqual(settings.count(), 1)
         self.assertEqual(settings.get().value, "140")
-        self.assertEqual(settings.get().key_ar, "سعر التحويل")
+        self.assertEqual(settings.get().key_ar, "سعر الصرف")
 
     def test_rerun_does_not_clobber_an_edited_setting_value(self):
         call_command("populate_prod_db")
@@ -156,4 +156,4 @@ class PopulateDbTest(TestCase):
         settings = Setting.objects.filter(key_en="conversion_price")
         self.assertEqual(settings.count(), 1)
         self.assertEqual(settings.get().value, "140")
-        self.assertEqual(settings.get().key_ar, "سعر التحويل")
+        self.assertEqual(settings.get().key_ar, "سعر الصرف")
