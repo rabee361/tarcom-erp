@@ -3,7 +3,14 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import ProtectedError, Q, Sum
+from django.db.models import (
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    ProtectedError,
+    Q,
+    Sum,
+)
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
@@ -73,6 +80,17 @@ class MaterialListView(StaffRequiredMixin, ListView):
             )
         if cat_id:
             qs = qs.filter(category_id=cat_id)
+        conversion = conversion_price()
+        qs = qs.annotate(
+            supplier_price_in_sp=ExpressionWrapper(
+                F("supplier_price") * conversion,
+                output_field=DecimalField(max_digits=20, decimal_places=2),
+            ),
+            consumer_price_in_sp=ExpressionWrapper(
+                F("consumer_price") * conversion,
+                output_field=DecimalField(max_digits=20, decimal_places=2),
+            ),
+        )
         return qs
 
     def get_context_data(self, **kwargs):

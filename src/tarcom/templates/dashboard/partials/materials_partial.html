@@ -12,7 +12,9 @@
     <td>{{ material.category.name_ar }}</td>
     <td>{{ material.uom.name_ar }}</td>
     <td>{{ material.supplier_price|floatformat:2 }}</td>
+    <td>{{ material.supplier_price_in_sp|floatformat:2 }}</td>
     <td>{{ material.consumer_price|floatformat:2 }}</td>
+    <td>{{ material.consumer_price_in_sp|floatformat:2 }}</td>
     <td>
         <span class="status {% if material.is_active %}text-success{% else %}text-danger{% endif %}">
             {% if material.is_active %}نشط{% else %}موقوف{% endif %}
@@ -26,6 +28,6 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="9">لا توجد منتجات.</td>
+    <td colspan="11">لا توجد منتجات.</td>
 </tr>
 {% endfor %}

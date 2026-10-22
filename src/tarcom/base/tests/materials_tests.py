@@ -104,6 +104,22 @@ class DashboardMaterialsCrudTest(TestCase):
         self.assertContains(response, 'value="11200.00"')
         self.assertContains(response, 'value="14000.00"')
 
+    def test_material_list_shows_sp_prices_next_to_usd_prices(self):
+        Setting.objects.create(key="conversion_price", value="140")
+        Material.objects.create(
+            name="Rod",
+            category=self.category,
+            uom=self.uom,
+            company=self.company,
+            supplier_price=Decimal("80.00"),
+            consumer_price=Decimal("100.00"),
+        )
+        response = self.client.get("/dashboard/materials/")
+        self.assertContains(response, "80.00")
+        self.assertContains(response, "11200.00")
+        self.assertContains(response, "100.00")
+        self.assertContains(response, "14000.00")
+
 
 class DashboardMaterialFeaturesTest(TestCase):
     def setUp(self):

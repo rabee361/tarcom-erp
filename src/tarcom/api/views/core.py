@@ -122,8 +122,6 @@ class MaterialViewSet(viewsets.ModelViewSet):
     filterset_class = MaterialFilter
 
     def get_queryset(self):
-        # Non-staff callers only ever see the live catalogue; staff keep full
-        # visibility so inactive rows stay editable through the API.
         qs = Material.objects.select_related("category", "uom", "company").all()
         user = self.request.user
         if not (user.is_authenticated and (user.is_staff or user.is_admin)):
