@@ -473,6 +473,7 @@ class MaterialSerializer(TranslateModelSerializer):
             "spec_val4",
             "spec_val5",
             "image1",
+            "info_file",
             "created_at",
             "updated_at",
         ]
@@ -515,6 +516,7 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "spec_val4",
             "spec_val5",
             "image1",
+            "info_file",
             "created_at",
             "updated_at",
             "feature_reason",
@@ -550,6 +552,7 @@ class MaterialCompactSerializer(serializers.ModelSerializer):
             "supplier_price",
             "is_active",
             "image1",
+            "info_file",
             "category",
             "category_name",
             "uom",

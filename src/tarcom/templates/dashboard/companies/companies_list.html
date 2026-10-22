@@ -30,6 +30,7 @@
         </div>
     </div>
 
+    {% include 'dashboard/partials/add_button.html' with add_url='company-create' %}
 </div>
 
 
@@ -54,12 +55,6 @@
         </table>
     </div>
 </form>
-
-<div class="table-controls">
-    <div class="action-button-container">
-        <a href="{% url 'company-create' %}" class="btn btn-brown">إضافة</a>
-    </div>
-</div>
 
 {% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}
 {% endblock %}

@@ -109,6 +109,14 @@
                             <div class="error">{{ form.is_active.errors }}</div>
                         {% endif %}
                     </div>
+
+                    <div class="form-group">
+                        <label>{{ form.info_file.label }}</label>
+                        {{ form.info_file }}
+                        {% if form.info_file.errors %}
+                            <div class="error">{{ form.info_file.errors }}</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -215,24 +223,24 @@
                     <div class="spec-pair" data-slot="5" style="display: none">
                         <div class="spec-pair-row">
                             <div class="form-grid">
-                            <div class="form-group">
-                                <label>{{ form.spec_key5.label }}</label>
-                                {{ form.spec_key5 }}
-                                {% if form.spec_key5.errors %}
-                                    <div class="error">{{ form.spec_key5.errors }}</div>
-                                {% endif %}
+                                <div class="form-group">
+                                    <label>{{ form.spec_key5.label }}</label>
+                                    {{ form.spec_key5 }}
+                                    {% if form.spec_key5.errors %}
+                                        <div class="error">{{ form.spec_key5.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label>{{ form.spec_val5.label }}</label>
+                                    {{ form.spec_val5 }}
+                                    {% if form.spec_val5.errors %}
+                                        <div class="error">{{ form.spec_val5.errors }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>{{ form.spec_val5.label }}</label>
-                                {{ form.spec_val5 }}
-                                {% if form.spec_val5.errors %}
-                                    <div class="error">{{ form.spec_val5.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
-                            <i class="fas fa-times"></i>
-                        </button>
+                            <button type="button" class="spec-remove-btn" title="إزالة المواصفة" aria-label="إزالة المواصفة">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
 

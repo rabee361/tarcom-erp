@@ -382,6 +382,7 @@ class MaterialAPITest(TestCase):
         self.assertEqual(res_materials.data["results"][0]["category_name"], "Devices")
         self.assertEqual(res_materials.data["results"][0]["uom_name"], "Piece")
         self.assertEqual(res_materials.data["results"][0]["company_detail"]["name"], "Phone Co")
+        self.assertIn("info_file", res_materials.data["results"][0])
 
     def test_materials_companies_action(self):
         response = self.client.get("/api/materials/companies/")
@@ -430,13 +431,19 @@ class MaterialAPITest(TestCase):
             "supplier_price": "300.00",
             "consumer_price": "450.00",
             "is_active": True,
+            "info_file": SimpleUploadedFile(
+                "datasheet.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+            ),
         }
-        response = self.client.post("/api/materials/", data, format="json")
+        response = self.client.post("/api/materials/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name_en"], "Tablet")
         self.assertEqual(response.data["name_ar"], "لوحي")
         self.assertEqual(response.data["description_en"], "Screen 10 inch")
         self.assertEqual(response.data["description_ar"], "شاشة 10 بوصة")
+        material = Material.objects.get(name_en="Tablet")
+        self.assertTrue(str(material.info_file.name).startswith("files/materials/"))
+        self.assertIn("files/materials/", response.data["info_file"])
 
     def test_material_translation_by_header(self):
         res_ar = self.client.get(
@@ -581,6 +588,7 @@ class MaterialFeatureAPITest(TestCase):
         self.assertEqual([item["id"] for item in results], [self.featured.id])
         self.assertEqual(results[0]["feature_reason"], FeatureReason.OFFER)
         self.assertEqual(results[0]["category_name"], "Devices")
+        self.assertIn("info_file", results[0])
 
     def test_features_detail_returns_flagged_material(self):
         response = self.client.get(f"/api/features/{self.featured.id}/")

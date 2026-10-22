@@ -19,6 +19,8 @@
             <input type="text" name="q" placeholder="بحث باسم المورد أو البريد أو الهاتف" value="{{ request.GET.q }}">
         </form>
     </div>
+
+    {% include 'dashboard/partials/add_button.html' with add_url='supplier-create' %}
 </div>
 
 <div class="table-container">
@@ -58,12 +60,6 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-<div class="table-controls">
-    <div class="action-button-container">
-        <a href="{% url 'supplier-create' %}" class="btn btn-brown">إضافة</a>
-    </div>
 </div>
 
 {% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}

@@ -249,6 +249,7 @@ class MaterialForm(forms.ModelForm):
             "spec_val5",
             "is_active",
             "image1",
+            "info_file",
         ]
         labels = {
             "name_en": _("الاسم بالإنجليزية"),
@@ -272,6 +273,7 @@ class MaterialForm(forms.ModelForm):
             "spec_val5": _("قيمة المواصفة 5"),
             "is_active": _("نشط"),
             "image1": _("الصورة الرئيسية"),
+            "info_file": _("ملف المعلومات"),
         }
         widgets = {
             "image1": forms.ClearableFileInput(attrs={"accept": "image/*"}),

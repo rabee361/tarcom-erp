@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from tarcom.base.models import (
@@ -37,18 +38,33 @@ class DashboardMaterialsCrudTest(TestCase):
 
     def test_dashboard_materials_crud(self):
         # Create
-        response = self.client.post("/dashboard/materials/create/", self.form_data)
+        response = self.client.post(
+            "/dashboard/materials/create/",
+            dict(
+                self.form_data,
+                info_file=SimpleUploadedFile(
+                    "datasheet.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
+                ),
+            ),
+        )
         self.assertRedirects(response, "/dashboard/materials/")
         material = Material.objects.get(name="Steel Rod")
         self.assertEqual(material.category, self.category)
         self.assertEqual(material.uom, self.uom)
         self.assertEqual(material.company, self.company)
         self.assertTrue(material.is_active)
+        self.assertTrue(
+            str(material.info_file.name).startswith("files/materials/")
+        )
 
         # List
         response = self.client.get("/dashboard/materials/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "قضيب فولاذي")
+
+        # Edit form exposes the info_file field
+        response = self.client.get(f"/dashboard/materials/{material.pk}/edit/")
+        self.assertContains(response, 'name="info_file"')
 
         # Edit
         edit_data = dict(

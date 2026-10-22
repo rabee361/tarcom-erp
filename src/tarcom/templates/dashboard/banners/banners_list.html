@@ -31,6 +31,7 @@
             <button type="button" class="btn-go" onclick="executeBulkAction()">تنفيذ</button>
         </div>
     </div> 
+    {% include 'dashboard/partials/add_button.html' with add_url='banner-create' %}
 </div>
 
 <form id="bulkActionForm" method="POST" action="{% url 'banner-bulk-action' %}">
@@ -54,12 +55,6 @@
         </table>
     </div>
 </form>
-
-<div class="table-controls">
-    <div class="action-button-container">
-        <a href="{% url 'banner-create' %}" class="btn btn-brown">إضافة</a>
-    </div>
-</div>
 
 {% if page_obj %}{% include 'dashboard/pagination.html' %}{% endif %}
 {% endblock %}

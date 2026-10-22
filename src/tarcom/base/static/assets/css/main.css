@@ -295,7 +295,6 @@
     justify-content: flex-end;
     gap: 5px;
     text-align: center;
-    padding-left: 0.5rem;
 }
 
 .form-button-container {
@@ -1430,6 +1429,32 @@ input[type="checkbox"] {
     align-items: center;
 }
 
+/* Add button moved into the actions row (left-most, next to bulk controls) */
+.actions .table-controls {
+    margin-top: 0;
+    margin-inline-start: auto;
+    gap: 0.5rem;
+}
+
+.actions .action-button-container {
+    padding-left: 0;
+}
+
+.actions .btn-brown {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.actions .btn-brown .add-btn-icon {
+    display: none;
+    line-height: 1;
+}
+
 .action-controls {
     display: flex;
     align-items: center;
@@ -1475,6 +1500,13 @@ input[type="checkbox"] {
         border-radius: 7px;
     }
 
+    .actions .btn-brown {
+        height: 30px;
+        padding: 0 10px;
+        font-size: 0.8rem;
+        border-radius: 7px;
+    }
+
     .action-controls {
         gap: 5px;
     }
@@ -1496,6 +1528,22 @@ input[type="checkbox"] {
         padding: 0 8px;
         font-size: 0.75rem;
         border-radius: 7px;
+    }
+
+    .actions .btn-brown {
+        height: 28px;
+        padding: 0 8px;
+        font-size: 0.75rem;
+        border-radius: 7px;
+        min-width: 32px;
+    }
+
+    .actions .btn-brown .add-btn-text {
+        display: none;
+    }
+
+    .actions .btn-brown .add-btn-icon {
+        display: inline;
     }
 
     .action-controls {
