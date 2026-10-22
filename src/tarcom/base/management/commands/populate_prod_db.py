@@ -1,14 +1,17 @@
-"""Seed the production database with the system categories and companies.
+"""Seed the production database with the system categories, companies and settings.
 
 Reads the same data/system_categories.json and data/system_companies.json
 that the dev populate_db command uses, and creates ONLY those rows: no units
-of measure, users, materials or orders. Categories are flagged is_system=True
-with their stable internal_name, so they cannot be deleted from the dashboard
-or the API. The JSON files are the source of truth -- re-running the command
-keeps the seeded rows in sync with them, but images and logos that were
-already uploaded are never overwritten. Company logos stay deterministic:
-only an explicit "logo" entry is uploaded, otherwise the model default is
-kept (no random placeholder logos in production).
+of measure, users, materials or orders. On top of that it seeds the system
+settings (e.g. conversion_price=140) with their default values. Categories
+are flagged is_system=True with their stable internal_name, so they cannot
+be deleted from the dashboard or the API. The JSON files are the source of
+truth -- re-running the command keeps the seeded rows in sync with them, but
+images and logos that were already uploaded are never overwritten, and
+settings that already exist (including user-edited values) are never
+duplicated or overwritten. Company logos stay deterministic: only an
+explicit "logo" entry is uploaded, otherwise the model default is kept (no
+random placeholder logos in production).
 
 Run:  python manage.py populate_prod_db    (idempotent, safe to re-run)
 """
@@ -23,7 +26,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
 
-from tarcom.base.models import Company, MaterialCategory
+from tarcom.base.models import Company, MaterialCategory, Setting
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
@@ -139,19 +142,35 @@ def seed_system_companies():
     return companies
 
 
+def seed_system_settings():
+    setting, _ = Setting.objects.get_or_create(
+        key_en="conversion_price",
+        defaults={
+            "key_en": "conversion_price",
+            "key_ar": "سعر التحويل",
+            "value": "140",
+        },
+    )
+    if not setting.key_ar:
+        setting.key_ar = "سعر التحويل"
+        setting.save(update_fields=["key_ar"])
+    return 1
+
+
 class Command(BaseCommand):
     help = (
-        "Populate the database with the system categories and companies only "
-        "(for production; no users, materials or orders)."
+        "Populate the database with the system categories, companies and "
+        "settings only (for production; no users, materials or orders)."
     )
 
     @transaction.atomic
     def handle(self, *args, **options):
         categories = seed_system_categories()
         companies = seed_system_companies()
+        settings_count = seed_system_settings()
         self.stdout.write(
             self.style.SUCCESS(
                 f"Populated: {len(categories)} categories, "
-                f"{len(companies)} companies."
+                f"{len(companies)} companies, {settings_count} settings."
             )
         )

@@ -77,11 +77,21 @@
                     </div>
 
                     <div class="form-group">
+                        <label>{{ form.supplier_price_in_sp_ar.label }}</label>
+                        {{ form.supplier_price_in_sp }}
+                    </div>
+
+                    <div class="form-group">
                         <label>{{ form.consumer_price.label }}</label>
                         {{ form.consumer_price }}
                         {% if form.consumer_price.errors %}
                             <div class="error">{{ form.consumer_price.errors }}</div>
                         {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.consumer_price_in_sp.label }}</label>
+                        {{ form.consumer_price_in_sp }}
                     </div>
                 </div>
 
@@ -266,5 +276,27 @@
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    var conversion = {{ conversion_price }};
+    var supplier = document.getElementById('{{ form.supplier_price.id_for_label }}');
+    var consumer = document.getElementById('{{ form.consumer_price.id_for_label }}');
+    var supplierSp = document.getElementById('{{ form.supplier_price_in_sp.id_for_label }}');
+    var consumerSp = document.getElementById('{{ form.consumer_price_in_sp.id_for_label }}');
+
+    function toSp(value) {
+        var price = parseFloat(value);
+        return isNaN(price) ? '' : (price * conversion);
+    }
+
+    supplier.addEventListener('input', function () {
+        supplierSp.value = toSp(supplier.value);
+    });
+    consumer.addEventListener('input', function () {
+        consumerSp.value = toSp(consumer.value);
+    });
+})();
+</script>
 
 {% endblock %}

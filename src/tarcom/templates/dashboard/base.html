@@ -128,6 +128,16 @@
                         </a>
                     </div>
 
+                    <!-- Settings -->
+                    <div class="nav-item">
+                        <a href="{% url 'settings' %}">
+                            <div class="nav-header">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>الإعدادات</span>
+                            </div>
+                        </a>
+                    </div>
+
                     <!-- Logout -->
                     <div class="nav-item">
                         <form action="{% url 'logout' %}" method="post" id="logout-form">

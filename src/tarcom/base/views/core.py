@@ -20,6 +20,7 @@ from django.views.generic import (
 from tarcom.base.forms import *
 from tarcom.base.models import *
 from tarcom.utils.enums import FeatureReason, UserType
+from tarcom.utils.helper import conversion_price
 
 from .auth import ProtectedDeleteMixin, StaffRequiredMixin
 
@@ -86,6 +87,11 @@ class MaterialCreateView(StaffRequiredMixin, CreateView):
     template_name = "dashboard/materials/material_form.html"
     success_url = reverse_lazy("materials-list")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["conversion_price"] = conversion_price()
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, "تم إضافة المادة بنجاح.")
         return super().form_valid(form)
@@ -96,6 +102,11 @@ class MaterialUpdateView(StaffRequiredMixin, UpdateView):
     form_class = MaterialForm
     template_name = "dashboard/materials/material_form.html"
     success_url = reverse_lazy("materials-list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["conversion_price"] = conversion_price()
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "تم تعديل المادة بنجاح.")
@@ -468,6 +479,24 @@ class ContactUpdateView(StaffRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "تم حفظ معلومات التواصل بنجاح.")
         return super().form_valid(form)
+
+
+class SettingsView(StaffRequiredMixin, View):
+    template_name = "dashboard/settings/settings_form.html"
+
+    def get(self, request):
+        return render(request, self.template_name, {"form": SettingsForm()})
+
+    def post(self, request):
+        form = SettingsForm(request.POST)
+        if form.is_valid():
+            for key, value in form.cleaned_data.items():
+                Setting.objects.update_or_create(
+                    key_en=key, defaults={"value": str(value)}
+                )
+            messages.success(request, "تم حفظ الإعدادات بنجاح.")
+            return redirect("settings")
+        return render(request, self.template_name, {"form": form})
 
 
 class BannerListView(StaffRequiredMixin, ListView):

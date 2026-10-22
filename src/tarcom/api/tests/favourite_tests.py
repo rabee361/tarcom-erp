@@ -78,6 +78,9 @@ class FavouriteAPITest(TestCase):
         self.assertEqual(response.data["material"], self.material.id)
         self.assertEqual(response.data["material_detail"]["name"], "Hammer")
         self.assertIn("info_file", response.data["material_detail"])
+        self.assertEqual(
+            response.data["material_detail"]["customer_price_in_sp"], "3500.00"
+        )
         self.assertTrue(
             FavouriteItem.objects.filter(
                 user=self.user, material=self.material

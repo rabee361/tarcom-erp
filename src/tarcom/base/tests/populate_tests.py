@@ -13,6 +13,7 @@ from tarcom.base.models import (
     Material,
     MaterialCategory,
     # Order,
+    Setting,
     UnitOfMeasure,
 )
 
@@ -97,6 +98,25 @@ class PopulateProdDbTest(TestCase):
         laptops.refresh_from_db()
         self.assertTrue(laptops.image.name.endswith("custom_cover.jpg"))
 
+    def test_seeds_the_conversion_price_setting_once(self):
+        call_command("populate_prod_db")
+        call_command("populate_prod_db")
+
+        settings = Setting.objects.filter(key_en="conversion_price")
+        self.assertEqual(settings.count(), 1)
+        self.assertEqual(settings.get().value, "140")
+        self.assertEqual(settings.get().key_ar, "سعر التحويل")
+
+    def test_rerun_does_not_clobber_an_edited_setting_value(self):
+        call_command("populate_prod_db")
+        Setting.objects.filter(key_en="conversion_price").update(value="200")
+
+        call_command("populate_prod_db")
+
+        self.assertEqual(
+            Setting.objects.get(key_en="conversion_price").value, "200"
+        )
+
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class PopulateDbTest(TestCase):
@@ -128,3 +148,12 @@ class PopulateDbTest(TestCase):
         self.assertEqual(Company.objects.count(), 10)
         self.assertEqual(Material.objects.count(), 10)
         # self.assertEqual(Order.objects.count(), 6)
+
+    def test_seeds_the_conversion_price_setting_once(self):
+        call_command("populate_db")
+        call_command("populate_db")
+
+        settings = Setting.objects.filter(key_en="conversion_price")
+        self.assertEqual(settings.count(), 1)
+        self.assertEqual(settings.get().value, "140")
+        self.assertEqual(settings.get().key_ar, "سعر التحويل")

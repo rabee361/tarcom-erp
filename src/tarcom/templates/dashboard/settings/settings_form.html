@@ -1,0 +1,38 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}الإعدادات{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <nav class="breadcrumb">
+        <a href="{% url 'dashboard' %}">لوحة التحكم</a>
+        <i class="separator fas fa-chevron-left"></i>
+        <span>الإعدادات</span>
+    </nav>
+</div>
+
+<div class="content-body">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-container">
+            <div class="form-section">
+                {% for field in form %}
+                    <div class="form-group">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p>لا توجد إعدادات.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-button-container">
+            <button type="submit" class="btn btn-brown">حفظ</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

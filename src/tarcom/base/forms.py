@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -10,9 +12,11 @@ from tarcom.base.models import (
     CustomUser,
     Material,
     MaterialCategory,
+    Setting,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import UserType
+from tarcom.utils.helper import conversion_price
 
 
 class DashboardLoginForm(forms.Form):
@@ -225,6 +229,18 @@ class MaterialForm(forms.ModelForm):
         empty_label=None,
     )
 
+    supplier_price_in_sp = forms.CharField(
+        required=False,
+        label=_("سعر المورد (ل.س)"),
+        widget=forms.TextInput(attrs={"readonly": True, "tabindex": "-1"}),
+    )
+
+    consumer_price_in_sp = forms.CharField(
+        required=False,
+        label=_("سعر المستهلك (ل.س)"),
+        widget=forms.TextInput(attrs={"readonly": True, "tabindex": "-1"}),
+    )
+
     class Meta:
         model = Material
         fields = [
@@ -286,6 +302,36 @@ class MaterialForm(forms.ModelForm):
         self.fields["uom"].label_from_instance = lambda obj: obj.name_ar
         self.fields["company"].label_from_instance = lambda obj: obj.name
 
+        conversion = conversion_price()
+        instance = kwargs.get("instance")
+        if instance is not None:
+            if instance.supplier_price is not None:
+                self.fields["supplier_price_in_sp"].initial = (
+                    instance.supplier_price * conversion
+                ).quantize(Decimal("0.01"))
+            if instance.consumer_price is not None:
+                self.fields["consumer_price_in_sp"].initial = (
+                    instance.consumer_price * conversion
+                ).quantize(Decimal("0.01"))
+
+
+class SettingsForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for setting in Setting.objects.all():
+            field_name = setting.key_en or setting.key
+            label = setting.key_ar or setting.key_en or setting.key
+            if setting.key_en == "conversion_price":
+                self.fields[field_name] = forms.DecimalField(
+                    label=label,
+                    min_value=Decimal("0"),
+                )
+            else:
+                self.fields[field_name] = forms.CharField(
+                    label=label,
+                    required=False,
+                )
+            self.fields[field_name].initial = setting.value
 
 class CompanyForm(forms.ModelForm):
     class Meta:

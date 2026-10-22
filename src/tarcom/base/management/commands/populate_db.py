@@ -3,7 +3,8 @@
 The storefront categories and companies come from data/system_categories.json
 and data/system_companies.json (shared with populate_prod_db); categories
 seeded from there are flagged is_system=True with their stable internal_name.
-On top of that this seeds the units of measure the materials reference, 10
+On top of that this seeds the system settings (e.g. conversion_price=140)
+with their default values, the units of measure the materials reference, 10
 materials linked to those categories/companies with every spec key/value pair
 filled, 2 active users (one customer, one supplier -- every non-admin type),
 and 3 orders per user with 1-2 line items each. No OTP codes are generated;
@@ -33,6 +34,7 @@ from tarcom.base.models import (
     MaterialCategory,
     # Order,
     # OrderItem,
+    Setting,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import (
@@ -361,6 +363,21 @@ def seed_system_companies(rng):
     return companies
 
 
+def seed_system_settings():
+    setting, _ = Setting.objects.get_or_create(
+        key_en="conversion_price",
+        defaults={
+            "key_en": "conversion_price",
+            "key_ar": "سعر التحويل",
+            "value": "140",
+        },
+    )
+    if not setting.key_ar:
+        setting.key_ar = "سعر التحويل"
+        setting.save(update_fields=["key_ar"])
+    return 1
+
+
 class Command(BaseCommand):
     help = "Populate the database with fake categories, materials, users and orders."
 
@@ -389,11 +406,13 @@ class Command(BaseCommand):
         companies = self._seed_companies(rng)
         materials = self._seed_materials(uoms, categories, companies)
         users = self._seed_users()
+        settings_count = seed_system_settings()
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Populated: {len(uoms)} units, {len(categories)} categories, "
                 f"{len(companies)} companies, {len(materials)} materials, "
+                f"{settings_count} settings."
             )
         )
 

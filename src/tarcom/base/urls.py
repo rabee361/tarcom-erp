@@ -137,6 +137,7 @@ urlpatterns = [
         name="company-bulk-action",
     ),
     path("dashboard/contact/", ContactUpdateView.as_view(), name="contact-edit"),
+    path("dashboard/settings/", SettingsView.as_view(), name="settings"),
     path("dashboard/banners/", BannerListView.as_view(), name="banners-list"),
     path("dashboard/banners/create/", BannerCreateView.as_view(), name="banner-create"),
     path("dashboard/banners/<int:pk>/edit/", BannerUpdateView.as_view(), name="banner-edit"),

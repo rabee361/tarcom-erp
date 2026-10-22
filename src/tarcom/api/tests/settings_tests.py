@@ -25,6 +25,8 @@ class SettingsAPITest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["key"], "SUPPORT_PHONE")
+        self.assertEqual(response.data["key_en"], "SUPPORT_PHONE")
+        self.assertIn("key_ar", response.data)
         self.assertTrue(Setting.objects.filter(key="SUPPORT_PHONE").exists())
 
     def test_create_duplicate_key_returns_400(self):

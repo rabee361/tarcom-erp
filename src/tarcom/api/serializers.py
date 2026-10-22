@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from tarcom.utils.helper import price_in_sp
+
 from tarcom.base.models import *
 from tarcom.base.translation import *
 from tarcom.utils.enums import CodeTypes, OrderStatus, PaymentStatus, UserType
@@ -439,6 +441,14 @@ class MaterialSerializer(TranslateModelSerializer):
     category_detail = MaterialCategoryChildSerializer(source="category", read_only=True)
     uom_detail = UnitOfMeasureSerializer(source="uom", read_only=True)
     company_detail = CompanySerializer(source="company", read_only=True)
+    supplier_price_in_sp = serializers.SerializerMethodField()
+    customer_price_in_sp = serializers.SerializerMethodField()
+
+    def get_supplier_price_in_sp(self, obj) -> str:
+        return price_in_sp(obj.supplier_price)
+
+    def get_customer_price_in_sp(self, obj) -> str:
+        return price_in_sp(obj.consumer_price)
 
     class Meta:
         model = Material
@@ -460,6 +470,8 @@ class MaterialSerializer(TranslateModelSerializer):
             "company_detail",
             "supplier_price",
             "consumer_price",
+            "supplier_price_in_sp",
+            "customer_price_in_sp",
             "is_active",
             "expire_date",
             "spec_key1",
@@ -503,6 +515,8 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "company_detail",
             "supplier_price",
             "consumer_price",
+            "supplier_price_in_sp",
+            "customer_price_in_sp",
             "is_active",
             "expire_date",
             "spec_key1",
@@ -529,7 +543,7 @@ class SettingSerializer(TranslateModelSerializer):
 
     class Meta:
         model = Setting
-        fields = ["key", "value", "description"]
+        fields = ["key", "value"]
 
 
 # ==========================================
@@ -542,6 +556,14 @@ class MaterialCompactSerializer(serializers.ModelSerializer):
 
     category_name = serializers.CharField(source="category.name", read_only=True)
     uom_name = serializers.CharField(source="uom.name", read_only=True)
+    supplier_price_in_sp = serializers.SerializerMethodField()
+    customer_price_in_sp = serializers.SerializerMethodField()
+
+    def get_supplier_price_in_sp(self, obj) -> str:
+        return price_in_sp(obj.supplier_price)
+
+    def get_customer_price_in_sp(self, obj) -> str:
+        return price_in_sp(obj.consumer_price)
 
     class Meta:
         model = Material
@@ -550,6 +572,8 @@ class MaterialCompactSerializer(serializers.ModelSerializer):
             "name",
             "consumer_price",
             "supplier_price",
+            "customer_price_in_sp",
+            "supplier_price_in_sp",
             "is_active",
             "image1",
             "info_file",

@@ -14,6 +14,7 @@ from tarcom.base.models import (
     Material,
     MaterialCategory,
     OTPCode,
+    Setting,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import CodeTypes, FeatureReason
@@ -472,6 +473,19 @@ class MaterialAPITest(TestCase):
         self.assertEqual(res_active.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res_active.data["results"]), 1)
 
+    def test_material_prices_in_sp_follow_the_conversion_setting(self):
+        Setting.objects.create(key="conversion_price", value="200")
+        response = self.client.get(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["supplier_price_in_sp"], "100000.00")
+        self.assertEqual(response.data["customer_price_in_sp"], "140000.00")
+
+    def test_material_prices_in_sp_default_to_140_without_a_setting(self):
+        response = self.client.get(f"/api/materials/{self.material.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["supplier_price_in_sp"], "70000.00")
+        self.assertEqual(response.data["customer_price_in_sp"], "98000.00")
+
     def test_anonymous_cannot_view_inactive_material(self):
         self.material.is_active = False
         self.material.save()
@@ -588,6 +602,8 @@ class MaterialFeatureAPITest(TestCase):
         self.assertEqual([item["id"] for item in results], [self.featured.id])
         self.assertEqual(results[0]["feature_reason"], FeatureReason.OFFER)
         self.assertEqual(results[0]["category_name"], "Devices")
+        self.assertEqual(results[0]["supplier_price_in_sp"], "0.00")
+        self.assertEqual(results[0]["customer_price_in_sp"], "98000.00")
         self.assertIn("info_file", results[0])
 
     def test_features_detail_returns_flagged_material(self):

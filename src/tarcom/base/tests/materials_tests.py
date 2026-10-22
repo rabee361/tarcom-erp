@@ -9,6 +9,7 @@ from tarcom.base.models import (
     CustomUser,
     Material,
     MaterialCategory,
+    Setting,
     UnitOfMeasure,
 )
 from tarcom.utils.enums import FeatureReason
@@ -82,6 +83,26 @@ class DashboardMaterialsCrudTest(TestCase):
         response = self.client.post(f"/dashboard/materials/{material.pk}/delete/")
         self.assertRedirects(response, "/dashboard/materials/")
         self.assertFalse(Material.objects.filter(pk=material.pk).exists())
+
+    def test_material_form_exposes_read_only_sp_fields(self):
+        response = self.client.get("/dashboard/materials/create/")
+        self.assertContains(response, 'name="supplier_price_in_sp"')
+        self.assertContains(response, 'name="consumer_price_in_sp"')
+        self.assertContains(response, "readonly")
+
+    def test_material_edit_form_shows_converted_sp_values(self):
+        Setting.objects.create(key="conversion_price", value="140")
+        material = Material.objects.create(
+            name="Rod",
+            category=self.category,
+            uom=self.uom,
+            company=self.company,
+            supplier_price=Decimal("80.00"),
+            consumer_price=Decimal("100.00"),
+        )
+        response = self.client.get(f"/dashboard/materials/{material.pk}/edit/")
+        self.assertContains(response, 'value="11200.00"')
+        self.assertContains(response, 'value="14000.00"')
 
 
 class DashboardMaterialFeaturesTest(TestCase):

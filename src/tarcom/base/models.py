@@ -1,6 +1,4 @@
 import uuid
-from decimal import Decimal
-
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -165,9 +163,6 @@ class MaterialCategory(TimeStampModel):
         return self.name
 
     def save(self, *args, **kwargs):
-        # internal_name is derived from the English name on creation
-        # (e.g. "Solar Boards" -> "solar_boards"); renames keep the
-        # original identifier, and a non-ASCII name stays NULL.
         if not self.internal_name:
             candidate = slugify(self.name_en or self.name).replace("-", "_")
             if candidate:
@@ -276,7 +271,6 @@ class Contact(TimeStampModel):
 class Setting(TimeStampModel):
     key = models.CharField(max_length=100, unique=True)
     value = models.TextField()
-    description = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ["key"]
