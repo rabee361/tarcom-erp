@@ -223,6 +223,7 @@ class Material(TimeStampModel):
     spec_val5 = models.CharField(max_length=100, blank=True, null=True)
 
     info_file = models.FileField(upload_to="files/materials", null=True, blank=True)
+    info_url = models.URLField(blank=True, null=True)
 
     image1 = VersatileImageField(upload_to="images/materials", null=True, blank=True)
 

@@ -432,6 +432,7 @@ class MaterialAPITest(TestCase):
             "supplier_price": "300.00",
             "consumer_price": "450.00",
             "is_active": True,
+            "info_url": "https://example.com/datasheet.pdf",
             "info_file": SimpleUploadedFile(
                 "datasheet.pdf", b"%PDF-1.4 fake", content_type="application/pdf"
             ),
@@ -443,6 +444,7 @@ class MaterialAPITest(TestCase):
         self.assertEqual(response.data["description_en"], "Screen 10 inch")
         self.assertEqual(response.data["description_ar"], "شاشة 10 بوصة")
         material = Material.objects.get(name_en="Tablet")
+        self.assertEqual(material.info_url, "https://example.com/datasheet.pdf")
         self.assertTrue(str(material.info_file.name).startswith("files/materials/"))
         self.assertIn("files/materials/", response.data["info_file"])
 

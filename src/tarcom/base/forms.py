@@ -266,6 +266,7 @@ class MaterialForm(forms.ModelForm):
             "is_active",
             "image1",
             "info_file",
+            "info_url",
         ]
         labels = {
             "name_en": _("الاسم بالإنجليزية"),
@@ -290,9 +291,11 @@ class MaterialForm(forms.ModelForm):
             "is_active": _("نشط"),
             "image1": _("الصورة الرئيسية"),
             "info_file": _("ملف المعلومات"),
+            "info_url": _("رابط المعلومات"),
         }
         widgets = {
             "image1": forms.ClearableFileInput(attrs={"accept": "image/*"}),
+            "info_url": forms.URLInput(),
         }
 
     def __init__(self, *args, **kwargs):

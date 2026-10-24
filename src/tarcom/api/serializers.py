@@ -486,6 +486,7 @@ class MaterialSerializer(TranslateModelSerializer):
             "spec_val5",
             "image1",
             "info_file",
+            "info_url",
             "created_at",
             "updated_at",
         ]
@@ -493,8 +494,6 @@ class MaterialSerializer(TranslateModelSerializer):
 
 
 class FeatureMaterialSerializer(MaterialSerializer):
-    """Material payload for /api/features/ — adds the backend-managed reason."""
-
     class Meta(MaterialSerializer.Meta):
         model = Material
         fields = [
@@ -531,6 +530,7 @@ class FeatureMaterialSerializer(MaterialSerializer):
             "spec_val5",
             "image1",
             "info_file",
+            "info_url",
             "created_at",
             "updated_at",
             "feature_reason",
@@ -552,8 +552,6 @@ class SettingSerializer(TranslateModelSerializer):
 
 
 class MaterialCompactSerializer(serializers.ModelSerializer):
-    """Lightweight material representation for favourite and order item listings."""
-
     category_name = serializers.CharField(source="category.name", read_only=True)
     uom_name = serializers.CharField(source="uom.name", read_only=True)
     supplier_price_in_sp = serializers.SerializerMethodField()
@@ -595,8 +593,6 @@ class MaterialCompactSerializer(serializers.ModelSerializer):
 
 
 class FavouriteItemSerializer(serializers.ModelSerializer):
-    """Read serializer with nested material details."""
-
     material_detail = MaterialCompactSerializer(source="material", read_only=True)
 
     class Meta:

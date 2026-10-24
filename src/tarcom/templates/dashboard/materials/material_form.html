@@ -127,6 +127,14 @@
                             <div class="error">{{ form.info_file.errors }}</div>
                         {% endif %}
                     </div>
+
+                    <div class="form-group">
+                        <label>{{ form.info_url.label }}</label>
+                        {{ form.info_url }}
+                        {% if form.info_url.errors %}
+                            <div class="error">{{ form.info_url.errors }}</div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
